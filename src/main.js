@@ -1,4 +1,9 @@
-import { createApp } from 'vue'
-import App from './App.vue'
+import { createApp } from "vue";
+import App from "./App.vue";
+import CustomDirectives from "./directives";
 
-createApp(App).mount('#app')
+const app = createApp(App);
+
+app.use(CustomDirectives);
+app.config.unwrapInjectedRef = true;
+app.mount("#app");

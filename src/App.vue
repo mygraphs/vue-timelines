@@ -1,26 +1,85 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <CellSizeContext>
+    <TriditiveGantt :tasks="mocks" :columns="columnsConfig" />
+  </CellSizeContext>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import { CellSizeContext } from "@/contexts";
+import TriditiveGantt from "./TriditiveGantt";
 
 export default {
-  name: 'App',
+  name: "App",
+  data() {
+    return {
+      columnsConfig: [
+        { slug: "ID", key: "id" },
+        { slug: "Title", key: "title" },
+        { slug: "Progress", key: "progress" },
+        { slug: "Due date", key: "duedate" },
+        { slug: "Started date", key: "creationDate" },
+      ],
+      mocks: [
+        {
+          id: "01",
+          title: "Test task 01",
+          creationDate: 1641437099,
+          duedate: 1651805099,
+          progress: 0.8,
+        },
+        {
+          id: "02",
+          title: "Test task 02",
+          creationDate: 1643856299,
+          duedate: 1649126699,
+          progress: 0.5,
+        },
+      ],
+      groups: {
+        group01: [
+          {
+            id: "01",
+            title: "Test task 01",
+            creationDate: 1641437099,
+            duedate: 1651805099,
+            progress: 0.8,
+          },
+          {
+            id: "02",
+            title: "Test task 02",
+            creationDate: 1643856299,
+            duedate: 1649126699,
+            progress: 0.5,
+          },
+        ],
+        group02: [
+          {
+            id: "01",
+            title: "Test task 01",
+            creationDate: 1641437099,
+            duedate: 1651805099,
+            progress: 0.8,
+          },
+          {
+            id: "02",
+            title: "Test task 02",
+            creationDate: 1643856299,
+            duedate: 1649126699,
+            progress: 0.5,
+          },
+        ],
+      },
+    };
+  },
   components: {
-    HelloWorld
-  }
-}
+    CellSizeContext,
+    TriditiveGantt,
+  },
+};
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+* {
+  box-sizing: border-box;
 }
 </style>
