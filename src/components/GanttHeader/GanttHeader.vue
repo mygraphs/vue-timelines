@@ -38,6 +38,9 @@ export default {
       this.$emit("scrollToday");
     },
   },
+  mounted() {
+    setTimeout(() => this.handleScrollToday(), 0);
+  },
 };
 </script>
 

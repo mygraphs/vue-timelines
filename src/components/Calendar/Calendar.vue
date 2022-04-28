@@ -14,42 +14,33 @@
 
 <script>
 import dayjs from "dayjs";
+import { calendarInit, calendarEnd } from "@/contexts/CalendarContext";
 
 export default {
   name: "Calendar",
-  props: {
-    init: Number,
-    end: Number,
-  },
-  data() {
-    return {
-      calendar: [],
-    };
-  },
-  methods: {
-    buildCalendar: function () {
-      let totalDays = 0;
-      let init = dayjs(this.init * 1000);
-      const end = dayjs(this.end * 1000);
+  inject: { calendarInit, calendarEnd },
+  computed: {
+    calendar: function () {
+      if (!this.calendarInit || !this.calendarEnd) return [];
 
-      while (init.month() <= end.month()) {
+      const months = [];
+
+      let init = dayjs(this.calendarInit * 1000);
+      const end = dayjs(this.calendarEnd * 1000);
+
+      while (init.isBefore(end) || init.isSame(end)) {
         const month = {
           name: init.format("MMMM"),
           year: init.format("YYYY"),
           lastDay: init.endOf("month").date(),
         };
 
-        totalDays += init.endOf("month").date();
-        this.calendar.push(month);
-
+        months.push(month);
         init = init.add(1, "month");
       }
 
-      this.$emit("totalCells", totalDays);
+      return months;
     },
-  },
-  mounted() {
-    this.buildCalendar();
   },
 };
 </script>

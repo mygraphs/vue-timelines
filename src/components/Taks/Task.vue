@@ -39,7 +39,6 @@
 </template>
 
 <script>
-import dayjs from "dayjs";
 import {
   reduceCellSize,
   increaseCellSize,
@@ -47,14 +46,16 @@ import {
   cellSize,
   cellSizeInPx,
 } from "@/contexts/CellSizeContext";
+import { calendarInit } from "@/contexts/CalendarContext";
+import { getDiffDays, addDays } from "@/utils/date";
 
 export default {
   name: "Task",
   props: {
+    id: String,
     title: String,
     creationDate: Number,
     duedate: Number,
-    calendarInit: Number,
     progress: Number,
   },
   inject: {
@@ -63,6 +64,7 @@ export default {
     resetCellSize,
     cellSize,
     cellSizeInPx,
+    calendarInit,
   },
   data: function () {
     return {
@@ -75,18 +77,10 @@ export default {
   },
   methods: {
     getTaskPositions: function () {
-      this.initPostion = this.getDiffDays(this.creationDate);
-      this.endPosition = this.getDiffDays(this.duedate);
+      this.initPostion = getDiffDays(this.creationDate, this.calendarInit);
+      this.endPosition = getDiffDays(this.duedate, this.calendarInit);
 
-      this.width = this.endPosition - this.initPostion + 1;
-    },
-    getDiffDays: function (dateToCampare) {
-      return (
-        -1 *
-        dayjs(this.calendarInit * 1000)
-          .set("date", 1)
-          .diff(dateToCampare * 1000, "d")
-      );
+      this.width = getDiffDays(this.creationDate, this.duedate) + 1;
     },
     handleResizeOpen: function () {
       this.showResizes = true;
@@ -105,11 +99,11 @@ export default {
         (this.dragLayerX - layerX) / this.cellSize
       );
 
-      if (this.initPostion - cellsToMove >= 0) {
-        this.initPostion -= cellsToMove;
-        this.endPosition -= cellsToMove;
-        this.width = this.endPosition - this.initPostion + 1;
-      }
+      // if (this.initPostion - cellsToMove >= 0) {
+      this.initPostion -= cellsToMove;
+      this.endPosition -= cellsToMove;
+      this.width = this.endPosition - this.initPostion + 1;
+      // }
     },
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
@@ -117,7 +111,7 @@ export default {
 
       const resize = Math.round(layerX / this.cellSize);
 
-      if ((this.width >= 2 || resize < 0) && this.initPostion + resize >= 0) {
+      if (this.width >= 2 || resize < 0) {
         this.initPostion += resize;
         this.width = this.endPosition - this.initPostion + 1;
       }
@@ -134,18 +128,22 @@ export default {
       }
     },
     handleUpdateDate: function () {
-      const initDay = dayjs(this.calendarInit * 1000)
-        .set("date", 1)
-        .add(this.initPostion, "day")
-        .unix();
+      const initDay = addDays(this.calendarInit, this.initPostion);
+      const endDay = addDays(this.calendarInit, this.endPosition);
 
-      const endDay = dayjs(this.calendarInit * 1000)
-        .set("date", 1)
-        .add(this.endPosition, "day")
-        .unix();
-
-      console.log(dayjs(initDay * 1000).format("DD-MM-YYYY"));
-      console.log(dayjs(endDay * 1000).format("DD-MM-YYYY"));
+      this.$emit("update", {
+        id: this.id,
+        creationDate: initDay,
+        duedate: endDay,
+      });
+    },
+  },
+  watch: {
+    calendarInit: function () {
+      this.getTaskPositions();
+    },
+    creationDate: function () {
+      this.getTaskPositions();
     },
   },
   mounted() {
@@ -162,6 +160,12 @@ export default {
   width: calc(v-bind(cellSizeInPx) * v-bind(width));
   left: calc(v-bind(cellSizeInPx) * v-bind(initPostion));
 }
+
+.task:active {
+  z-index: 10;
+  box-shadow: 0px 0px 10px 0px #000;
+}
+
 .task__container {
   position: relative;
   align-items: center;
@@ -200,7 +204,7 @@ export default {
   width: 14px;
   display: flex;
   align-items: center;
-  z-index: 1;
+  z-index: 10;
   cursor: ew-resize;
   background-color: rgba(160, 160, 160, 0.7);
   border-radius: 2px;

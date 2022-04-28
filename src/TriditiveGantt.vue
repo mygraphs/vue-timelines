@@ -3,32 +3,18 @@
 
   <div class="gantt-container">
     <div class="list">
-      <template v-for="column in columns" :key="column.key">
-        <div class="list__header">{{ column.slug }}</div>
-      </template>
+      <div class="list__header">Name</div>
 
-      <template v-for="task in tasks" :key="task.title">
-        <template v-for="column in columns" :key="column.key">
-          <div>{{ setCellFormat(task[column.key]) }}</div>
-        </template>
+      <template v-for="group in groups" :key="group.id">
+        <div>{{ setCellFormat(group.name) }}</div>
       </template>
     </div>
 
-    <div class="gantt" v-if="tasks.length !== 0" ref="gantt">
-      <Calendar
-        :init="calendarInit"
-        :end="calendarEnd"
-        @totalCells="(value) => (totalCells = value)"
-      />
+    <div class="gantt" v-if="groups.length !== 0" ref="gantt">
+      <Calendar />
 
-      <template v-for="task in tasks" :key="task.id">
-        <div class="calendar__row">
-          <template v-for="(_, index) in new Array(totalCells)" :key="index">
-            <div class="calendar__cell" />
-          </template>
-
-          <Task v-bind="task" :calendarInit="calendarInit" />
-        </div>
+      <template v-for="group in groups" :key="group.id">
+        <TaskList v-bind="group" />
       </template>
     </div>
   </div>
@@ -36,43 +22,26 @@
 
 <script>
 import dayjs from "dayjs";
-import { Task, Calendar, GanttHeader } from "@/components";
+import { GanttHeader, Calendar, TaskList } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
+import { setCalendarSize, todayCell } from "@/contexts/CalendarContext";
 
 export default {
   name: "TriditiveGantt",
-  inject: { cellSizeInPx, cellSize },
+  inject: {
+    cellSizeInPx,
+    cellSize,
+    setCalendarSize,
+    todayCell,
+  },
   props: {
-    columns: { type: Array, default: () => [] },
-    tasks: { type: Array, default: () => [] },
-  },
-  data: function () {
-    return {
-      listColumns: this.columns.length,
-      totalCells: 0,
-      todayCell: 0,
-    };
-  },
-  computed: {
-    calendarInit: function () {
-      return [...this.tasks].sort((a, b) => a.initDate < b.initDate)[0]
-        .creationDate;
-    },
-    calendarEnd: function () {
-      return [...this.tasks].sort((a, b) => b.duedate > a.duedate)[0].duedate;
+    groups: {
+      type: Array,
+      default: () => [],
     },
   },
   methods: {
     calendarScrollToday: function () {
-      if (!this.todayCell) {
-        this.todayCell =
-          -1 *
-            dayjs(this.calendarInit * 1000)
-              .set("date", 1)
-              .diff(new Date(), "d") +
-          1;
-      }
-
       this.$refs.gantt.scrollLeft = this.cellSize * (this.todayCell - 4);
     },
     setCellFormat: function (value) {
@@ -90,10 +59,10 @@ export default {
     },
   },
   mounted() {
-    setTimeout(this.calendarScrollToday, 1);
+    this.setCalendarSize(this.groups);
   },
   components: {
-    Task,
+    TaskList,
     Calendar,
     GanttHeader,
   },
