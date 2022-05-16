@@ -1,4 +1,4 @@
-import { getDiffDays, subtractDays, addDays } from "@/utils/date";
+import { getDiffDays, subtractDays, addDays } from "./date";
 
 export const orderTasks = (tasksUpdated, tasks, noOrder) => {
   if (noOrder) return { tasksUpdated, tasks };
@@ -8,7 +8,10 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
 
   tasks.forEach((task) => {
     tasksUpdated.forEach((taskUpdated) => {
-      if (task.id !== taskUpdated.id) {
+      if (
+        task.id !== taskUpdated.id &&
+        task.priority === taskUpdated.priority
+      ) {
         const moveLeft =
           taskUpdated.creationDate > task.creationDate &&
           taskUpdated.creationDate <= task.duedate;
@@ -20,7 +23,6 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
             taskUpdated.duedate >= task.duedate);
 
         if (moveLeft) {
-          console.log("move left");
           const diffDays = getDiffDays(task.duedate, taskUpdated.creationDate);
 
           task.creationDate = subtractDays(task.creationDate, diffDays + 1);
@@ -33,7 +35,6 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
           if (taskUpdateIndex !== -1) tasksUpdated[taskUpdateIndex] = task;
           else tasksUpdated.push(task);
         } else if (moveRight) {
-          console.log("move right");
           const diffDays = getDiffDays(taskUpdated.duedate, task.creationDate);
 
           task.creationDate = addDays(task.creationDate, diffDays + 1);

@@ -7,6 +7,8 @@ import { computed } from "vue";
 import {
   cellSize,
   cellSizeInPx,
+  cellHeight,
+  cellHeightInPx,
   reduceCellSize,
   increaseCellSize,
   resetCellSize,
@@ -17,6 +19,7 @@ export default {
   data() {
     return {
       cellSize: 25,
+      cellHeight: 45,
     };
   },
   methods: {
@@ -36,6 +39,8 @@ export default {
     return {
       [cellSize]: computed(() => this.cellSize),
       [cellSizeInPx]: computed(() => `${this.cellSize}px`),
+      [cellHeight]: computed(() => this.cellHeight),
+      [cellHeightInPx]: computed(() => `${this.cellHeight}px`),
       [reduceCellSize]: this.reduceCellSize,
       [increaseCellSize]: this.increaseCellSize,
       [resetCellSize]: this.resetCellSize,
