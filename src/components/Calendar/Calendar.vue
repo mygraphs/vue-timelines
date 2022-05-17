@@ -1,6 +1,10 @@
 <template>
   <div class="calendar">
-    <div v-for="month in calendar" :key="month.name + month.year">
+    <div
+      v-for="month in calendar"
+      :key="month.name + month.year"
+      class="calendar__inner-container"
+    >
       <div>{{ month.name }} {{ month.year }}</div>
 
       <div class="calendar__days-container">
@@ -47,6 +51,22 @@ export default {
 
 <style>
 .calendar {
+  top: 0;
   display: flex;
+  position: sticky;
+  z-index: 100;
+}
+
+.calendar > div {
+  background-color: #f8f9fc;
+}
+
+.calendar__inner-container {
+  background-color: #f8f9fc;
+  padding-top: 1.7rem;
+}
+
+.calendar__days-container {
+  background-color: #f8f9fc;
 }
 </style>

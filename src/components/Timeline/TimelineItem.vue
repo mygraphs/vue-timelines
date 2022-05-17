@@ -19,7 +19,7 @@
         @dragleave.prevent=""
       />
 
-      <div class="task__content">
+      <div class="task__content" :class="`task__state--${state}`">
         <slot />
       </div>
 
@@ -60,6 +60,7 @@ export default {
     progress: Number,
     groupName: String,
     priority: Number,
+    state: String,
   },
   inject: {
     reduceCellSize,
@@ -89,6 +90,7 @@ export default {
       taskGroupName: this.groupName,
       currentRowIndex: null,
       documentEventListener: null,
+      currentRows: this.rows,
     };
   },
   computed: {
@@ -148,7 +150,7 @@ export default {
           return prev + curr.offsetHeight / this.cellHeight;
         }, 0);
 
-        this.bottomLimit = prevRowsLimit + this.rows - this.priority;
+        this.bottomLimit = prevRowsLimit + this.currentRows - this.priority;
       });
     },
     handleResizeOpen: function () {
@@ -203,29 +205,35 @@ export default {
         const taskElement = this.$refs.task;
         const row = taskElement.closest(".calendar__row");
 
-        this.currentRowIndex = this.currentRowIndex - 1;
+        this.currentRowIndex -= 1;
 
         const prevGroup = row.parentNode.children[this.currentRowIndex];
         const prevGroupPriorities = prevGroup.offsetHeight / this.cellHeight;
 
-        const newRowName = prevGroup.getAttribute("name");
+        const newRowName = prevGroup.getAttribute("rowid");
+        const prevRowPriorities = Array.from(
+          prevGroup.querySelectorAll(".calendar__inner-row")
+        ).length;
         const newPriority = prevGroupPriorities;
 
         this.taskPriority = newPriority;
         this.taskGroupName = newRowName;
-      }
-
-      if (this.taskPriority > this.rows) {
+        this.currentRows = prevRowPriorities;
+      } else if (this.taskPriority > this.currentRows) {
         const taskElement = this.$refs.task;
         const row = taskElement.closest(".calendar__row");
 
-        this.currentRowIndex = this.currentRowIndex + 1;
+        this.currentRowIndex += 1;
 
         const newtGroup = row.parentNode.children[this.currentRowIndex];
-        const nextRowName = newtGroup.getAttribute("name");
+        const nextRowPriorities = Array.from(
+          newtGroup.querySelectorAll(".calendar__inner-row")
+        ).length;
+        const nextRowName = newtGroup.getAttribute("rowid");
 
         this.taskPriority = 1;
         this.taskGroupName = nextRowName;
+        this.currentRows = nextRowPriorities;
       }
     },
     handleResizeLeft: function (e) {
@@ -277,11 +285,14 @@ export default {
     creationDate: function () {
       this.getTaskPositions();
     },
+    rows: function () {
+      this.currentRows = this.rows;
+    },
   },
   mounted() {
     this.getTaskPositions();
 
-    if (this.priority > this.rows) {
+    if (this.priority > this.currentRows) {
       this.setRows(this.priority);
     }
   },
@@ -320,9 +331,9 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  height: 70%;
+  height: 62%;
   background-color: tomato;
-  border-radius: 5px;
+  border-radius: 4px;
   width: 100%;
 }
 
@@ -386,5 +397,25 @@ export default {
 
 .task_resize--right {
   right: -16px;
+}
+
+.task__state--info {
+  background-color: #3c8dbc;
+}
+
+.task__state--success {
+  background-color: #00a85d;
+}
+
+.task__state--warning {
+  background-color: #ffb311;
+}
+
+.task__state--danger {
+  background-color: #ff3636;
+}
+
+.task__state--dark {
+  background-color: #343a40;
 }
 </style>

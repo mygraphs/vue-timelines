@@ -2,23 +2,25 @@
   <!-- <GanttHeader @scrollToday="calendarScrollToday" /> -->
   <GanttHeader />
 
-  <div class="gantt-container">
+  <div class="main-container" @scroll="handleScroll">
     <slot>
-      <template v-if="groups.length !== 0">
-        <List width="150px">
+      <template v-if="groups.length">
+        <List width="200px">
           <ListHeader>Group Name</ListHeader>
 
           <ListRow v-for="group in groupsToUse" :key="group.id">
-            {{ group.name }}
+            <small>{{ group.name }}</small>
           </ListRow>
         </List>
 
         <Timeline ref="gantt">
           <template v-for="group in groupsToUse" :key="group.id">
-            <TimelineRow :name="group.name">
+            <TimelineRow :rowid="group.id">
               <template v-for="task in group.tasks" :key="task.id">
-                <TimelineItem v-bind="task" :groupName="group.name">
-                  {{ task.title }}
+                <TimelineItem v-bind="task" :groupName="group.id">
+                  <small>
+                    {{ task.title }}
+                  </small>
                 </TimelineItem>
               </template>
             </TimelineRow>
@@ -34,7 +36,7 @@ import { GanttHeader } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
-import { orderTasks } from "@/utils/tasks";
+import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 import {
   setCalendarSize,
@@ -66,7 +68,7 @@ export default {
   methods: {
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
       const groupIndex = this.groupsToUse.findIndex((group) => {
-        return group.name === newRow;
+        return group.id === newRow;
       });
 
       const currentGroup = this.groupsToUse[groupIndex];
@@ -91,7 +93,7 @@ export default {
 
       if (newRow !== oldRow) {
         const oldGroupIndex = this.groupsToUse.findIndex((group) => {
-          return group.name === oldRow;
+          return group.id === oldRow;
         });
 
         const oldGroup = this.groupsToUse[oldGroupIndex];
@@ -101,6 +103,8 @@ export default {
         });
 
         this.groupsToUse[oldGroupIndex].tasks.splice(oldTaskIndex, 1);
+        // console.log(this.groupsToUse[oldGroupIndex]);
+        // console.log(currentGroup);
 
         const { tasksUpdated, tasks } = orderTasks(
           [updatedTask],
@@ -117,6 +121,11 @@ export default {
       const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
       this.emitUpdatedTasks({ tasksUpdated, tasks });
     },
+    handleScroll: function (e) {
+      const scrollTop = e.target.scrollTop;
+      const timeline = document.querySelector(".timeline");
+      timeline.scrollTop = scrollTop;
+    },
   },
   mounted() {
     this.setCalendarSize(this.groups);
@@ -129,7 +138,7 @@ export default {
             ...task,
             creationDate: initDay(task.creationDate),
             duedate: initDay(task.duedate),
-            rowName: group.name,
+            rowName: group.id,
           })),
         };
       });
@@ -137,17 +146,16 @@ export default {
 
     this.groupsToUse = setInitMoundInTasks(this.groups);
 
-    this.groupsToUse.forEach((group) => {
-      const { tasksUpdated, tasks } = this.handleTaskUpdate({
-        updatedTask: group.tasks[0],
-        newRow: group.name,
-        oldRow: group.name,
-      });
+    this.groupsToUse.forEach((group, index) => {
+      const { tasksUpdated, tasks } = setPriorityTasks(
+        [group.tasks[0]],
+        [...group.tasks]
+      );
 
-      if (tasksUpdated.length > 1) {
-        const taskesUpdatedEmit = tasksUpdated.splice(0, 1);
-        this.emitUpdatedTasks({ tasksUpdated: taskesUpdatedEmit, tasks });
-      }
+      this.groupsToUse[index].tasks = tasks;
+
+      this.emitUpdatedTasks({ tasksUpdated, tasks });
+      this.checkCalendarSize(tasksUpdated);
     });
   },
   provide: function () {
@@ -168,13 +176,18 @@ export default {
 </script>
 
 <style>
+.main-container {
+  display: flex;
+  max-height: 88vh;
+  overflow-y: scroll;
+}
+
 .gantt-container {
   display: flex;
 }
 
 .calendar {
   text-align: center;
-  padding-top: 0.4rem;
   color: #707070;
   background-color: #fdfdfd;
 }

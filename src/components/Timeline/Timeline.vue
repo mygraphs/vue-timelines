@@ -36,5 +36,8 @@ export default {
 .timeline {
   overflow-x: scroll;
   width: 100%;
+  overflow-y: hidden;
+  position: sticky;
+  top: 0;
 }
 </style>

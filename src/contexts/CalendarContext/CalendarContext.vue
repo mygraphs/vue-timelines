@@ -37,7 +37,7 @@ export default {
         .map((group) => [...group.tasks])
         .reduce((prev, curr) => [...prev, ...curr]);
 
-      const tasksSorted = [...tasks].sort((a, b) => a.initDate - b.initDate);
+      const tasksSorted = tasks.sort((a, b) => a.creationDate - b.creationDate);
 
       const [firstTask] = tasksSorted;
       const [lastTask] = tasksSorted.reverse();

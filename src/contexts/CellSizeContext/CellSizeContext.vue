@@ -19,7 +19,7 @@ export default {
   data() {
     return {
       cellSize: 25,
-      cellHeight: 45,
+      cellHeight: 40,
     };
   },
   methods: {

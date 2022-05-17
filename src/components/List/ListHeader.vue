@@ -13,6 +13,11 @@ export default {
 <style scoped>
 .list__header {
   color: #707070;
-  background-color: #fdfdfd;
+  background-color: #f8f9fc;
+  padding-top: 2rem;
+  padding-bottom: 0.8rem;
+  color: #000000;
+  position: sticky;
+  top: 0;
 }
 </style>

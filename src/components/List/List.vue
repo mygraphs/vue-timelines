@@ -23,10 +23,13 @@ export default {
   margin-bottom: 17px;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 .list > * {
-  padding: 0.8rem 0.5rem;
+  display: flex;
+  align-items: center;
+  padding: 0 0.8rem;
   border-right: 1px solid rgb(226, 226, 226);
   border-bottom: 1px solid rgb(226, 226, 226);
 }

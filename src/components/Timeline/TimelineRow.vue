@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar__row" ref="timelineRow" :name="name">
+  <div class="calendar__row" ref="timelineRow" :rowid="rowid">
     <div
       class="calendar__inner-row-container"
       :class="{ 'calendar__row--dragover': isDragover }"
@@ -14,7 +14,6 @@
     </template>
 
     <slot />
-
     <button class="calendar__button" @click="handleAddRow">+</button>
   </div>
 </template>
@@ -39,7 +38,7 @@ export default {
     todayCell,
   },
   props: {
-    name: {
+    rowid: {
       type: String,
       required: true,
     },
@@ -125,7 +124,8 @@ export default {
 }
 
 .calendar__button {
-  position: fixed;
+  position: sticky;
+  height: 20px;
   right: 0;
   z-index: 10;
   font-size: 0.7rem;
@@ -135,9 +135,8 @@ export default {
   max-width: v-bind(cellSizeInPx);
   min-width: v-bind(cellSizeInPx);
   width: v-bind(cellSizeInPx);
-  border-right: 1px solid;
-  border-bottom: 1px solid;
-  border-color: rgba(212, 222, 230, 0.45);
+  border-right: 1px solid rgba(212, 222, 230, 0.4);
+  border-bottom: 1px solid rgba(212, 222, 230, 0.7);
   height: 100%;
   position: relative;
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2>Triditive Gantt</h2>
+    <h2 class="header__title">Triditive Gantt</h2>
 
     <div class="header__actions">
       <div class="header__zoom-buttons">
@@ -16,6 +16,7 @@
 </template>
 
 <script>
+import { todayCell } from "@/contexts/CalendarContext";
 import {
   reduceCellSize,
   increaseCellSize,
@@ -32,10 +33,13 @@ export default {
     resetCellSize,
     cellSize,
     cellSizeInPx,
+    todayCell,
   },
   methods: {
     handleScrollToday: function () {
       this.$emit("scrollToday");
+      const timeline = document.querySelector(".timeline");
+      timeline.scrollLeft = this.cellSize * (this.todayCell - 4);
     },
   },
   mounted() {
@@ -48,6 +52,10 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
+}
+
+.header__title {
+  font-weight: 500;
 }
 
 .header__actions {
