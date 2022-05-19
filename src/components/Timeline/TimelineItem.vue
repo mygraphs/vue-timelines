@@ -352,6 +352,7 @@ export default {
 .task__content:active {
   box-shadow: 0px 0px 10px 0px #000;
   pointer-events: none;
+  z-index: 100;
 }
 
 .task__resize {

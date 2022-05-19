@@ -1,6 +1,5 @@
 <template>
-  <!-- <GanttHeader @scrollToday="calendarScrollToday" /> -->
-  <GanttHeader />
+  <GanttHeader @scrollToday="calendarScrollToday" />
 
   <div class="main-container" @scroll="handleScroll">
     <slot>
@@ -13,12 +12,13 @@
           </ListRow>
         </List>
 
-        <Timeline ref="gantt">
+        <Timeline ref="timeline">
           <template v-for="group in groupsToUse" :key="group.id">
             <TimelineRow :rowid="group.id">
               <template v-for="task in group.tasks" :key="task.id">
                 <TimelineItem v-bind="task" :groupName="group.id">
                   <small>
+                    <span v-if="!task.due_date">⚠</span>
                     {{ task.title }}
                   </small>
                 </TimelineItem>
@@ -66,6 +66,13 @@ export default {
     };
   },
   methods: {
+    updateTask: function (taskData) {
+      const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
+      this.emitUpdatedTasks({ tasksUpdated, tasks });
+    },
+    calendarScrollToday: function () {
+      this.$refs.timeline.calendarScrollToday();
+    },
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
       const groupIndex = this.groupsToUse.findIndex((group) => {
         return group.id === newRow;
@@ -117,10 +124,7 @@ export default {
         return { tasksUpdated, tasks };
       }
     },
-    updateTask: function (taskData) {
-      const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
-      this.emitUpdatedTasks({ tasksUpdated, tasks });
-    },
+
     handleScroll: function (e) {
       const scrollTop = e.target.scrollTop;
       const timeline = document.querySelector(".timeline");
@@ -178,7 +182,7 @@ export default {
 <style>
 .main-container {
   display: flex;
-  max-height: 88vh;
+  max-height: 85vh;
   overflow-y: scroll;
 }
 

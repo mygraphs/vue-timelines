@@ -38,8 +38,6 @@ export default {
   methods: {
     handleScrollToday: function () {
       this.$emit("scrollToday");
-      const timeline = document.querySelector(".timeline");
-      timeline.scrollLeft = this.cellSize * (this.todayCell - 4);
     },
   },
   mounted() {
@@ -52,10 +50,12 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
+  background-color: #f8f9fc;
 }
 
 .header__title {
   font-weight: 500;
+  margin: 1rem 0;
 }
 
 .header__actions {

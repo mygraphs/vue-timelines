@@ -16,7 +16,7 @@ export default {
   background-color: #f8f9fc;
   padding-top: 2rem;
   padding-bottom: 0.8rem;
-  color: #000000;
+  color: #707070;
   position: sticky;
   top: 0;
 }
