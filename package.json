@@ -3,7 +3,7 @@
   "description": "Vue gantt component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "private": false,
   "main": "dist/my-gantt.umb.js",
   "module": "dist/my-gantt.esm.js",
