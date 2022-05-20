@@ -134,8 +134,8 @@ export default {
         const creationDateInitDay = initDay(task.creationDate);
         const dueDateInitDay = initDay(task.duedate);
 
-        calendarInit ??= creationDateInitDay;
-        calendarEnd ??= dueDateInitDay;
+        if (!calendarInit) calendarInit = creationDateInitDay;
+        if (!calendarEnd) calendarEnd = dueDateInitDay;
 
         if (creationDateInitDay < calendarInit) {
           calendarInit = creationDateInitDay;

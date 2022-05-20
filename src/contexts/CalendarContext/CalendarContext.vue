@@ -41,8 +41,8 @@ export default {
       let calendarEnd = null;
 
       tasks.forEach((task) => {
-        calendarInit ??= task.creationDate;
-        calendarEnd ??= task.duedate;
+        if (!calendarInit) calendarInit = task.creationDate;
+        if (!calendarEnd) calendarEnd = task.duedate;
 
         if (task.creationDate < calendarInit) calendarInit = task.creationDate;
         if (task.duedate > calendarEnd) calendarEnd = task.duedate;
