@@ -25,39 +25,34 @@ export default {
   },
   computed: {
     totalDays: function () {
-      return getDiffDays(lastDayMounth(this.calendarEnd), this.calendarInit);
+      return getDiffDays(this.calendarEnd, this.calendarInit);
     },
     todayCell: function () {
       return getDiffDays(this.calendarInit, new Date().getTime() / 1000);
     },
   },
   methods: {
-    setCalendarSize: function (groups) {
-      const tasks = groups
-        .map((group) => [...group.tasks])
-        .reduce((prev, curr) => [...prev, ...curr]);
-
-      const tasksSorted = tasks.sort((a, b) => a.creationDate - b.creationDate);
-
-      const [firstTask] = tasksSorted;
-      const [lastTask] = tasksSorted.reverse();
-
-      this.calendarInit = firstDayMounth(firstTask.creationDate);
-      this.calendarEnd = firstDayMounth(lastTask.duedate);
+    setCalendarSize: function (calendarInit, calendarEnd) {
+      this.calendarInit = firstDayMounth(calendarInit);
+      this.calendarEnd = lastDayMounth(calendarEnd);
     },
     checkCalendarSize: function (tasks) {
-      const tasksSorted = tasks.sort((a, b) => a.creationDate - b.creationDate);
+      let calendarInit = null;
+      let calendarEnd = null;
 
-      const [firstTask] = tasksSorted;
-      const [lastTask] = tasksSorted.reverse();
+      tasks.forEach((task) => {
+        calendarInit ??= task.creationDate;
+        calendarEnd ??= task.duedate;
 
-      if (!this.calendarInit || firstTask.creationDate < this.calendarInit) {
-        this.calendarInit = firstDayMounth(firstTask.creationDate);
-      }
+        if (task.creationDate < calendarInit) calendarInit = task.creationDate;
+        if (task.duedate > calendarEnd) calendarEnd = task.duedate;
+      });
 
-      if (!this.calendarEnd || lastTask.duedate > this.calendarEnd) {
-        this.calendarEnd = firstDayMounth(lastTask.duedate);
-      }
+      if (calendarInit < this.calendarInit)
+        this.calendarInit = firstDayMounth(calendarInit);
+
+      if (calendarEnd > this.calendarEnd)
+        this.calendarEnd = lastDayMounth(calendarEnd);
     },
   },
   provide: function () {

@@ -3,12 +3,14 @@
 
   <div class="main-container" @scroll="handleScroll">
     <slot>
-      <template v-if="groups.length">
+      <template v-if="groups">
         <List width="200px">
           <ListHeader>Group Name</ListHeader>
-
           <ListRow v-for="group in groupsToUse" :key="group.id">
-            <small>{{ group.name }}</small>
+            <small>
+              <span style="font-weight: bold">{{ group.name }}</span>
+              {{ group.color_name }}
+            </small>
           </ListRow>
         </List>
 
@@ -18,7 +20,6 @@
               <template v-for="task in group.tasks" :key="task.id">
                 <TimelineItem v-bind="task" :groupName="group.id">
                   <small>
-                    <span v-if="!task.due_date">⚠</span>
                     {{ task.title }}
                   </small>
                 </TimelineItem>
@@ -56,8 +57,12 @@ export default {
   },
   props: {
     groups: {
-      type: Array,
-      default: () => [],
+      type: Object,
+      default: () => {},
+    },
+    height: {
+      type: String,
+      default: "85vh",
     },
   },
   data: function () {
@@ -74,57 +79,44 @@ export default {
       this.$refs.timeline.calendarScrollToday();
     },
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
-      const groupIndex = this.groupsToUse.findIndex((group) => {
-        return group.id === newRow;
+      if (newRow !== oldRow) {
+        const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
+          return task.id === updatedTask.id;
+        });
+
+        this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
+        this.groupsToUse[newRow].tasks.push(updatedTask);
+      } else {
+        const taskIndex = this.groupsToUse[newRow].tasks.findIndex((task) => {
+          return task.id === updatedTask.id;
+        });
+
+        this.groupsToUse[newRow].tasks[taskIndex] = updatedTask;
+      }
+
+      const { tasksUpdated, tasks } = orderTasks(
+        [updatedTask],
+        [...this.groupsToUse[newRow].tasks]
+      );
+
+      tasksUpdated.forEach((taskUpdated) => {
+        const taskIndex = this.groupsToUse[newRow].tasks.findIndex((task) => {
+          return task.id === taskUpdated.id;
+        });
+
+        console.log(taskUpdated);
+        this.groupsToUse[newRow].tasks[taskIndex] = taskUpdated;
       });
 
-      const currentGroup = this.groupsToUse[groupIndex];
-
-      if (newRow === oldRow) {
-        const taskIndex = currentGroup.tasks.findIndex((task) => {
-          return task.id === updatedTask.id;
-        });
-
-        currentGroup.tasks[taskIndex] = updatedTask;
-
-        const { tasksUpdated, tasks } = orderTasks(
-          [updatedTask],
-          currentGroup.tasks
-        );
-
-        this.groupsToUse[groupIndex].tasks = tasks;
-        this.checkCalendarSize(tasksUpdated);
-
-        return { tasksUpdated, tasks };
-      }
-
-      if (newRow !== oldRow) {
-        const oldGroupIndex = this.groupsToUse.findIndex((group) => {
-          return group.id === oldRow;
-        });
-
-        const oldGroup = this.groupsToUse[oldGroupIndex];
-
-        const oldTaskIndex = oldGroup.tasks.findIndex((task) => {
-          return task.id === updatedTask.id;
-        });
-
-        this.groupsToUse[oldGroupIndex].tasks.splice(oldTaskIndex, 1);
-        // console.log(this.groupsToUse[oldGroupIndex]);
-        // console.log(currentGroup);
-
-        const { tasksUpdated, tasks } = orderTasks(
-          [updatedTask],
-          [...currentGroup.tasks, updatedTask]
-        );
-
-        this.groupsToUse[groupIndex].tasks = tasks;
-        this.checkCalendarSize(tasksUpdated);
-
-        return { tasksUpdated, tasks };
-      }
+      this.checkCalendarSize(tasksUpdated);
+      return {
+        tasksUpdated: tasksUpdated.map((task) => ({
+          ...task,
+          newGroup: this.groupsToUse[newRow].name,
+        })),
+        tasks: tasks.map((task) => task),
+      };
     },
-
     handleScroll: function (e) {
       const scrollTop = e.target.scrollTop;
       const timeline = document.querySelector(".timeline");
@@ -132,35 +124,45 @@ export default {
     },
   },
   mounted() {
-    this.setCalendarSize(this.groups);
+    this.groupsToUse = this.groups;
 
-    const setInitMoundInTasks = (groups) => {
-      return groups.map((group) => {
+    let calendarInit = null;
+    let calendarEnd = null;
+
+    for (const key in this.groupsToUse) {
+      this.groupsToUse[key].tasks.map((task) => {
+        const creationDateInitDay = initDay(task.creationDate);
+        const dueDateInitDay = initDay(task.duedate);
+
+        calendarInit ??= creationDateInitDay;
+        calendarEnd ??= dueDateInitDay;
+
+        if (creationDateInitDay < calendarInit) {
+          calendarInit = creationDateInitDay;
+        }
+
+        if (dueDateInitDay > calendarEnd) {
+          calendarEnd = dueDateInitDay;
+        }
+
         return {
-          ...group,
-          tasks: group.tasks.map((task) => ({
-            ...task,
-            creationDate: initDay(task.creationDate),
-            duedate: initDay(task.duedate),
-            rowName: group.id,
-          })),
+          ...task,
+          creationDate: creationDateInitDay,
+          duedate: dueDateInitDay,
+          rowName: dueDateInitDay,
         };
       });
-    };
 
-    this.groupsToUse = setInitMoundInTasks(this.groups);
-
-    this.groupsToUse.forEach((group, index) => {
       const { tasksUpdated, tasks } = setPriorityTasks(
-        [group.tasks[0]],
-        [...group.tasks]
+        [this.groupsToUse[key].tasks[0]],
+        [...this.groupsToUse[key].tasks]
       );
 
-      this.groupsToUse[index].tasks = tasks;
-
+      this.groupsToUse[key].tasks = tasks;
       this.emitUpdatedTasks({ tasksUpdated, tasks });
-      this.checkCalendarSize(tasksUpdated);
-    });
+    }
+
+    this.setCalendarSize(calendarInit, calendarEnd);
   },
   provide: function () {
     return {
@@ -182,7 +184,7 @@ export default {
 <style>
 .main-container {
   display: flex;
-  max-height: 85vh;
+  max-height: v-bind(height);
   overflow-y: scroll;
 }
 

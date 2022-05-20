@@ -17,8 +17,8 @@ export default {
   emits: ["update"],
   props: {
     groups: {
-      type: Array,
-      default: () => [],
+      type: Object,
+      default: () => {},
     },
   },
   methods: {
