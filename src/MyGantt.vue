@@ -46,7 +46,7 @@ import {
 } from "@/contexts/CalendarContext";
 
 export default {
-  name: "TriditiveGantt",
+  name: "VueTimeline",
   inject: {
     cellSizeInPx,
     cellSize,

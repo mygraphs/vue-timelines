@@ -1,21 +1,15 @@
 <h1 style="text-align: center;">My Gantt</h1>
 
-<!-- [![npm](https://img.shields.io/npm/v/timeline-vuejs.svg?colorB=brightgreen)](https://www.npmjs.com/package/timeline-vuejs)
-[![downloads](https://img.shields.io/npm/dw/timeline-vuejs.svg)](https://www.npmjs.com/package/timeline-vuejs)
-[![Twitter](https://img.shields.io/twitter/url/https/www.npmjs.com/package/timeline-vuejs.svg?style=social)](https://twitter.com/intent/tweet?text=Wow:&url=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2Ftimeline-vuejs) -->
-
-[Demo Timeline Vue](https://codesandbox.io/s/n094ypklvl)
-
 ## 📦 Install
 
 ```
-npm install my-gantt --save
+npm install vue-timelines --save
 ```
 
 ```html
 // component.vue
 <script>
-  import MyGantt from "my-gantt";
+  import MyGantt from "vue-timelines";
 
   export default {
     // ...
@@ -38,7 +32,7 @@ npm install my-gantt --save
 </template>
 
 <script>
-  import MyGantt from 'my-gantt'
+  import MyGantt from 'vue-timelines'
 
   export default {
     components: {

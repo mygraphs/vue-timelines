@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2 class="header__title">Triditive Gantt</h2>
+    <h2 class="header__title">Vue Timelines</h2>
 
     <div class="header__actions">
       <div class="header__zoom-buttons">

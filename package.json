@@ -1,15 +1,15 @@
 {
-  "name": "my-gantt",
-  "description": "Vue gantt component",
+  "name": "vue-timelines",
+  "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
   "version": "0.1.21",
   "private": false,
-  "main": "dist/my-gantt.umb.js",
-  "module": "dist/my-gantt.esm.js",
-  "unpkg": "dist/my-gantt.min.js",
+  "main": "dist/vue-timelines.umb.js",
+  "module": "dist/vue-timelines.esm.js",
+  "unpkg": "dist/vue-timelines.min.js",
   "browser": {
-    "./sfc": "src/triditive-gantt.vue"
+    "./sfc": "src/vue-timelines.vue"
   },
   "files": [
     "dist/*",
@@ -19,9 +19,9 @@
     "serve": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
     "build": "rimraf dist & cross-env NODE_ENV=production & npm run build:unpkg & npm run build:es & npm run build:umd",
-    "build:umd": "rollup --config rollup.config.js --format umd --file dist/my-gantt.umd.js",
-    "build:es": "rollup --config rollup.config.js --format es --file dist/my-gantt.esm.js",
-    "build:unpkg": "rollup --config rollup.config.js --format iife --file dist/my-gantt.min.js"
+    "build:umd": "rollup --config rollup.config.js --format umd --file dist/vue-timelines.umd.js",
+    "build:es": "rollup --config rollup.config.js --format es --file dist/vue-timelines.esm.js",
+    "build:unpkg": "rollup --config rollup.config.js --format iife --file dist/vue-timelines.min.js"
   },
   "peerDependencies": {
     "vue": ">= 3.0.0"
