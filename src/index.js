@@ -1,6 +1,6 @@
 import * as TimelineComponets from "./components/Timeline";
 import * as ListComponents from "./components/List";
-import MyGrapth from "./MyGraphs";
+import MyGraph from "./MyGraphs";
 
 const install = (Vue) => {
   if (install.installed) return;
@@ -22,8 +22,8 @@ const install = (Vue) => {
     }
   }
 
-  Vue.component(MyGrapth.name, MyGrapth);
-  MyGrapth.install = install;
+  Vue.component(MyGraph.name, MyGraph);
+  MyGraph.install = install;
 };
 
 const plugin = {
@@ -51,5 +51,5 @@ export {
   List,
   ListHeader,
   ListRow,
-  MyGrapth,
+  MyGraph,
 };
