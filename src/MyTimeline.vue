@@ -1,5 +1,5 @@
 <template>
-  <GanttHeader @scrollToday="calendarScrollToday" />
+  <TimelineHeader @scrollToday="calendarScrollToday" />
 
   <div class="main-container" @scroll="handleScroll">
     <slot>
@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import { GanttHeader } from "@/components";
+import { TimelineHeader } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
@@ -170,7 +170,7 @@ export default {
     };
   },
   components: {
-    GanttHeader,
+    TimelineHeader,
     List,
     ListHeader,
     ListRow,
@@ -188,7 +188,7 @@ export default {
   overflow-y: scroll;
 }
 
-.gantt-container {
+.Timeline-container {
   display: flex;
 }
 

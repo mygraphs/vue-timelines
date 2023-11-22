@@ -52,8 +52,9 @@
   },
   "keywords": [
     "vuecomponent",
-    "gantt",
-    "vue gantt"
+    "Timeline",
+    "timeline",
+    "vue Timeline"
   ],
   "eslintConfig": {
     "root": true,

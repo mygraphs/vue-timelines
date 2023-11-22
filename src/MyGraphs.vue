@@ -1,16 +1,16 @@
 <template>
   <CalendarContext>
     <CellSizeContext>
-      <MyGantt :groups="groups">
+      <MyTimeline :groups="groups">
         <slot />
-      </MyGantt>
+      </MyTimeline>
     </CellSizeContext>
   </CalendarContext>
 </template>
 
 <script>
 import { CellSizeContext, CalendarContext } from "@/contexts";
-import MyGantt from "./MyGantt";
+import MyTimeline from "./MyTimeline";
 
 export default {
   name: "MyGraphs",
@@ -34,7 +34,7 @@ export default {
   components: {
     CellSizeContext,
     CalendarContext,
-    MyGantt,
+    MyTimeline,
   },
 };
 </script>

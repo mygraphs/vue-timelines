@@ -13,7 +13,7 @@ export default {
   input: "src/index.js",
   external: ["vue", "dayjs"],
   output: {
-    name: "MyGantt",
+    name: "MyTimeline",
     exports: "named",
     globals: {
       vue: "Vue",

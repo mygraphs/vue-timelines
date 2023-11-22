@@ -26,7 +26,7 @@ import {
 } from "@/contexts/CellSizeContext";
 
 export default {
-  name: "GanttHeader",
+  name: "TimelineHeader",
   inject: {
     reduceCellSize,
     increaseCellSize,

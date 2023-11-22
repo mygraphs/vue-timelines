@@ -1,4 +1,4 @@
 export * from "./Calendar";
-export * from "./GanttHeader";
+export * from "./TimelineHeader";
 export * from "./List";
 export * from "./Timeline";

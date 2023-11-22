@@ -1,4 +1,4 @@
-<h1 style="text-align: center;">My Gantt</h1>
+<h1 style="text-align: center;">My Timeline</h1>
 
 ## 📦 Install
 
@@ -9,7 +9,7 @@ npm install vue-timelines --save
 ```html
 // component.vue
 <script>
-  import MyGantt from "vue-timelines";
+  import MyTimeline from "vue-timelines";
 
   export default {
     // ...
@@ -25,21 +25,20 @@ npm install vue-timelines --save
 
 ```html
 <template>
-  <MyGantt
+  <MyTimeline
     :groups="taskGroups"
     @update="handleUpdatedTasks"
   />
 </template>
 
 <script>
-  import MyGantt from 'vue-timelines'
+import MyGraphs from "./MyGraphs";
 
-  export default {
-    components: {
-      MyGantt
-    }
-    data: () => ({
-      taskGroups:  groups: [
+export default {
+  name: "App",
+  data() {
+    return {
+      groups: [
         {
           name: "group 01",
           id: "1",
@@ -50,6 +49,7 @@ npm install vue-timelines --save
               creationDate: 1641437099,
               duedate: 1651805099,
               progress: 0.8,
+              priority: 1,
             },
             {
               id: "02",
@@ -57,6 +57,7 @@ npm install vue-timelines --save
               creationDate: 1643856299,
               duedate: 1649126699,
               progress: 0.5,
+              priority: 2,
             },
           ],
         },
@@ -70,6 +71,7 @@ npm install vue-timelines --save
               creationDate: 1649041200,
               duedate: 1650510000,
               progress: 0.8,
+              priority: 1,
             },
             {
               id: "04",
@@ -77,6 +79,7 @@ npm install vue-timelines --save
               creationDate: 1650596400,
               duedate: 1651374000,
               progress: 0.5,
+              priority: 2,
             },
             {
               id: "05",
@@ -84,6 +87,7 @@ npm install vue-timelines --save
               creationDate: 1651719600,
               duedate: 1651892400,
               progress: 0.5,
+              priority: 2,
             },
             {
               id: "06",
@@ -91,17 +95,24 @@ npm install vue-timelines --save
               creationDate: 1652151600,
               duedate: 1652324400,
               progress: 0.5,
+              priority: 1,
             },
           ],
         },
       ],
-    })
-    methods: {
-        handleUpdatedTasks: function (updatedTasks) {
-            // ...
-        }
-    }
-  }
+    };
+  },
+  methods: {
+    handleUpdatedTasks: function ({ tasksUpdated, tasks }) {
+      console.log(tasksUpdated);
+      console.log(tasks);
+      //... Perform your tasks
+    },
+  },
+  components: {
+    MyGraphs,
+  },
+};
 </script>
 ```
 
