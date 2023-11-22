@@ -15,19 +15,19 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
       ) {
         const moveLeft =
           taskUpdated.creationDate > task.creationDate &&
-          taskUpdated.creationDate <= task.duedate;
+          taskUpdated.creationDate <= task.dueDate;
 
         const moveRight =
-          (taskUpdated.duedate >= task.creationDate &&
-            taskUpdated.duedate <= task.duedate) ||
+          (taskUpdated.dueDate >= task.creationDate &&
+            taskUpdated.dueDate <= task.dueDate) ||
           (taskUpdated.creationDate <= task.creationDate &&
-            taskUpdated.duedate >= task.duedate);
+            taskUpdated.dueDate >= task.dueDate);
 
         if (moveLeft) {
-          const diffDays = getDiffDays(task.duedate, taskUpdated.creationDate);
+          const diffDays = getDiffDays(task.dueDate, taskUpdated.creationDate);
 
           task.creationDate = subtractDays(task.creationDate, diffDays + 1);
-          task.duedate = subtractDays(task.duedate, diffDays + 1);
+          task.dueDate = subtractDays(task.dueDate, diffDays + 1);
 
           const taskUpdateIndex = tasksUpdated.findIndex((taskItem) => {
             return taskItem.id === task.id;
@@ -36,10 +36,10 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
           if (taskUpdateIndex !== -1) tasksUpdated[taskUpdateIndex] = task;
           else tasksUpdated.push(task);
         } else if (moveRight) {
-          const diffDays = getDiffDays(taskUpdated.duedate, task.creationDate);
+          const diffDays = getDiffDays(taskUpdated.dueDate, task.creationDate);
 
           task.creationDate = addDays(task.creationDate, diffDays + 1);
-          task.duedate = addDays(task.duedate, diffDays + 1);
+          task.dueDate = addDays(task.dueDate, diffDays + 1);
 
           const taskUpdateIndex = tasksUpdated.findIndex((taskItem) => {
             return taskItem.id === task.id;
@@ -73,9 +73,9 @@ export const setPriorityTasks = (tasksUpdated, tasks, noOrder) => {
       ) {
         if (
           (task.creationDate >= taskUpdated.creationDate &&
-            task.creationDate <= taskUpdated.duedate) ||
-          (task.duedate >= taskUpdated.creationDate &&
-            task.duedate <= taskUpdated.duedate)
+            task.creationDate <= taskUpdated.dueDate) ||
+          (task.dueDate >= taskUpdated.creationDate &&
+            task.dueDate <= taskUpdated.dueDate)
         ) {
           task.priority = taskUpdated.priority + 1;
           tasksUpdated.push(task);
@@ -84,9 +84,9 @@ export const setPriorityTasks = (tasksUpdated, tasks, noOrder) => {
         if (
           (index - 1 >= 0 &&
             task.creationDate >= tasks[index - 1].creationDate &&
-            task.creationDate <= tasks[index - 1].duedate) ||
-          (task.duedate >= tasks[index - 1].creationDate &&
-            task.duedate <= tasks[index - 1].duedate)
+            task.creationDate <= tasks[index - 1].dueDate) ||
+          (task.dueDate >= tasks[index - 1].creationDate &&
+            task.dueDate <= tasks[index - 1].dueDate)
         ) {
           task.priority = taskUpdated.priority + 1;
           tasksUpdated.push(task);

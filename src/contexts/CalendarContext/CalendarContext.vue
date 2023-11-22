@@ -42,10 +42,10 @@ export default {
 
       tasks.forEach((task) => {
         if (!calendarInit) calendarInit = task.creationDate;
-        if (!calendarEnd) calendarEnd = task.duedate;
+        if (!calendarEnd) calendarEnd = task.dueDate;
 
         if (task.creationDate < calendarInit) calendarInit = task.creationDate;
-        if (task.duedate > calendarEnd) calendarEnd = task.duedate;
+        if (task.dueDate > calendarEnd) calendarEnd = task.dueDate;
       });
 
       if (calendarInit < this.calendarInit)

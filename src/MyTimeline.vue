@@ -132,7 +132,7 @@ export default {
     for (const key in this.groupsToUse) {
       this.groupsToUse[key].tasks.map((task) => {
         const creationDateInitDay = initDay(task.creationDate);
-        const dueDateInitDay = initDay(task.duedate);
+        const dueDateInitDay = initDay(task.dueDate);
 
         if (!calendarInit) calendarInit = creationDateInitDay;
         if (!calendarEnd) calendarEnd = dueDateInitDay;
@@ -148,7 +148,7 @@ export default {
         return {
           ...task,
           creationDate: creationDateInitDay,
-          duedate: dueDateInitDay,
+          dueDate: dueDateInitDay,
           rowName: dueDateInitDay,
         };
       });

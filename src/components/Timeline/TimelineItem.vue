@@ -56,7 +56,7 @@ export default {
     id: String,
     title: String,
     creationDate: Number,
-    duedate: Number,
+    dueDate: Number,
     progress: Number,
     groupName: String,
     priority: Number,
@@ -107,7 +107,7 @@ export default {
   methods: {
     getTaskPositions: function () {
       this.initPostion = getDiffDays(this.creationDate, this.calendarInit);
-      this.endPosition = getDiffDays(this.duedate, this.calendarInit);
+      this.endPosition = getDiffDays(this.dueDate, this.calendarInit);
 
       const taskElement = this.$refs.task;
       const row = taskElement.closest(".calendar__row");
@@ -116,7 +116,7 @@ export default {
       this.getTopLimit();
       this.getBottomLimit();
 
-      this.width = getDiffDays(this.creationDate, this.duedate) + 1;
+      this.width = getDiffDays(this.creationDate, this.dueDate) + 1;
     },
     getTopLimit: function () {
       const taskElement = this.$refs.task;
@@ -265,7 +265,7 @@ export default {
       const taskData = {
         ...this.$props,
         creationDate: initDay,
-        duedate: endDay,
+        dueDate: endDay,
         priority: this.taskPriority,
       };
 
