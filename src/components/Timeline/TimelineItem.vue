@@ -37,6 +37,10 @@
 </template>
 
 <script>
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear";
+dayjs.extend(weekOfYear);
+
 import {
   reduceCellSize,
   increaseCellSize,
@@ -46,7 +50,7 @@ import {
   cellHeight,
   cellHeightInPx,
 } from "@/contexts/CellSizeContext";
-import { calendarInit } from "@/contexts/CalendarContext";
+import { calendarInit, calendarEnd, cellDays } from "@/contexts/CalendarContext";
 import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
@@ -71,13 +75,15 @@ export default {
     cellHeight,
     cellHeightInPx,
     calendarInit,
+    calendarEnd,
+    cellDays,
     updateTask: { from: "updateTask" },
     rows: { from: "rows" },
     setRows: { from: "setRows" },
   },
   data: function () {
     return {
-      initPostion: null,
+      initPosition: null,
       endPosition: null,
       topPosition: this.priority - 1,
       showResizes: false,
@@ -101,26 +107,35 @@ export default {
       return `${this.cellSize * this.width}px`;
     },
     taskLeftPosition: function () {
-      return `${this.cellSize * this.initPostion}px`;
+      return `${this.cellSize * this.initPosition}px`;
     },
   },
   methods: {
     getTaskPositions: function () {
-      this.initPostion = getDiffDays(this.creationDate, this.calendarInit);
-      this.endPosition = getDiffDays(this.dueDate, this.calendarInit);
+      let creation_date_week = dayjs(this.creationDate * 1000).week();
+      let due_date_week = dayjs(this.dueDate * 1000).week();
+
+      console.log("DIFF " + getDiffDays(this.creationDate, this.calendarInit));
+
+      this.initPosition = (getDiffDays(this.creationDate, this.calendarInit) / this.cellDays) | 0;
+      this.endPosition = (getDiffDays(this.dueDate, this.calendarInit) / this.cellDays) | 0;
+
+      console.log("POS " + this.initPosition + " <=> " + this.endPosition);
 
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
+      const row = taskElement.closest(".cal__row");
       this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
 
       this.getTopLimit();
       this.getBottomLimit();
 
-      this.width = getDiffDays(this.creationDate, this.dueDate) + 1;
+      this.width = (getDiffDays(this.creationDate, this.dueDate) / this.cellDays + 1) | 0;
+      console.log(this.title);
+      console.log(" WIDTH = " + this.width + " START WW" + creation_date_week + " END WW" + due_date_week);
     },
     getTopLimit: function () {
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
+      const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
 
       const timelineGroups = Array.from(row.parentNode.children);
@@ -136,14 +151,11 @@ export default {
     },
     getBottomLimit: function () {
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
+      const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
 
       const timelineGroups = Array.from(row.parentNode.children);
-      const nextTimelineRows = timelineGroups.slice(
-        rowIndex + 1,
-        timelineGroups.length
-      );
+      const nextTimelineRows = timelineGroups.slice(rowIndex + 1, timelineGroups.length);
 
       this.$nextTick(() => {
         const prevRowsLimit = nextTimelineRows.reduce((prev, curr) => {
@@ -155,6 +167,17 @@ export default {
     },
     handleResizeOpen: function () {
       this.showResizes = true;
+
+      console.log("========= CLICKED ========== ");
+      console.log(this.title);
+
+      let cw = dayjs(this.creationDate * 1000).week();
+      let dw = dayjs(this.dueDate * 1000).week();
+      console.log(" START " + new Date(this.creationDate * 1000) + " => " + cw);
+      console.log("   END " + new Date(this.dueDate * 1000) + " => " + dw);
+
+      debugger;
+      this.getTaskPositions();
 
       this.documentEventListener = clickOutside(this.$refs.task, () => {
         this.handleResizeClose();
@@ -171,15 +194,11 @@ export default {
       const { layerX, clientX, layerY } = e;
       if (!clientX && layerX) return;
 
-      const cellsToMove = Math.round(
-        (this.dragLayerX - layerX) / this.cellSize
-      );
+      const cellsToMove = Math.round((this.dragLayerX - layerX) / this.cellSize);
 
-      const rowToMove = Math.round(
-        (this.dragLayerY - layerY) / this.cellHeight
-      );
+      const rowToMove = Math.round((this.dragLayerY - layerY) / this.cellHeight);
 
-      this.initPostion -= cellsToMove;
+      this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
       if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
@@ -196,14 +215,14 @@ export default {
         this.handlePriorityAndGroup(rowToMove);
       }
 
-      this.width = this.endPosition - this.initPostion + 1;
+      this.width = this.endPosition - this.initPosition + 1;
     },
     handlePriorityAndGroup: function (rowToMove) {
       this.taskPriority -= rowToMove;
 
       if (this.taskPriority <= 0) {
         const taskElement = this.$refs.task;
-        const row = taskElement.closest(".calendar__row");
+        const row = taskElement.closest(".cal__row");
 
         this.currentRowIndex -= 1;
 
@@ -212,7 +231,7 @@ export default {
 
         const newRowName = prevGroup.getAttribute("rowid");
         const prevRowPriorities = Array.from(
-          prevGroup.querySelectorAll(".calendar__inner-row")
+          prevGroup.querySelectorAll(".cal__inner-row")
         ).length;
         const newPriority = prevGroupPriorities;
 
@@ -221,13 +240,13 @@ export default {
         this.currentRows = prevRowPriorities;
       } else if (this.taskPriority > this.currentRows) {
         const taskElement = this.$refs.task;
-        const row = taskElement.closest(".calendar__row");
+        const row = taskElement.closest(".cal__row");
 
         this.currentRowIndex += 1;
 
         const newtGroup = row.parentNode.children[this.currentRowIndex];
         const nextRowPriorities = Array.from(
-          newtGroup.querySelectorAll(".calendar__inner-row")
+          newtGroup.querySelectorAll(".cal__inner-row")
         ).length;
         const nextRowName = newtGroup.getAttribute("rowid");
 
@@ -243,8 +262,8 @@ export default {
       const resize = Math.round(layerX / this.cellSize);
 
       if (this.width >= 2 || resize < 0) {
-        this.initPostion += resize;
-        this.width = this.endPosition - this.initPostion + 1;
+        this.initPosition += resize;
+        this.width = this.endPosition - this.initPosition + 1;
       }
     },
     handleResizeRight: function (e) {
@@ -255,11 +274,11 @@ export default {
 
       if (this.width + resize > 0) {
         this.endPosition += resize;
-        this.width = this.endPosition - this.initPostion + 1;
+        this.width = this.endPosition - this.initPosition + 1;
       }
     },
     handleUpdateDate: function () {
-      const initDay = addDays(this.calendarInit, this.initPostion);
+      const initDay = addDays(this.calendarInit, this.initPosition);
       const endDay = addDays(this.calendarInit, this.endPosition);
 
       const taskData = {

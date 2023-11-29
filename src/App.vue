@@ -64,7 +64,7 @@ export default {
               id: "06",
               title: "Test task 06",
               creationDate: 1652151600,
-              dueDate: 1652324400,
+              dueDate: 1652152600,
               progress: 0.5,
               priority: 1,
             },

@@ -41,6 +41,7 @@ import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 import {
   setCalendarSize,
+  setCellSizeDays,
   todayCell,
   checkCalendarSize,
 } from "@/contexts/CalendarContext";
@@ -50,6 +51,7 @@ export default {
   inject: {
     cellSizeInPx,
     cellSize,
+    setCellSizeDays,
     setCalendarSize,
     todayCell,
     checkCalendarSize,
@@ -162,6 +164,13 @@ export default {
       this.emitUpdatedTasks({ tasksUpdated, tasks });
     }
 
+    let unix_time = Date.now() / 1000;
+    if (calendarEnd < unix_time) {
+      console.log(" SET DATE TO TODAY " + unix_time);
+      //calendarEnd = unix_time;
+    }
+
+    this.setCellSizeDays(5);
     this.setCalendarSize(calendarInit, calendarEnd);
   },
   provide: function () {
@@ -197,11 +206,11 @@ export default {
   color: #707070;
   background-color: #fdfdfd;
 }
-.calendar__days-container {
+.cal__days-container {
   display: flex;
 }
 
-.calendar__days-container div {
+.cal__days-container div {
   width: v-bind(cellSizeInPx);
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);

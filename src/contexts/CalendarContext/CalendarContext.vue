@@ -5,12 +5,14 @@
 <script>
 import { computed } from "vue";
 
-import { firstDayMounth, getDiffDays, lastDayMounth } from "@/utils/date";
+import { firstDayMonth, getDiffDays, lastDayMonth } from "@/utils/date";
 import {
   calendarInit,
   calendarEnd,
-  totalDays,
+  cellDays,
+  totalCells,
   todayCell,
+  setCellSizeDays,
   setCalendarSize,
   checkCalendarSize,
 } from "./keys";
@@ -21,20 +23,33 @@ export default {
     return {
       calendarInit: 0,
       calendarEnd: 0,
+      cellDays: 1,
     };
   },
   computed: {
-    totalDays: function () {
-      return getDiffDays(this.calendarEnd, this.calendarInit);
+    totalCells: function () {
+      let cells = getDiffDays(this.calendarEnd, this.calendarInit) / this.cellDays
+
+      console.log("TOTAL CELLS" + cells)
+      return cells | 0;
     },
     todayCell: function () {
-      return getDiffDays(this.calendarInit, new Date().getTime() / 1000);
+      let now = new Date().getTime() / 1000;
+      if (this.calendarEnd < now)
+        now = this.calendarEnd;
+
+      let current_day = getDiffDays(this.calendarInit, now) / this.cellDays
+      console.log("CURRENT DAY " + current_day)
+      return current_day | 0;
     },
   },
   methods: {
+    setCellSizeDays: function (days) {
+      this.cellDays = days;
+    },
     setCalendarSize: function (calendarInit, calendarEnd) {
-      this.calendarInit = firstDayMounth(calendarInit);
-      this.calendarEnd = lastDayMounth(calendarEnd);
+      this.calendarInit = firstDayMonth(calendarInit);
+      this.calendarEnd = lastDayMonth(calendarEnd);
     },
     checkCalendarSize: function (tasks) {
       let calendarInit = null;
@@ -45,23 +60,30 @@ export default {
         if (!calendarEnd) calendarEnd = task.dueDate;
 
         if (task.creationDate < calendarInit) calendarInit = task.creationDate;
-        if (task.dueDate > calendarEnd) calendarEnd = task.dueDate;
+        if (task.dueDate > calendarEnd) {
+          calendarEnd = task.dueDate;
+          console.log(" END CALENDAR " + task.dueDate)
+        }
       });
 
       if (calendarInit < this.calendarInit)
-        this.calendarInit = firstDayMounth(calendarInit);
+        this.calendarInit = firstDayMonth(calendarInit);
 
-      if (calendarEnd > this.calendarEnd)
-        this.calendarEnd = lastDayMounth(calendarEnd);
+      if (calendarEnd > this.calendarEnd) {
+        console.log(" Calendar end ");
+        this.calendarEnd = lastDayMonth(calendarEnd);
+      }
     },
   },
   provide: function () {
     return {
       [calendarInit]: computed(() => this.calendarInit),
       [calendarEnd]: computed(() => this.calendarEnd),
-      [totalDays]: computed(() => this.totalDays),
+      [totalCells]: computed(() => this.totalCells),
       [todayCell]: computed(() => this.todayCell),
+      [cellDays]: computed(() => this.cellDays),
       [setCalendarSize]: this.setCalendarSize,
+      [setCellSizeDays]: this.setCellSizeDays,
       [checkCalendarSize]: this.checkCalendarSize,
     };
   },
