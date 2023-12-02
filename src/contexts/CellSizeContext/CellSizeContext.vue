@@ -4,15 +4,7 @@
 
 <script>
 import { computed } from "vue";
-import {
-  cellSize,
-  cellSizeInPx,
-  cellHeight,
-  cellHeightInPx,
-  reduceCellSize,
-  increaseCellSize,
-  resetCellSize,
-} from "./keys";
+import * as k from "./keys";
 
 export default {
   name: "CellSizeContext",
@@ -23,6 +15,9 @@ export default {
     };
   },
   methods: {
+    setCellSizePx: function (newSize) {
+      this.cellSize = newSize;
+    },
     reduceCellSize: function () {
       if (this.cellSize > 15) {
         this.cellSize -= 5;
@@ -37,13 +32,14 @@ export default {
   },
   provide: function () {
     return {
-      [cellSize]: computed(() => this.cellSize),
-      [cellSizeInPx]: computed(() => `${this.cellSize}px`),
-      [cellHeight]: computed(() => this.cellHeight),
-      [cellHeightInPx]: computed(() => `${this.cellHeight}px`),
-      [reduceCellSize]: this.reduceCellSize,
-      [increaseCellSize]: this.increaseCellSize,
-      [resetCellSize]: this.resetCellSize,
+      [k.cellSize]: computed(() => this.cellSize),
+      [k.cellSizeInPx]: computed(() => `${this.cellSize}px`),
+      [k.cellHeight]: computed(() => this.cellHeight),
+      [k.cellHeightInPx]: computed(() => `${this.cellHeight}px`),
+      [k.reduceCellSize]: this.reduceCellSize,
+      [k.increaseCellSize]: this.increaseCellSize,
+      [k.resetCellSize]: this.resetCellSize,
+      [k.setCellSizePx]: this.setCellSizePx,
     };
   },
 };

@@ -6,16 +6,8 @@
 import { computed } from "vue";
 
 import { firstDayMonth, getDiffDays, lastDayMonth } from "@/utils/date";
-import {
-  calendarInit,
-  calendarEnd,
-  cellDays,
-  totalCells,
-  todayCell,
-  setCellSizeDays,
-  setCalendarSize,
-  checkCalendarSize,
-} from "./keys";
+
+import * as k from "./keys";
 
 export default {
   name: "CalendarContext",
@@ -66,9 +58,13 @@ export default {
         }
       });
 
+      // We find the first day of the month, so we have a buffer on the calendar to that date
+      // [TODO] Maybe change it to x days prior instead of first of month
       if (calendarInit < this.calendarInit)
         this.calendarInit = firstDayMonth(calendarInit);
 
+      // Find the last day of the month and adjust date to that.
+      // [TODO] Same as first date, we might want to configure a margin and not end of month
       if (calendarEnd > this.calendarEnd) {
         console.log(" Calendar end ");
         this.calendarEnd = lastDayMonth(calendarEnd);
@@ -77,14 +73,14 @@ export default {
   },
   provide: function () {
     return {
-      [calendarInit]: computed(() => this.calendarInit),
-      [calendarEnd]: computed(() => this.calendarEnd),
-      [totalCells]: computed(() => this.totalCells),
-      [todayCell]: computed(() => this.todayCell),
-      [cellDays]: computed(() => this.cellDays),
-      [setCalendarSize]: this.setCalendarSize,
-      [setCellSizeDays]: this.setCellSizeDays,
-      [checkCalendarSize]: this.checkCalendarSize,
+      [k.calendarInit]: computed(() => this.calendarInit),
+      [k.calendarEnd]: computed(() => this.calendarEnd),
+      [k.totalCells]: computed(() => this.totalCells),
+      [k.todayCell]: computed(() => this.todayCell),
+      [k.cellDays]: computed(() => this.cellDays),
+      [k.setCalendarSize]: this.setCalendarSize,
+      [k.setCellSizeDays]: this.setCellSizeDays,
+      [k.checkCalendarSize]: this.checkCalendarSize,
     };
   },
 };
