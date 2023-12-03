@@ -59,10 +59,7 @@ export default {
       while (true) {
 
         if (this.cellDays === 7) { // Assuming 7 for work weeks
-          let week = currentDay.week();
-          if (week < 53)  // Check why do we get 53 weeks ?
-              days.push(week);
-
+          days.push(currentDay.week());
         } else {
           if (this.cellDays > 14)
             days.push("");

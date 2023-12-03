@@ -115,12 +115,10 @@ export default {
       let creation_date_week = dayjs(this.creationDate * 1000).week();
       let due_date_week = dayjs(this.dueDate * 1000).week();
 
-      console.log("DIFF " + getDiffDays(this.creationDate, this.calendarInit));
-
       this.initPosition = (getDiffDays(this.creationDate, this.calendarInit) / this.cellDays) | 0;
       this.endPosition = (getDiffDays(this.dueDate, this.calendarInit) / this.cellDays) | 0;
 
-      console.log("POS " + this.initPosition + " <=> " + this.endPosition);
+      console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + getDiffDays(this.creationDate, this.calendarInit));
 
       const taskElement = this.$refs.task;
       const row = taskElement.closest(".cal__row");
