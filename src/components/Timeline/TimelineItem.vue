@@ -176,7 +176,6 @@ export default {
       console.log(" START " + new Date(this.creationDate * 1000) + " => " + cw);
       console.log("   END " + new Date(this.dueDate * 1000) + " => " + dw);
 
-      debugger;
       this.getTaskPositions();
 
       this.documentEventListener = clickOutside(this.$refs.task, () => {

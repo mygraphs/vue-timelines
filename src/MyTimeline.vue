@@ -170,7 +170,7 @@ export default {
       //calendarEnd = unix_time;
     }
 
-    this.setCellSizeDays(5);
+    this.setCellSizeDays(30);
     this.setCalendarSize(calendarInit, calendarEnd);
   },
   provide: function () {
@@ -204,7 +204,6 @@ export default {
 .calendar {
   text-align: center;
   color: #707070;
-  background-color: #fdfdfd;
 }
 .cal__days-container {
   display: flex;

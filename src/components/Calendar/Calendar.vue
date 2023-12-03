@@ -16,54 +16,93 @@
 <script>
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
-dayjs.extend(weekOfYear);
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
-import { calendarInit, calendarEnd, cellDays } from "@/contexts/CalendarContext";
+dayjs.extend(weekOfYear);
+dayjs.extend(isSameOrAfter);
+
+import { calendarInit, calendarEnd, cellDays, totalCells } from "@/contexts/CalendarContext";
+import { cellSize } from "@/contexts/CellSizeContext";
+
+function adjustTextToCells(day, format, number_days, cell_size) {
+  const LETTER_SIZE_PX = 10
+
+  // Adjust the text to the available space
+  let text = day.format(format);
+  let size_px = cell_size * number_days;
+  if (size_px < (text.length * LETTER_SIZE_PX)) {
+    if (format == "MMMM")
+      text = text.substring(0, 3);
+    else
+      text = text.substring(2);
+  }
+
+  return text;
+}
 
 export default {
   name: "Calendar",
-  inject: { calendarInit, calendarEnd, cellDays },
+  inject: { calendarInit, calendarEnd, cellDays, totalCells, cellSize },
   computed: {
     calendar: function () {
+      /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
       if (!this.calendarInit || !this.calendarEnd) return [];
 
-      const months = [];
-      let init = dayjs(this.calendarInit * 1000);
-      const end = dayjs(this.calendarEnd * 1000);
+      let currentDay = dayjs(this.calendarInit * 1000);
+      let currentMonth = currentDay.month();
+      let end = dayjs(this.calendarEnd * 1000);
 
-      let last_value = -1;
-      while (init.isBefore(end) || init.isSame(end)) {
-        const monthEnd = init.endOf('month');
-        const days = [];
-        let currentDay = init.startOf('month');
+      let months = [];
+      let days = []
 
-        while (currentDay.isBefore(monthEnd) || currentDay.isSame(monthEnd)) {
-          if (this.cellDays === 7) { // Assuming 7 for work weeks
-            // Skip to the next week's first day
+      let count = 0;
+      while (true) {
 
-            let week = currentDay.week();
-            if (last_value != week && week < 53) {
-                days.push(week);
-                last_value = week;
-            }
+        if (this.cellDays === 7) { // Assuming 7 for work weeks
+          let week = currentDay.week();
+          if (week < 53)  // Check why do we get 53 weeks ?
+              days.push(week);
 
-          } else {
-            // Increment by the cellDays value
+        } else {
+          if (this.cellDays > 14)
+            days.push("");
+          else
             days.push(currentDay.date());
-          }
-
-          currentDay = currentDay.add(this.cellDays, 'day');
         }
 
-        const month = {
-          name: init.format("MMMM"),
-          year: init.format("YYYY"),
-          days: days,
-        };
+        let newDay = currentDay.add(this.cellDays, 'day');
+        if (currentMonth != newDay.month()) {
+          currentMonth = newDay.month()
 
-        months.push(month);
-        init = init.add(1, "month");
+          const month = {
+            name: adjustTextToCells(currentDay,"MMMM", days.length, this.cellSize),
+            year: adjustTextToCells(currentDay,"YYYY", days.length, this.cellSize),
+            days: days,
+          };
+
+          months.push(month);
+          days = [];
+        }
+
+        if (currentDay.isSameOrAfter(end)) {
+          console.log("Finished date " + currentDay);
+          break;
+        }
+
+        count += 1;
+        if (count == this.totalCells) {
+          break
+        }
+
+        currentDay = newDay
       }
+
+      if (days.length > 0)
+          months.push({
+            name: adjustTextToCells(currentDay,"MMMM", days.length, this.cellSize),
+            year: adjustTextToCells(currentDay,"YYYY", days.length, this.cellSize),
+            days: days,
+          });
 
       return months;
     },
@@ -76,6 +115,8 @@ export default {
   top: 0;
   display: flex;
   position: sticky;
+  background-color: #f8f9fc;
+  width: 100%;
   z-index: 100;
 }
 

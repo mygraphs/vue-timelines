@@ -37,8 +37,10 @@ export default {
           }
       }
 
-      let new_size = (width / this.totalCells) | 0;
-      console.log('Resize to fit:', width);
+      // Round up one so we leave an empty space on the right.
+      // We should think about what to do with the empty space.
+      let new_size = Math.ceil(width / (this.totalCells + 1)) | 0;
+      console.log('Resize to fit:' + width + " Size " + new_size);
       this.setCellSizePx(new_size);
     }
   },

@@ -5,8 +5,7 @@
 <script>
 import { computed } from "vue";
 
-import { firstDayMonth, getDiffDays, lastDayMonth } from "@/utils/date";
-
+import * as date from "@/utils/date";
 import * as k from "./keys";
 
 export default {
@@ -20,9 +19,10 @@ export default {
   },
   computed: {
     totalCells: function () {
-      let cells = getDiffDays(this.calendarEnd, this.calendarInit) / this.cellDays
-
-      console.log("TOTAL CELLS" + cells)
+      let days = date.getDiffDays(this.calendarEnd, this.calendarInit);
+      let cells = days / this.cellDays
+      cells = Math.ceil(cells)
+      console.log(days + " TOTAL CELLS" + cells)
       return cells | 0;
     },
     todayCell: function () {
@@ -30,7 +30,7 @@ export default {
       if (this.calendarEnd < now)
         now = this.calendarEnd;
 
-      let current_day = getDiffDays(this.calendarInit, now) / this.cellDays
+      let current_day = date.getDiffDays(this.calendarInit, now) / this.cellDays
       console.log("CURRENT DAY " + current_day)
       return current_day | 0;
     },
@@ -40,8 +40,9 @@ export default {
       this.cellDays = days;
     },
     setCalendarSize: function (calendarInit, calendarEnd) {
-      this.calendarInit = firstDayMonth(calendarInit);
-      this.calendarEnd = lastDayMonth(calendarEnd);
+      let margin = (this.cellDays < 7) ? 7 : this.cellDays * 2;
+      this.calendarInit = date.subtractDays(calendarInit, margin);
+      this.calendarEnd = date.addDays(calendarEnd, margin);
     },
     checkCalendarSize: function (tasks) {
       let calendarInit = null;
@@ -58,17 +59,7 @@ export default {
         }
       });
 
-      // We find the first day of the month, so we have a buffer on the calendar to that date
-      // [TODO] Maybe change it to x days prior instead of first of month
-      if (calendarInit < this.calendarInit)
-        this.calendarInit = firstDayMonth(calendarInit);
-
-      // Find the last day of the month and adjust date to that.
-      // [TODO] Same as first date, we might want to configure a margin and not end of month
-      if (calendarEnd > this.calendarEnd) {
-        console.log(" Calendar end ");
-        this.calendarEnd = lastDayMonth(calendarEnd);
-      }
+      this.setCalendarSize(calendarInit, calendarEnd);
     },
   },
   provide: function () {
