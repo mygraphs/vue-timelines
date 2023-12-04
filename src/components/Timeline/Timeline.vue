@@ -9,6 +9,8 @@
 </template>
 
 <script>
+import eventBus from '../eventBus.js';
+
 import { Calendar } from "../Calendar";
 import { cellSize, setCellSizePx } from "@/contexts/CellSizeContext";
 import { todayCell, totalCells } from "@/contexts/CalendarContext";
@@ -42,6 +44,14 @@ export default {
       let new_size = Math.ceil(width / (this.totalCells + 1)) | 0;
       console.log('Resize to fit:' + width + " Size " + new_size);
       this.setCellSizePx(new_size);
+    },
+    triggerResizeManually() {
+      const width = this.$refs.timeline.clientWidth;
+      this.handleResize(width);
+      eventBus.emit('invalidate-timeline-items');
+    },
+    invalidate() {
+        this.triggerResizeManually();
     }
   },
   mounted() {
@@ -60,6 +70,11 @@ export default {
     this.$nextTick(() => {
       this.calendarScrollToday();
     });
+
+    eventBus.on('timeline-invalidate', this.triggerResizeManually);
+  },
+  beforeUnmount() {
+    eventBus.off('timeline-invalidate', this.triggerResizeManually);
   },
   components: {
     Calendar,

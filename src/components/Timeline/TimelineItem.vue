@@ -37,6 +37,9 @@
 </template>
 
 <script>
+
+import eventBus from '../eventBus.js';
+
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 dayjs.extend(weekOfYear);
@@ -293,28 +296,34 @@ export default {
         oldRow: this.groupName,
       });
     },
+    invalidate: function() {
+      console.log("Invalidate task " + this.title);
+      this.getTaskPositions();
+    }
   },
   watch: {
     calendarInit: function () {
-      this.getTaskPositions();
+      this.invalidate();
     },
     creationDate: function () {
-      this.getTaskPositions();
+      this.invalidate();
     },
     rows: function () {
       this.currentRows = this.rows;
     },
   },
   mounted() {
-    this.getTaskPositions();
-
+    this.invalidate();
     if (this.priority > this.currentRows) {
       this.setRows(this.priority);
     }
+    eventBus.on('invalidate-timeline-items', this.invalidate);
   },
   beforeUnmount() {
     document.removeEventListener("click", this.documentEventListener);
+    eventBus.off('invalidate-timeline-items');
   },
+
 };
 </script>
 

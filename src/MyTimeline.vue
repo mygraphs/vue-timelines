@@ -33,6 +33,7 @@
 </template>
 
 <script>
+
 import { TimelineHeader } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
@@ -45,6 +46,7 @@ import {
   todayCell,
   checkCalendarSize,
 } from "@/contexts/CalendarContext";
+
 
 export default {
   name: "VueTimeline",
@@ -170,7 +172,7 @@ export default {
       //calendarEnd = unix_time;
     }
 
-    this.setCellSizeDays(30);
+    this.setCellSizeDays(1);
     this.setCalendarSize(calendarInit, calendarEnd);
   },
   provide: function () {

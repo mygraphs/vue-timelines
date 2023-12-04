@@ -22,6 +22,8 @@
 </template>
 
 <script>
+import eventBus from '../eventBus.js';
+
 import { todayCell, setCellSizeDays, cellDays } from "@/contexts/CalendarContext";
 import {
   reduceCellSize,
@@ -49,7 +51,9 @@ export default {
       this.$emit("scrollToday");
     },
     handleTimeFrame: function () {
+      debugger;
       this.setCellSizeDays(this.selectedTimeFrame);
+      eventBus.emit('timeline-invalidate');
     },
   },
   mounted() {

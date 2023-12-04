@@ -20,9 +20,9 @@ export default {
   computed: {
     totalCells: function () {
       let days = date.getDiffDays(this.calendarEnd, this.calendarInit);
-      let cells = days / this.cellDays
-      cells = Math.ceil(cells)
-      console.log(days + " TOTAL CELLS" + cells)
+      let cells = days / this.cellDays;
+      cells = Math.ceil(cells);
+      console.log(days + " TOTAL CELLS" + cells);
       return cells | 0;
     },
     todayCell: function () {
@@ -37,6 +37,7 @@ export default {
   },
   methods: {
     setCellSizeDays: function (days) {
+      console.log("============== SIZE DAYS " + days + " ===============");
       this.cellDays = days;
     },
     setCalendarSize: function (calendarInit, calendarEnd) {
