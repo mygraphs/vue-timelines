@@ -58,6 +58,10 @@ import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
 export default {
+  /* This is a timeline item, it converts between our dates into our virtual screen coordinates
+
+    Our timeline is built with cells, therefore we have to calculate how many cells a particular item uses.
+  */
   name: "TimelineItem",
   props: {
     id: String,
@@ -114,25 +118,45 @@ export default {
     },
   },
   methods: {
-    getTaskPositions: function () {
-      let creation_date_week = dayjs(this.creationDate * 1000).week();
-      let due_date_week = dayjs(this.dueDate * 1000).week();
+    convertToRelative: function(start, end = null) {
+      if (!end)
+        end = this.calendarInit;
 
-      this.initPosition = (getDiffDays(this.creationDate, this.calendarInit) / this.cellDays) | 0;
-      this.endPosition = (getDiffDays(this.dueDate, this.calendarInit) / this.cellDays) | 0;
+      let df = getDiffDays(start, end);
+      let sz = df / this.cellDays;
+      if (sz < 1) {
+        console.log("Too small to be displayed");
+      }
+      return sz
+    },
+    resetTaskPositions: function () {
+      /* Recalculates the position of the task and rerenders it */
 
-      console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + getDiffDays(this.creationDate, this.calendarInit));
+      //debugger;
+
+      this.initPosition = this.convertToRelative(this.creationDate);
+      this.endPosition = this.convertToRelative(this.dueDate);
+
+      console.log(" ---------------------- ");
+      console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + this.convertToRelative(this.creationDate));
 
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".cal__row");
-      this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
+      if (taskElement) {
+        const row = taskElement.closest(".cal__row");
+        this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
+      }
 
       this.getTopLimit();
       this.getBottomLimit();
 
-      this.width = (getDiffDays(this.creationDate, this.dueDate) / this.cellDays + 1) | 0;
-      console.log(this.title);
-      console.log(" WIDTH = " + this.width + " START WW" + creation_date_week + " END WW" + due_date_week);
+      let w = this.convertToRelative(this.creationDate, this.dueDate);
+
+      if (w < 1) // Check why click doesn't work when width is 0
+        w = 1.0;
+
+      this.width = w;
+
+      console.log(this.title + " WIDTH = " + this.width);
     },
     getTopLimit: function () {
       const taskElement = this.$refs.task;
@@ -172,16 +196,16 @@ export default {
       console.log("========= CLICKED ========== ");
       console.log(this.title);
 
-      let cw = dayjs(this.creationDate * 1000).week();
-      let dw = dayjs(this.dueDate * 1000).week();
-      console.log(" START " + new Date(this.creationDate * 1000) + " => " + cw);
-      console.log("   END " + new Date(this.dueDate * 1000) + " => " + dw);
+      console.log(" START " + new Date(this.creationDate * 1000));
+      console.log("   END " + new Date(this.dueDate * 1000));
 
-      this.getTaskPositions();
+      this.resetTaskPositions();
 
       this.documentEventListener = clickOutside(this.$refs.task, () => {
         this.handleResizeClose();
       });
+
+      eventBus.emit('taskdatapanel', this);
     },
     handleResizeClose: function () {
       this.showResizes = false;
@@ -194,7 +218,7 @@ export default {
       const { layerX, clientX, layerY } = e;
       if (!clientX && layerX) return;
 
-      const cellsToMove = Math.round((this.dragLayerX - layerX) / this.cellSize);
+      const cellsToMove = Math.round((this.dragLayerX - layerX) / (this.cellSize * this.cellDays));
 
       const rowToMove = Math.round((this.dragLayerY - layerY) / this.cellHeight);
 
@@ -259,27 +283,50 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      const resize = Math.round(layerX / this.cellSize);
+      let resize = layerX / this.cellSize;
 
-      if (this.width >= 2 || resize < 0) {
-        this.initPosition += resize;
-        this.width = this.endPosition - this.initPosition + 1;
+      if (Math.abs(resize) < 1 && this.cellDays == 1) {
+        console.log(" Not enough resize ");
+        return
       }
+
+      resize /= this.cellDays;
+
+      if (resize > 0)
+        if (this.endPosition - resize > this.initPosition) {
+          debugger;
+          console.log(" End cannot be bigger than Start");
+          return;
+        }
+
+      this.initPosition += resize
+      this.width = this.endPosition - this.initPosition;
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
-
-      const resize = Math.round(layerX / this.cellSize);
+      debugger;
+      const resize = Math.round(layerX / (this.cellSize * this.cellDays));
 
       if (this.width + resize > 0) {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition + 1;
       }
     },
+    convertCellToDate: function(interval) {
+        // Converts the number of cells into a position in the calendar
+        // We append the position to the start of the first cell of the calendar
+        // so we can calculate the real start / end date.
+        let relative = interval * this.cellDays;
+        return addDays(this.calendarInit, relative);
+    },
     handleUpdateDate: function () {
-      const initDay = addDays(this.calendarInit, this.initPosition);
-      const endDay = addDays(this.calendarInit, this.endPosition);
+      debugger;
+      const initDay =  this.convertCellToDate(this.initPosition);
+      const endDay = this.convertCellToDate(this.endPosition);
+
+      console.log(" START " + new Date(initDay * 1000));
+      console.log("   END " + new Date(endDay * 1000));
 
       const taskData = {
         ...this.$props,
@@ -298,7 +345,7 @@ export default {
     },
     invalidate: function() {
       console.log("Invalidate task " + this.title);
-      this.getTaskPositions();
+      this.resetTaskPositions();
     }
   },
   watch: {
@@ -321,7 +368,7 @@ export default {
   },
   beforeUnmount() {
     document.removeEventListener("click", this.documentEventListener);
-    eventBus.off('invalidate-timeline-items');
+    eventBus.off('invalidate-timeline-items', this.invalidate);
   },
 
 };

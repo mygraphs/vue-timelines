@@ -51,7 +51,6 @@ export default {
       this.$emit("scrollToday");
     },
     handleTimeFrame: function () {
-      debugger;
       this.setCellSizeDays(this.selectedTimeFrame);
       eventBus.emit('timeline-invalidate');
     },

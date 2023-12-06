@@ -27,14 +27,18 @@
             </TimelineRow>
           </template>
         </Timeline>
+
       </template>
     </slot>
   </div>
+  <TaskDataPanel ref="taskdata" />
+
 </template>
 
 <script>
 
 import { TimelineHeader } from "@/components";
+import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
@@ -83,6 +87,9 @@ export default {
       this.$refs.timeline.calendarScrollToday();
     },
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
+      debugger;
+      let tasks = null;
+
       if (newRow !== oldRow) {
         const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
           return task.id === updatedTask.id;
@@ -91,13 +98,31 @@ export default {
         this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
         this.groupsToUse[newRow].tasks.push(updatedTask);
       } else {
-        const taskIndex = this.groupsToUse[newRow].tasks.findIndex((task) => {
-          return task.id === updatedTask.id;
+
+        let idx = this.groupsToUse.findIndex((group) => {
+          return group.id === newRow;
         });
 
-        this.groupsToUse[newRow].tasks[taskIndex] = updatedTask;
+        if (idx < 0) {
+          console.log(" Failed to find group ");
+          debugger;
+        }
+
+        let group = this.groupsToUse[idx];
+
+        for (let i=0; i < group.tasks.length; i++) {
+          let task = group.tasks[i];
+          const is_task = (task.id === updatedTask.id);
+          console.log("CHECK TASK " + task.id + " <=> " + updatedTask.id + " " + is_task);
+          if (is_task) {
+            group.tasks[i] = updatedTask;
+            tasks = group.tasks[i];
+            break;
+          }
+        }
       }
 
+      /*
       const { tasksUpdated, tasks } = orderTasks(
         [updatedTask],
         [...this.groupsToUse[newRow].tasks]
@@ -113,12 +138,20 @@ export default {
       });
 
       this.checkCalendarSize(tasksUpdated);
+      */
+      /*
       return {
         tasksUpdated: tasksUpdated.map((task) => ({
           ...task,
           newGroup: this.groupsToUse[newRow].name,
         })),
         tasks: tasks.map((task) => task),
+      };
+      */
+
+      return {
+        tasksUpdated: [],
+        tasks: [],
       };
     },
     handleScroll: function (e) {
@@ -182,6 +215,7 @@ export default {
   },
   components: {
     TimelineHeader,
+    TaskDataPanel,
     List,
     ListHeader,
     ListRow,
