@@ -292,12 +292,13 @@ export default {
 
       resize /= this.cellDays;
 
-      if (resize > 0)
-        if (this.endPosition - resize > this.initPosition) {
-          debugger;
+      if (resize > 0) {
+        // We don't want to make it too small that you cannot grab it.
+        if ((this.endPosition - resize - 1) < this.initPosition) {
           console.log(" End cannot be bigger than Start");
           return;
         }
+      }
 
       this.initPosition += resize
       this.width = this.endPosition - this.initPosition;
@@ -335,15 +336,20 @@ export default {
         priority: this.taskPriority,
       };
 
-      delete taskData.groupName;
-
-      this.updateTask({
-        updatedTask: taskData,
-        newRow: this.taskGroupName,
-        oldRow: this.groupName,
-      });
-
       eventBus.emit('taskdatapanel', taskData);
+      try {
+        delete taskData.groupName;
+
+        this.updateTask({
+          updatedTask: taskData,
+          newRow: this.taskGroupName,
+          oldRow: this.groupName,
+        });
+      } catch (error) {
+        debugger;
+        console.log(" CRASH " + error);
+      }
+
     },
     invalidate: function() {
       console.log("Invalidate task " + this.title);
