@@ -87,7 +87,6 @@ export default {
       this.$refs.timeline.calendarScrollToday();
     },
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
-      debugger;
       let tasks = null;
 
       if (newRow !== oldRow) {

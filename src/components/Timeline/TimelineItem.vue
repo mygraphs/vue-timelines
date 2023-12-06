@@ -305,12 +305,12 @@ export default {
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
-      debugger;
+
       const resize = Math.round(layerX / (this.cellSize * this.cellDays));
 
       if (this.width + resize > 0) {
         this.endPosition += resize;
-        this.width = this.endPosition - this.initPosition + 1;
+        this.width = this.endPosition - this.initPosition;
       }
     },
     convertCellToDate: function(interval) {
@@ -321,7 +321,7 @@ export default {
         return addDays(this.calendarInit, relative);
     },
     handleUpdateDate: function () {
-      debugger;
+
       const initDay =  this.convertCellToDate(this.initPosition);
       const endDay = this.convertCellToDate(this.endPosition);
 
@@ -342,6 +342,8 @@ export default {
         newRow: this.taskGroupName,
         oldRow: this.groupName,
       });
+
+      eventBus.emit('taskdatapanel', taskData);
     },
     invalidate: function() {
       console.log("Invalidate task " + this.title);
