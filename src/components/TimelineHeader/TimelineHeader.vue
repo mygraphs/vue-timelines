@@ -24,7 +24,7 @@
 <script>
 import eventBus from '../eventBus.js';
 
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mapMutations } from "vuex";
 
 import {
   reduceCellSize,
@@ -45,8 +45,6 @@ export default {
     cellSizeInPx,
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
-    ...mapGetters(["totalCells", "todayCell"]),
   },
   methods: {
     ...mapMutations(["setCellSizeDays"]),

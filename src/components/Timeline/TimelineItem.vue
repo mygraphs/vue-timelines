@@ -285,7 +285,7 @@ export default {
 
       let resize = layerX / this.cellSize;
 
-      if (Math.abs(resize) < 1 && this.cellDays == 1) {
+      if (Math.abs(resize) < 1) {
         console.log(" Not enough resize ");
         return
       }
@@ -307,11 +307,13 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      const resize = Math.round(layerX / (this.cellSize * this.cellDays));
+      const resize = layerX / (this.cellSize * this.cellDays);
 
-      if (this.width + resize > 0) {
+      if (this.width + resize >= 1) {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition;
+      } else {
+        this.width = 1;
       }
     },
     convertCellToDate: function(interval) {
@@ -323,8 +325,14 @@ export default {
     },
     handleUpdateDate: function () {
 
-      const initDay =  this.convertCellToDate(this.initPosition);
-      const endDay = this.convertCellToDate(this.endPosition);
+      let initDay =  this.convertCellToDate(this.initPosition);
+      let endDay = this.convertCellToDate(this.endPosition);
+
+      let d = getDiffDays(initDay, endDay);
+
+      if (d < 1) {
+        endDay = addDays(endDay, 1);
+      }
 
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
