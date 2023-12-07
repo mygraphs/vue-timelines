@@ -18,6 +18,10 @@ import { cellSize, setCellSizePx } from "@/contexts/CellSizeContext";
 export default {
   name: "Timeline",
   inject: { cellSize, setCellSizePx },
+  computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
+  },
   methods: {
     calendarScrollToday: function () {
       this.$refs.timeline.scrollLeft = this.cellSize * (this.todayCell - 4);

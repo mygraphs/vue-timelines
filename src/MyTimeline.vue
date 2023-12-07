@@ -153,24 +153,17 @@ export default {
   mounted() {
     this.groupsToUse = this.groups;
 
-    let calendarInit = null;
-    let calendarEnd = null;
+    let init = null;
+    let end = null;
 
     for (const key in this.groupsToUse) {
       this.groupsToUse[key].tasks.map((task) => {
         const creationDateInitDay = initDay(task.creationDate);
         const dueDateInitDay = initDay(task.dueDate);
 
-        if (!calendarInit) calendarInit = creationDateInitDay;
-        if (!calendarEnd) calendarEnd = dueDateInitDay;
+        if (!init || creationDateInitDay < init) init = creationDateInitDay;
 
-        if (creationDateInitDay < calendarInit) {
-          calendarInit = creationDateInitDay;
-        }
-
-        if (dueDateInitDay > calendarEnd) {
-          calendarEnd = dueDateInitDay;
-        }
+        if (!end || dueDateInitDay > end) end = dueDateInitDay;
 
         return {
           ...task,
@@ -190,13 +183,13 @@ export default {
     }
 
     let unix_time = Date.now() / 1000;
-    if (calendarEnd < unix_time) {
+    if (end < unix_time) {
       console.log(" SET DATE TO TODAY " + unix_time);
-      //calendarEnd = unix_time;
+      //end = unix_time;
     }
 
     this.setCellSizeDays(1);
-    this.setCalendarSize(calendarInit, calendarEnd);
+    this.setCalendarSize({ calendarInit: init, calendarEnd: end });
   },
   provide: function () {
     return {

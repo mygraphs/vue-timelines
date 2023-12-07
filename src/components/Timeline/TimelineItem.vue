@@ -53,7 +53,9 @@ import {
   cellHeight,
   cellHeightInPx,
 } from "@/contexts/CellSizeContext";
-import { calendarInit, calendarEnd, cellDays } from "@/contexts/CalendarContext";
+
+import { mapState, mapMutations, mapGetters } from "vuex";
+
 import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
@@ -81,9 +83,6 @@ export default {
     cellSizeInPx,
     cellHeight,
     cellHeightInPx,
-    calendarInit,
-    calendarEnd,
-    cellDays,
     updateTask: { from: "updateTask" },
     rows: { from: "rows" },
     setRows: { from: "setRows" },
@@ -107,6 +106,8 @@ export default {
     };
   },
   computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
     taskTopPosition: function () {
       return `${this.cellHeight * this.topPosition}px`;
     },
@@ -118,6 +119,7 @@ export default {
     },
   },
   methods: {
+    ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     convertToRelative: function(start, end = null) {
       if (!end)
         end = this.calendarInit;
@@ -131,8 +133,6 @@ export default {
     },
     resetTaskPositions: function () {
       /* Recalculates the position of the task and rerenders it */
-
-      //debugger;
 
       this.initPosition = this.convertToRelative(this.creationDate);
       this.endPosition = this.convertToRelative(this.dueDate);
