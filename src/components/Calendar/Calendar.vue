@@ -1,7 +1,10 @@
 <template>
   <div class="calendar">
-    <div v-for="month in calendar" :key="month.name + month.year"
-      class="cal__inner-container">
+    <div
+      v-for="month in calendar"
+      :key="month.name + month.year"
+      class="cal__inner-container"
+    >
       <div>{{ month.year }}</div>
       <div>{{ month.name }}</div>
       <div class="cal__days-container">
@@ -21,20 +24,18 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 dayjs.extend(weekOfYear);
 dayjs.extend(isSameOrAfter);
 
-import { calendarInit, calendarEnd, cellDays, totalCells } from "@/contexts/CalendarContext";
+import { mapState, mapMutations, mapGetters } from "vuex";
 import { cellSize } from "@/contexts/CellSizeContext";
 
 function adjustTextToCells(day, format, number_days, cell_size) {
-  const LETTER_SIZE_PX = 10
+  const LETTER_SIZE_PX = 10;
 
   // Adjust the text to the available space
   let text = day.format(format);
   let size_px = cell_size * number_days;
-  if (size_px < (text.length * LETTER_SIZE_PX)) {
-    if (format == "MMMM")
-      text = text.substring(0, 3);
-    else
-      text = text.substring(2);
+  if (size_px < text.length * LETTER_SIZE_PX) {
+    if (format == "MMMM") text = text.substring(0, 3);
+    else text = text.substring(2);
   }
 
   return text;
@@ -42,10 +43,16 @@ function adjustTextToCells(day, format, number_days, cell_size) {
 
 export default {
   name: "Calendar",
-  inject: { calendarInit, calendarEnd, cellDays, totalCells, cellSize },
+  inject: { cellSize },
+  methods: {
+    ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+  },
   computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
     calendar: function () {
-      /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
+
+    /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
       if (!this.calendarInit || !this.calendarEnd) return [];
 
       let currentDay = dayjs(this.calendarInit * 1000);
@@ -53,27 +60,25 @@ export default {
       let end = dayjs(this.calendarEnd * 1000);
 
       let months = [];
-      let days = []
+      let days = [];
 
       let count = 0;
       while (true) {
-
-        if (this.cellDays === 7) { // Assuming 7 for work weeks
+        if (this.cellDays === 7) {
+          // Assuming 7 for work weeks
           days.push(currentDay.week());
         } else {
-          if (this.cellDays > 14)
-            days.push("");
-          else
-            days.push(currentDay.date());
+          if (this.cellDays > 14) days.push("");
+          else days.push(currentDay.date());
         }
 
-        let newDay = currentDay.add(this.cellDays, 'day');
+        let newDay = currentDay.add(this.cellDays, "day");
         if (currentMonth != newDay.month()) {
-          currentMonth = newDay.month()
+          currentMonth = newDay.month();
 
           const month = {
-            name: adjustTextToCells(currentDay,"MMMM", days.length, this.cellSize),
-            year: adjustTextToCells(currentDay,"YYYY", days.length, this.cellSize),
+            name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
+            year: adjustTextToCells(currentDay, "YYYY", days.length, this.cellSize),
             days: days,
           };
 
@@ -88,18 +93,18 @@ export default {
 
         count += 1;
         if (count == this.totalCells) {
-          break
+          break;
         }
 
-        currentDay = newDay
+        currentDay = newDay;
       }
 
       if (days.length > 0)
-          months.push({
-            name: adjustTextToCells(currentDay,"MMMM", days.length, this.cellSize),
-            year: adjustTextToCells(currentDay,"YYYY", days.length, this.cellSize),
-            days: days,
-          });
+        months.push({
+          name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
+          year: adjustTextToCells(currentDay, "YYYY", days.length, this.cellSize),
+          days: days,
+        });
 
       return months;
     },
