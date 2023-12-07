@@ -37,6 +37,13 @@
 </template>
 
 <script>
+
+import eventBus from '../eventBus.js';
+
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear";
+dayjs.extend(weekOfYear);
+
 import {
   reduceCellSize,
   increaseCellSize,
@@ -46,11 +53,15 @@ import {
   cellHeight,
   cellHeightInPx,
 } from "@/contexts/CellSizeContext";
-import { calendarInit } from "@/contexts/CalendarContext";
+import { calendarInit, calendarEnd, cellDays } from "@/contexts/CalendarContext";
 import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
 export default {
+  /* This is a timeline item, it converts between our dates into our virtual screen coordinates
+
+    Our timeline is built with cells, therefore we have to calculate how many cells a particular item uses.
+  */
   name: "TimelineItem",
   props: {
     id: String,
@@ -71,13 +82,15 @@ export default {
     cellHeight,
     cellHeightInPx,
     calendarInit,
+    calendarEnd,
+    cellDays,
     updateTask: { from: "updateTask" },
     rows: { from: "rows" },
     setRows: { from: "setRows" },
   },
   data: function () {
     return {
-      initPostion: null,
+      initPosition: null,
       endPosition: null,
       topPosition: this.priority - 1,
       showResizes: false,
@@ -101,26 +114,53 @@ export default {
       return `${this.cellSize * this.width}px`;
     },
     taskLeftPosition: function () {
-      return `${this.cellSize * this.initPostion}px`;
+      return `${this.cellSize * this.initPosition}px`;
     },
   },
   methods: {
-    getTaskPositions: function () {
-      this.initPostion = getDiffDays(this.creationDate, this.calendarInit);
-      this.endPosition = getDiffDays(this.dueDate, this.calendarInit);
+    convertToRelative: function(start, end = null) {
+      if (!end)
+        end = this.calendarInit;
+
+      let df = getDiffDays(start, end);
+      let sz = df / this.cellDays;
+      if (sz < 1) {
+        console.log("Too small to be displayed");
+      }
+      return sz
+    },
+    resetTaskPositions: function () {
+      /* Recalculates the position of the task and rerenders it */
+
+      //debugger;
+
+      this.initPosition = this.convertToRelative(this.creationDate);
+      this.endPosition = this.convertToRelative(this.dueDate);
+
+      console.log(" ---------------------- ");
+      console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + this.convertToRelative(this.creationDate));
 
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
-      this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
+      if (taskElement) {
+        const row = taskElement.closest(".cal__row");
+        this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
+      }
 
       this.getTopLimit();
       this.getBottomLimit();
 
-      this.width = getDiffDays(this.creationDate, this.dueDate) + 1;
+      let w = this.convertToRelative(this.creationDate, this.dueDate);
+
+      if (w < 1) // Check why click doesn't work when width is 0
+        w = 1.0;
+
+      this.width = w;
+
+      console.log(this.title + " WIDTH = " + this.width);
     },
     getTopLimit: function () {
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
+      const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
 
       const timelineGroups = Array.from(row.parentNode.children);
@@ -136,14 +176,11 @@ export default {
     },
     getBottomLimit: function () {
       const taskElement = this.$refs.task;
-      const row = taskElement.closest(".calendar__row");
+      const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
 
       const timelineGroups = Array.from(row.parentNode.children);
-      const nextTimelineRows = timelineGroups.slice(
-        rowIndex + 1,
-        timelineGroups.length
-      );
+      const nextTimelineRows = timelineGroups.slice(rowIndex + 1, timelineGroups.length);
 
       this.$nextTick(() => {
         const prevRowsLimit = nextTimelineRows.reduce((prev, curr) => {
@@ -156,9 +193,19 @@ export default {
     handleResizeOpen: function () {
       this.showResizes = true;
 
+      console.log("========= CLICKED ========== ");
+      console.log(this.title);
+
+      console.log(" START " + new Date(this.creationDate * 1000));
+      console.log("   END " + new Date(this.dueDate * 1000));
+
+      this.resetTaskPositions();
+
       this.documentEventListener = clickOutside(this.$refs.task, () => {
         this.handleResizeClose();
       });
+
+      eventBus.emit('taskdatapanel', this);
     },
     handleResizeClose: function () {
       this.showResizes = false;
@@ -171,15 +218,11 @@ export default {
       const { layerX, clientX, layerY } = e;
       if (!clientX && layerX) return;
 
-      const cellsToMove = Math.round(
-        (this.dragLayerX - layerX) / this.cellSize
-      );
+      const cellsToMove = Math.round((this.dragLayerX - layerX) / (this.cellSize * this.cellDays));
 
-      const rowToMove = Math.round(
-        (this.dragLayerY - layerY) / this.cellHeight
-      );
+      const rowToMove = Math.round((this.dragLayerY - layerY) / this.cellHeight);
 
-      this.initPostion -= cellsToMove;
+      this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
       if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
@@ -196,14 +239,14 @@ export default {
         this.handlePriorityAndGroup(rowToMove);
       }
 
-      this.width = this.endPosition - this.initPostion + 1;
+      this.width = this.endPosition - this.initPosition + 1;
     },
     handlePriorityAndGroup: function (rowToMove) {
       this.taskPriority -= rowToMove;
 
       if (this.taskPriority <= 0) {
         const taskElement = this.$refs.task;
-        const row = taskElement.closest(".calendar__row");
+        const row = taskElement.closest(".cal__row");
 
         this.currentRowIndex -= 1;
 
@@ -212,7 +255,7 @@ export default {
 
         const newRowName = prevGroup.getAttribute("rowid");
         const prevRowPriorities = Array.from(
-          prevGroup.querySelectorAll(".calendar__inner-row")
+          prevGroup.querySelectorAll(".cal__inner-row")
         ).length;
         const newPriority = prevGroupPriorities;
 
@@ -221,13 +264,13 @@ export default {
         this.currentRows = prevRowPriorities;
       } else if (this.taskPriority > this.currentRows) {
         const taskElement = this.$refs.task;
-        const row = taskElement.closest(".calendar__row");
+        const row = taskElement.closest(".cal__row");
 
         this.currentRowIndex += 1;
 
         const newtGroup = row.parentNode.children[this.currentRowIndex];
         const nextRowPriorities = Array.from(
-          newtGroup.querySelectorAll(".calendar__inner-row")
+          newtGroup.querySelectorAll(".cal__inner-row")
         ).length;
         const nextRowName = newtGroup.getAttribute("rowid");
 
@@ -240,27 +283,51 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      const resize = Math.round(layerX / this.cellSize);
+      let resize = layerX / this.cellSize;
 
-      if (this.width >= 2 || resize < 0) {
-        this.initPostion += resize;
-        this.width = this.endPosition - this.initPostion + 1;
+      if (Math.abs(resize) < 1 && this.cellDays == 1) {
+        console.log(" Not enough resize ");
+        return
       }
+
+      resize /= this.cellDays;
+
+      if (resize > 0) {
+        // We don't want to make it too small that you cannot grab it.
+        if ((this.endPosition - resize - 1) < this.initPosition) {
+          console.log(" End cannot be bigger than Start");
+          return;
+        }
+      }
+
+      this.initPosition += resize
+      this.width = this.endPosition - this.initPosition;
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      const resize = Math.round(layerX / this.cellSize);
+      const resize = Math.round(layerX / (this.cellSize * this.cellDays));
 
       if (this.width + resize > 0) {
         this.endPosition += resize;
-        this.width = this.endPosition - this.initPostion + 1;
+        this.width = this.endPosition - this.initPosition;
       }
     },
+    convertCellToDate: function(interval) {
+        // Converts the number of cells into a position in the calendar
+        // We append the position to the start of the first cell of the calendar
+        // so we can calculate the real start / end date.
+        let relative = interval * this.cellDays;
+        return addDays(this.calendarInit, relative);
+    },
     handleUpdateDate: function () {
-      const initDay = addDays(this.calendarInit, this.initPostion);
-      const endDay = addDays(this.calendarInit, this.endPosition);
+
+      const initDay =  this.convertCellToDate(this.initPosition);
+      const endDay = this.convertCellToDate(this.endPosition);
+
+      console.log(" START " + new Date(initDay * 1000));
+      console.log("   END " + new Date(endDay * 1000));
 
       const taskData = {
         ...this.$props,
@@ -269,36 +336,49 @@ export default {
         priority: this.taskPriority,
       };
 
-      delete taskData.groupName;
+      eventBus.emit('taskdatapanel', taskData);
+      try {
+        delete taskData.groupName;
 
-      this.updateTask({
-        updatedTask: taskData,
-        newRow: this.taskGroupName,
-        oldRow: this.groupName,
-      });
+        this.updateTask({
+          updatedTask: taskData,
+          newRow: this.taskGroupName,
+          oldRow: this.groupName,
+        });
+      } catch (error) {
+        debugger;
+        console.log(" CRASH " + error);
+      }
+
     },
+    invalidate: function() {
+      console.log("Invalidate task " + this.title);
+      this.resetTaskPositions();
+    }
   },
   watch: {
     calendarInit: function () {
-      this.getTaskPositions();
+      this.invalidate();
     },
     creationDate: function () {
-      this.getTaskPositions();
+      this.invalidate();
     },
     rows: function () {
       this.currentRows = this.rows;
     },
   },
   mounted() {
-    this.getTaskPositions();
-
+    this.invalidate();
     if (this.priority > this.currentRows) {
       this.setRows(this.priority);
     }
+    eventBus.on('invalidate-timeline-items', this.invalidate);
   },
   beforeUnmount() {
     document.removeEventListener("click", this.documentEventListener);
+    eventBus.off('invalidate-timeline-items', this.invalidate);
   },
+
 };
 </script>
 

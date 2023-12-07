@@ -9,22 +9,72 @@
 </template>
 
 <script>
+import eventBus from '../eventBus.js';
+
 import { Calendar } from "../Calendar";
-import { cellSize } from "@/contexts/CellSizeContext";
-import { todayCell } from "@/contexts/CalendarContext";
+import { cellSize, setCellSizePx } from "@/contexts/CellSizeContext";
+import { todayCell, totalCells } from "@/contexts/CalendarContext";
 
 export default {
   name: "Timeline",
-  inject: { cellSize, todayCell },
+  inject: { cellSize, todayCell, totalCells, setCellSizePx },
   methods: {
     calendarScrollToday: function () {
       this.$refs.timeline.scrollLeft = this.cellSize * (this.todayCell - 4);
     },
+    handleResize(width) {
+      if (this.totalCells == 0) {
+        console.log("Waiting for initialization");
+        return;
+      }
+
+      // Check if we can meet the minimum size in case of having to downsize
+      let MIN_SIZE_PX = 25;
+      if (this.totalCells * this.cellSize > width) {
+
+          if (this.totalCells * MIN_SIZE_PX > width) {
+            // We cannot fit on the size minimum size
+            console.log('Cannot fit into ', width);
+            return;
+          }
+      }
+
+      // Round up one so we leave an empty space on the right.
+      // We should think about what to do with the empty space.
+      let new_size = Math.ceil(width / (this.totalCells + 1)) | 0;
+      console.log('Resize to fit:' + width + " Size " + new_size);
+      this.setCellSizePx(new_size);
+    },
+    triggerResizeManually() {
+      const width = this.$refs.timeline.clientWidth;
+      this.handleResize(width);
+      eventBus.emit('invalidate-timeline-items');
+    },
+    invalidate() {
+        this.triggerResizeManually();
+    }
   },
   mounted() {
+    const observedElement = this.$refs.timeline;
+
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        const { width } = entry.contentRect;
+        // Call your callback function here with the new width
+        this.handleResize(width);
+      }
+    });
+
+    resizeObserver.observe(observedElement);
+
     this.$nextTick(() => {
       this.calendarScrollToday();
     });
+
+    eventBus.on('timeline-invalidate', this.triggerResizeManually);
+  },
+  beforeUnmount() {
+    eventBus.off('timeline-invalidate', this.triggerResizeManually);
   },
   components: {
     Calendar,

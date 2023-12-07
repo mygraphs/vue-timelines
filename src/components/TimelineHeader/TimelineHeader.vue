@@ -3,6 +3,12 @@
     <h2 class="header__title">Vue Timelines</h2>
 
     <div class="header__actions">
+      <select v-model="selectedTimeFrame" @change="handleTimeFrame">
+        <option v-for="option in options" :value="option.value" :key="option.value">
+          {{ option.text }}
+        </option>
+      </select>
+
       <div class="header__zoom-buttons">
         <span>Zoom</span>
         <button class="header__button" @click="reduceCellSize">-</button>
@@ -16,13 +22,16 @@
 </template>
 
 <script>
-import { todayCell } from "@/contexts/CalendarContext";
+import eventBus from '../eventBus.js';
+
+import { todayCell, setCellSizeDays, cellDays } from "@/contexts/CalendarContext";
 import {
   reduceCellSize,
   increaseCellSize,
   resetCellSize,
   cellSize,
   cellSizeInPx,
+  cellSizeDays,
 } from "@/contexts/CellSizeContext";
 
 export default {
@@ -34,14 +43,33 @@ export default {
     cellSize,
     cellSizeInPx,
     todayCell,
+    setCellSizeDays,
+    cellDays,
   },
   methods: {
     handleScrollToday: function () {
       this.$emit("scrollToday");
     },
+    handleTimeFrame: function () {
+      this.setCellSizeDays(this.selectedTimeFrame);
+      eventBus.emit('timeline-invalidate');
+    },
   },
   mounted() {
     setTimeout(() => this.handleScrollToday(), 0);
+  },
+  data() {
+    return {
+      selectedTimeFrame: '1', // This will be updated with the value of the selected option
+      options: [
+        { text: 'Daily', value: '1' },
+        { text: '5 Days', value: '5' },
+        { text: 'Work Week', value: '7' },
+        { text: 'Two Weeks', value: '14' },
+        { text: 'Month', value: '30' },
+        { text: 'Year', value: '365' },
+      ],
+    };
   },
 };
 </script>

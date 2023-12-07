@@ -22,13 +22,13 @@ export const initDay = (timestamp) => {
     .unix();
 };
 
-export const firstDayMounth = (timestamp) => {
+export const firstDayMonth = (timestamp) => {
   return dayjs(timestamp * 1000)
     .startOf("month")
     .unix();
 };
 
-export const lastDayMounth = (timestamp) => {
+export const lastDayMonth = (timestamp) => {
   return dayjs(timestamp * 1000)
     .endOf("month")
     .unix();

@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "dayjs": "^1.11.0"
+    "dayjs": "^1.11.10",
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.9",
@@ -68,7 +69,11 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-console": 1,
+      "no-debugger": 1,
+      "no-unused-vars": 1
+    }
   },
   "browserslist": [
     "> 1%",

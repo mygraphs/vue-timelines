@@ -5,15 +5,8 @@
 <script>
 import { computed } from "vue";
 
-import { firstDayMounth, getDiffDays, lastDayMounth } from "@/utils/date";
-import {
-  calendarInit,
-  calendarEnd,
-  totalDays,
-  todayCell,
-  setCalendarSize,
-  checkCalendarSize,
-} from "./keys";
+import * as date from "@/utils/date";
+import * as k from "./keys";
 
 export default {
   name: "CalendarContext",
@@ -21,20 +14,36 @@ export default {
     return {
       calendarInit: 0,
       calendarEnd: 0,
+      cellDays: 1,
     };
   },
   computed: {
-    totalDays: function () {
-      return getDiffDays(this.calendarEnd, this.calendarInit);
+    totalCells: function () {
+      let days = date.getDiffDays(this.calendarEnd, this.calendarInit);
+      let cells = days / this.cellDays;
+      cells = Math.ceil(cells);
+      console.log(days + " TOTAL CELLS" + cells);
+      return cells | 0;
     },
     todayCell: function () {
-      return getDiffDays(this.calendarInit, new Date().getTime() / 1000);
+      let now = new Date().getTime() / 1000;
+      if (this.calendarEnd < now)
+        now = this.calendarEnd;
+
+      let current_day = date.getDiffDays(this.calendarInit, now) / this.cellDays
+      console.log("CURRENT DAY " + current_day)
+      return current_day | 0;
     },
   },
   methods: {
+    setCellSizeDays: function (days) {
+      console.log("============== SIZE DAYS " + days + " ===============");
+      this.cellDays = days;
+    },
     setCalendarSize: function (calendarInit, calendarEnd) {
-      this.calendarInit = firstDayMounth(calendarInit);
-      this.calendarEnd = lastDayMounth(calendarEnd);
+      let margin = (this.cellDays < 7) ? 7 : this.cellDays * 2;
+      this.calendarInit = date.subtractDays(calendarInit, margin);
+      this.calendarEnd = date.addDays(calendarEnd, margin);
     },
     checkCalendarSize: function (tasks) {
       let calendarInit = null;
@@ -45,24 +54,25 @@ export default {
         if (!calendarEnd) calendarEnd = task.dueDate;
 
         if (task.creationDate < calendarInit) calendarInit = task.creationDate;
-        if (task.dueDate > calendarEnd) calendarEnd = task.dueDate;
+        if (task.dueDate > calendarEnd) {
+          calendarEnd = task.dueDate;
+          console.log(" END CALENDAR " + task.dueDate)
+        }
       });
 
-      if (calendarInit < this.calendarInit)
-        this.calendarInit = firstDayMounth(calendarInit);
-
-      if (calendarEnd > this.calendarEnd)
-        this.calendarEnd = lastDayMounth(calendarEnd);
+      this.setCalendarSize(calendarInit, calendarEnd);
     },
   },
   provide: function () {
     return {
-      [calendarInit]: computed(() => this.calendarInit),
-      [calendarEnd]: computed(() => this.calendarEnd),
-      [totalDays]: computed(() => this.totalDays),
-      [todayCell]: computed(() => this.todayCell),
-      [setCalendarSize]: this.setCalendarSize,
-      [checkCalendarSize]: this.checkCalendarSize,
+      [k.calendarInit]: computed(() => this.calendarInit),
+      [k.calendarEnd]: computed(() => this.calendarEnd),
+      [k.totalCells]: computed(() => this.totalCells),
+      [k.todayCell]: computed(() => this.todayCell),
+      [k.cellDays]: computed(() => this.cellDays),
+      [k.setCalendarSize]: this.setCalendarSize,
+      [k.setCellSizeDays]: this.setCellSizeDays,
+      [k.checkCalendarSize]: this.checkCalendarSize,
     };
   },
 };

@@ -1,27 +1,27 @@
 <template>
-  <div class="calendar__row" ref="timelineRow" :rowid="rowid">
+  <div class="cal__row" ref="timelineRow" :rowid="rowid">
     <div
-      class="calendar__inner-row-container"
-      :class="{ 'calendar__row--dragover': isDragover }"
+      class="cal__inner-row-container"
+      :class="{ 'cal__row--dragover': isDragover }"
     >
       <template v-for="(_, index) in Array(rows)" :key="index">
-        <div class="calendar__inner-row" />
+        <div class="cal__inner-row" />
       </template>
     </div>
 
-    <template v-for="(_, index) in new Array(totalDays)" :key="index">
-      <div class="calendar__cell" />
+    <template v-for="(_, index) in new Array(totalCells)" :key="index">
+      <div class="cal__cell"></div>
     </template>
 
     <slot />
-    <button class="calendar__button" @click="handleAddRow">+</button>
+    <button class="cal__button" @click="handleAddRow">+</button>
   </div>
 </template>
 
 <script>
 import { computed } from "vue";
 
-import { totalDays, todayCell } from "@/contexts/CalendarContext";
+import { totalCells, todayCell } from "@/contexts/CalendarContext";
 import {
   cellHeightInPx,
   cellHeight,
@@ -31,7 +31,7 @@ import {
 export default {
   name: "TimelineRow",
   inject: {
-    totalDays,
+    totalCells,
     cellHeightInPx,
     cellHeight,
     cellSizeInPx,
@@ -86,17 +86,17 @@ export default {
 </script>
 
 <style>
-.calendar__row {
+.cal__row {
   height: calc(v-bind(cellHeightInPx) * v-bind(rows));
   display: flex;
   position: relative;
 }
 
-.calendar__row--dragover {
+.cal__row--dragover {
   background-color: rgba(128, 128, 128, 0.2) !important;
 }
 
-.calendar__row:after {
+.cal__row:after {
   content: "";
   position: absolute;
   height: 100%;
@@ -106,7 +106,7 @@ export default {
   left: calc(v-bind(cellSizeInPx) * v-bind(todayCell));
 }
 
-.calendar__inner-row-container {
+.cal__inner-row-container {
   display: block;
   width: 100%;
   position: fixed;
@@ -115,15 +115,15 @@ export default {
   pointer-events: none;
 }
 
-.task__content:active .calendar__inner-row-container {
+.task__content:active .cal__inner-row-container {
   pointer-events: initial;
 }
 
-.calendar__inner-row {
+.cal__inner-row {
   height: v-bind(cellHeightInPx);
 }
 
-.calendar__button {
+.cal__button {
   position: sticky;
   height: 20px;
   right: 0;
@@ -131,7 +131,7 @@ export default {
   font-size: 0.7rem;
 }
 
-.calendar__cell {
+.cal__cell {
   max-width: v-bind(cellSizeInPx);
   min-width: v-bind(cellSizeInPx);
   width: v-bind(cellSizeInPx);
