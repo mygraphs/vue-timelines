@@ -10,14 +10,18 @@
 
 <script>
 import eventBus from '../eventBus.js';
+import { mapState, mapMutations, mapGetters } from "vuex";
 
 import { Calendar } from "../Calendar";
 import { cellSize, setCellSizePx } from "@/contexts/CellSizeContext";
-import { todayCell, totalCells } from "@/contexts/CalendarContext";
 
 export default {
   name: "Timeline",
-  inject: { cellSize, todayCell, totalCells, setCellSizePx },
+  inject: { cellSize, setCellSizePx },
+  computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
+  },
   methods: {
     calendarScrollToday: function () {
       this.$refs.timeline.scrollLeft = this.cellSize * (this.todayCell - 4);

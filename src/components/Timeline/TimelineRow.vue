@@ -21,7 +21,8 @@
 <script>
 import { computed } from "vue";
 
-import { totalCells, todayCell } from "@/contexts/CalendarContext";
+import { mapState, mapMutations, mapGetters } from "vuex";
+
 import {
   cellHeightInPx,
   cellHeight,
@@ -31,11 +32,9 @@ import {
 export default {
   name: "TimelineRow",
   inject: {
-    totalCells,
     cellHeightInPx,
     cellHeight,
     cellSizeInPx,
-    todayCell,
   },
   props: {
     rowid: {
@@ -49,7 +48,12 @@ export default {
       isDragover: false,
     };
   },
+  computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
+  },
   methods: {
+    ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     handleAddRow: function () {
       this.rows += 1;
       this.setListRowHeight();

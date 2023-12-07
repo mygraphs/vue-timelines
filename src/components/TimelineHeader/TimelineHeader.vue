@@ -24,7 +24,8 @@
 <script>
 import eventBus from '../eventBus.js';
 
-import { todayCell, setCellSizeDays, cellDays } from "@/contexts/CalendarContext";
+import { mapState, mapMutations, mapGetters } from "vuex";
+
 import {
   reduceCellSize,
   increaseCellSize,
@@ -42,11 +43,13 @@ export default {
     resetCellSize,
     cellSize,
     cellSizeInPx,
-    todayCell,
-    setCellSizeDays,
-    cellDays,
+  },
+  computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
   },
   methods: {
+    ...mapMutations(["setCellSizeDays"]),
     handleScrollToday: function () {
       this.$emit("scrollToday");
     },

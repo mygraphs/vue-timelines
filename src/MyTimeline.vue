@@ -27,16 +27,14 @@
             </TimelineRow>
           </template>
         </Timeline>
-
       </template>
     </slot>
   </div>
   <TaskDataPanel ref="taskdata" />
-
 </template>
 
 <script>
-
+import { mapState, mapMutations, mapGetters } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
@@ -44,23 +42,12 @@ import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
-import {
-  setCalendarSize,
-  setCellSizeDays,
-  todayCell,
-  checkCalendarSize,
-} from "@/contexts/CalendarContext";
-
 
 export default {
   name: "VueTimeline",
   inject: {
     cellSizeInPx,
     cellSize,
-    setCellSizeDays,
-    setCalendarSize,
-    todayCell,
-    checkCalendarSize,
     emitUpdatedTasks: { from: "emitUpdatedTasks" },
   },
   props: {
@@ -78,7 +65,12 @@ export default {
       groupsToUse: [],
     };
   },
+  computed: {
+    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapGetters(["totalCells", "todayCell"]),
+  },
   methods: {
+    ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     updateTask: function (taskData) {
       const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
       this.emitUpdatedTasks({ tasksUpdated, tasks });
@@ -97,7 +89,6 @@ export default {
         this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
         this.groupsToUse[newRow].tasks.push(updatedTask);
       } else {
-
         let idx = this.groupsToUse.findIndex((group) => {
           return group.id === newRow;
         });
@@ -109,9 +100,9 @@ export default {
 
         let group = this.groupsToUse[idx];
 
-        for (let i=0; i < group.tasks.length; i++) {
+        for (let i = 0; i < group.tasks.length; i++) {
           let task = group.tasks[i];
-          const is_task = (task.id === updatedTask.id);
+          const is_task = task.id === updatedTask.id;
           console.log("CHECK TASK " + task.id + " <=> " + updatedTask.id + " " + is_task);
           if (is_task) {
             group.tasks[i] = updatedTask;
@@ -162,24 +153,17 @@ export default {
   mounted() {
     this.groupsToUse = this.groups;
 
-    let calendarInit = null;
-    let calendarEnd = null;
+    let init = null;
+    let end = null;
 
     for (const key in this.groupsToUse) {
       this.groupsToUse[key].tasks.map((task) => {
         const creationDateInitDay = initDay(task.creationDate);
         const dueDateInitDay = initDay(task.dueDate);
 
-        if (!calendarInit) calendarInit = creationDateInitDay;
-        if (!calendarEnd) calendarEnd = dueDateInitDay;
+        if (!init || creationDateInitDay < init) init = creationDateInitDay;
 
-        if (creationDateInitDay < calendarInit) {
-          calendarInit = creationDateInitDay;
-        }
-
-        if (dueDateInitDay > calendarEnd) {
-          calendarEnd = dueDateInitDay;
-        }
+        if (!end || dueDateInitDay > end) end = dueDateInitDay;
 
         return {
           ...task,
@@ -199,13 +183,13 @@ export default {
     }
 
     let unix_time = Date.now() / 1000;
-    if (calendarEnd < unix_time) {
+    if (end < unix_time) {
       console.log(" SET DATE TO TODAY " + unix_time);
-      //calendarEnd = unix_time;
+      //end = unix_time;
     }
 
     this.setCellSizeDays(1);
-    this.setCalendarSize(calendarInit, calendarEnd);
+    this.setCalendarSize({ calendarInit: init, calendarEnd: end });
   },
   provide: function () {
     return {
