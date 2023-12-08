@@ -7,11 +7,18 @@
     >
       <div>{{ month.year }}</div>
       <div>{{ month.name }}</div>
-      <div class="cal__days-container">
-        <template v-for="day in month.days" :key="day">
-          <div>{{ day }}</div>
-        </template>
-      </div>
+
+        <div class="cal__int-container" v-if="this.cellDays >= 1">
+          <template v-for="day in month.days" :key="day">
+              <div>{{ day.title }}</div>
+          </template>
+        </div>
+        <div class="cal__int-container" v-else>
+          <template v-for="day in month.days" :key="day">
+              <div  v-for="hour in day.hours" :key="hour">{{ hour }}</div>
+          </template>
+        </div>
+
     </div>
   </div>
 </template>
@@ -63,14 +70,29 @@ export default {
       let days = [];
 
       let count = 0;
+      console.log("================= DIVIDE IN " + this.cellDays + " =================== ");
       while (true) {
+        let day = { title: "" };
+
         if (this.cellDays === 7) {
           // Assuming 7 for work weeks
-          days.push(currentDay.week());
-        } else {
-          if (this.cellDays > 14) days.push("");
-          else days.push(currentDay.date());
+          day.title = currentDay.week();
+        } else
+          if (this.cellDays < 14)
+            day.title =  currentDay.date();
+
+        if (this.cellDays < 1) {
+          let oldDay = currentDay.day();
+          let hours = []
+          while (oldDay == currentDay.day()) {
+            hours.push(currentDay.hour())
+            currentDay = currentDay.add(this.cellDays * 24, "hour");
+          }
+
+          day.hours = hours;
         }
+
+        days.push(day);
 
         let newDay = currentDay.add(this.cellDays, "day");
         if (currentMonth != newDay.month()) {
@@ -99,6 +121,7 @@ export default {
         currentDay = newDay;
       }
 
+      console.log("================= FINISHED UPDATE " + this.cellDays + " =================== ");
       if (days.length > 0)
         months.push({
           name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
@@ -131,7 +154,7 @@ export default {
   padding-top: 1.7rem;
 }
 
-.cal__days-container {
+.cal__int-container {
   background-color: #f8f9fc;
 }
 </style>

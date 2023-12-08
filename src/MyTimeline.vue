@@ -224,11 +224,11 @@ export default {
   text-align: center;
   color: #707070;
 }
-.cal__days-container {
+.cal__int-container {
   display: flex;
 }
 
-.cal__days-container div {
+.cal__int-container div {
   width: v-bind(cellSizeInPx);
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);

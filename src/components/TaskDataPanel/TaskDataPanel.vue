@@ -28,8 +28,8 @@ export default {
       this.title = task.title;
       this.state = task.state;
 
-      this.creationDate = dayjs(new Date(task.creationDate * 1000)).format('LL');
-      this.dueDate = dayjs(new Date(task.dueDate * 1000)).format('LL');
+      this.creationDate = dayjs(new Date(task.creationDate * 1000)).format('LLL');
+      this.dueDate = dayjs(new Date(task.dueDate * 1000)).format('LLL');
     },
     invalidate: function() {
       console.log("Invalidate")

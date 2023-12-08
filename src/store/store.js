@@ -12,6 +12,8 @@ export default createStore({
   },
   mutations: {
     setCellSizeDays(state, days) {
+      // Selector we should be able to extract the day from text like 1 hour or 8 hours.
+      console.log("CELL DAYS " + days);
       state.cellDays = days;
     },
     setCalendarSize(state, { calendarInit, calendarEnd }) {

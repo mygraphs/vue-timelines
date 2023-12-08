@@ -63,12 +63,14 @@ export default {
     return {
       selectedTimeFrame: '1', // This will be updated with the value of the selected option
       options: [
-        { text: 'Daily', value: '1' },
-        { text: '5 Days', value: '5' },
-        { text: 'Work Week', value: '7' },
-        { text: 'Two Weeks', value: '14' },
-        { text: 'Month', value: '30' },
-        { text: 'Year', value: '365' },
+        { text: '1 hour', value: 0.0416666666667 },
+        { text: '8 hour', value: 0.333333333334 },
+        { text: 'Daily', value: 1 },
+        { text: '5 Days', value: 5 },
+        { text: 'Work Week', value: 7 },
+        { text: 'Two Weeks', value: 14 },
+        { text: 'Month', value: 30 },
+        { text: 'Year', value: 365 },
       ],
     };
   },
