@@ -13,9 +13,20 @@
               <div>{{ day.title }}</div>
           </template>
         </div>
-        <div class="cal__int-container" v-else>
+        <div v-else class="cal__day-container">
           <template v-for="day in month.days" :key="day">
-              <div  v-for="hour in day.hours" :key="hour">{{ hour }}</div>
+              <table>
+                <tr><td><div>{{ day.title }}</div></td></tr>
+                <tr><td>
+                  <div class="cal__int-container" >
+                  <table><tr>
+                    <template v-for="hour in day.hours" :key="hour">
+                      <td><div>{{ hour }}</div></td>
+                    </template>
+                  </tr></table>
+                  </div>
+                </td></tr>
+              </table>
           </template>
         </div>
 
@@ -154,7 +165,31 @@ export default {
   padding-top: 1.7rem;
 }
 
+.cal__day-container {
+  display: flex;
+  background-color: #f7f8fb;
+}
+
 .cal__int-container {
   background-color: #f8f9fc;
 }
+
+.div-centered {
+  clear:both;
+  width: 100px;
+}
+
+table {
+  border-spacing: 0px;
+  border: 0px;
+  margin: 0px;
+  padding: 0px;
+}
+tr {
+  padding: 0px;
+}
+td {
+  padding: 0px;
+}
+
 </style>
