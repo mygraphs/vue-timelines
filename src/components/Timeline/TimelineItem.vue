@@ -287,14 +287,6 @@ export default {
         return;
 
       let resize = layerX / this.cellSize;
-
-      console.log(" RESIZE " + layerX)
-      /*
-      if (Math.abs(resize) < 0.1) {
-        console.log(" Small resize ");
-      }
-      */
-
       resize /= this.cellDays;
 
       if (resize > 0) {

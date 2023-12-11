@@ -8,28 +8,37 @@
       <div>{{ month.year }}</div>
       <div>{{ month.name }}</div>
 
-        <div class="cal__int-container" v-if="this.cellDays >= 1">
-          <template v-for="day in month.days" :key="day">
-              <div>{{ day.title }}</div>
-          </template>
-        </div>
-        <div v-else class="cal__day-container">
-          <template v-for="day in month.days" :key="day">
-              <table>
-                <tr><td><div>{{ day.title }}</div></td></tr>
-                <tr><td>
-                  <div class="cal__int-container" >
-                  <table><tr>
-                    <template v-for="hour in day.hours" :key="hour">
-                      <td><div>{{ hour }}</div></td>
-                    </template>
-                  </tr></table>
-                  </div>
-                </td></tr>
-              </table>
-          </template>
-        </div>
-
+      <div class="cal__int-container" v-if="this.cellDays >= 1">
+        <template v-for="day in month.days" :key="day">
+          <div>{{ day.title }}</div>
+        </template>
+      </div>
+      <div v-else class="cal__day-container">
+        <template v-for="day in month.days" :key="day">
+          <table>
+            <tr>
+              <td>
+                <div>{{ day.title }}</div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="cal__int-container">
+                  <table>
+                    <tr>
+                      <template v-for="hour in day.hours" :key="hour">
+                        <td>
+                          <div>{{ hour }}</div>
+                        </td>
+                      </template>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -69,8 +78,7 @@ export default {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
     ...mapGetters(["totalCells", "todayCell"]),
     calendar: function () {
-
-    /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
+      /*eslint no-constant-condition: ["error", { "checkLoops": false }]*/
       if (!this.calendarInit || !this.calendarEnd) return [];
 
       let currentDay = dayjs(this.calendarInit * 1000);
@@ -81,22 +89,22 @@ export default {
       let days = [];
 
       let count = 0;
-      console.log("================= DIVIDE IN " + this.cellDays + " =================== ");
+      console.log(
+        "================= DIVIDE IN " + this.cellDays + " =================== "
+      );
       while (true) {
         let day = { title: "" };
 
         if (this.cellDays === 7) {
           // Assuming 7 for work weeks
           day.title = currentDay.week();
-        } else
-          if (this.cellDays < 14)
-            day.title =  currentDay.date();
+        } else if (this.cellDays < 14) day.title = currentDay.date();
 
         if (this.cellDays < 1) {
           let oldDay = currentDay.day();
-          let hours = []
+          let hours = [];
           while (oldDay == currentDay.day()) {
-            hours.push(currentDay.hour())
+            hours.push(currentDay.hour());
             currentDay = currentDay.add(this.cellDays * 24, "hour");
           }
 
@@ -132,7 +140,9 @@ export default {
         currentDay = newDay;
       }
 
-      console.log("================= FINISHED UPDATE " + this.cellDays + " =================== ");
+      console.log(
+        "================= FINISHED UPDATE " + this.cellDays + " =================== "
+      );
       if (days.length > 0)
         months.push({
           name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
@@ -163,6 +173,8 @@ export default {
 .cal__inner-container {
   background-color: #f8f9fc;
   padding-top: 1.7rem;
+  text-align: left;
+  margin-left: 10px;
 }
 
 .cal__day-container {
@@ -172,10 +184,11 @@ export default {
 
 .cal__int-container {
   background-color: #f8f9fc;
+  text-align: left;
 }
 
 .div-centered {
-  clear:both;
+  clear: both;
   width: 100px;
 }
 
@@ -191,5 +204,4 @@ tr {
 td {
   padding: 0px;
 }
-
 </style>
