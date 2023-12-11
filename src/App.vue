@@ -104,8 +104,7 @@ export default {
   },
   methods: {
     handleUpdatedTasks: function ({ tasksUpdated, tasks }) {
-      console.log(tasksUpdated);
-      console.log(tasks);
+      console.log("************** UPDATED TASKS **************");
     },
   },
   components: {

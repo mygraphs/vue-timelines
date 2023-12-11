@@ -137,7 +137,7 @@ export default {
       this.initPosition = this.convertToRelative(this.creationDate);
       this.endPosition = this.convertToRelative(this.dueDate);
 
-      console.log(" ---------------------- ");
+      console.log("--- resetTaskPositions ------------------- ");
       console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + this.convertToRelative(this.creationDate));
 
       const taskElement = this.$refs.task;
@@ -218,9 +218,9 @@ export default {
       const { layerX, clientX, layerY } = e;
       if (!clientX && layerX) return;
 
-      const cellsToMove = Math.round((this.dragLayerX - layerX) / (this.cellSize * this.cellDays));
+      const cellsToMove = (this.dragLayerX - layerX) / (this.cellSize * this.cellDays);
 
-      const rowToMove = Math.round((this.dragLayerY - layerY) / this.cellHeight);
+      const rowToMove = (this.dragLayerY - layerY) / this.cellHeight;
 
       this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
@@ -239,7 +239,7 @@ export default {
         this.handlePriorityAndGroup(rowToMove);
       }
 
-      this.width = this.endPosition - this.initPosition + 1;
+      this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {
       this.taskPriority -= rowToMove;
@@ -283,12 +283,17 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
+      if (layerX == 0)
+        return;
+
       let resize = layerX / this.cellSize;
 
-      if (Math.abs(resize) < 1) {
-        console.log(" Not enough resize ");
-        return
+      console.log(" RESIZE " + layerX)
+      /*
+      if (Math.abs(resize) < 0.1) {
+        console.log(" Small resize ");
       }
+      */
 
       resize /= this.cellDays;
 
@@ -308,13 +313,17 @@ export default {
       if (!clientX && layerX) return;
 
       const resize = layerX / (this.cellSize * this.cellDays);
+      if (resize == 0)
+        return;
 
       if (this.width + resize >= 1) {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition;
       } else {
-        this.width = 1;
+        //this.width = 1;
       }
+
+      console.log(" END " + this.endPosition + " => " + this.width);
     },
     convertCellToDate: function(interval) {
         // Converts the number of cells into a position in the calendar
@@ -324,18 +333,19 @@ export default {
         return addDays(this.calendarInit, relative);
     },
     handleUpdateDate: function () {
-
       let initDay =  this.convertCellToDate(this.initPosition);
       let endDay = this.convertCellToDate(this.endPosition);
 
       let d = getDiffDays(initDay, endDay);
 
       if (d < 1) {
-        endDay = addDays(endDay, 1);
+        endDay = addDays(initDay, 1);
       }
 
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
+
+      //debugger;
 
       const taskData = {
         ...this.$props,
@@ -345,6 +355,7 @@ export default {
       };
 
       eventBus.emit('taskdatapanel', taskData);
+
       try {
         delete taskData.groupName;
 
