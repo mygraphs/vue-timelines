@@ -1,23 +1,16 @@
 <template>
-  <div
-    class="task"
-    @click="handleResizeOpen"
-    draggable="true"
-    @dragstart="handleDragStart"
-    @drag="handleDrag"
-    @dragend="handleUpdateDate"
-    ref="task"
-  >
+  <div class="task" @click="handleResizeOpen" ref="task">
     <div class="task__container">
-      <div
-        class="task__resize task_resize--left"
-        v-if="showResizes"
-        draggable="true"
-        @drag.stop="handleResizeLeft"
-        @dragend="handleUpdateDate"
-        @dragover.prevent=""
-        @dragleave.prevent=""
-      />
+
+        <div class="task__resize task_resize--left" v-if="showResizes"
+            @pointerdown.left="handleDragStart"
+            @pointerup="handleUpdateDate"
+            @pointercancel="handleUpdateDate"
+            @pointermove="dragLayerX ? handleDrag($event) : null"
+            @touchstart.prevent=""
+            @dragstart.prevent=""
+            :class="{ dragLayerX }"
+        />
 
       <div class="task__content" :class="`task__state--${state}`">
         <slot />
@@ -31,14 +24,15 @@
         @dragend="handleUpdateDate"
         @dragover.prevent=""
         @dragleave.prevent=""
+        @touchstart="touchResizeRight"
+        @touchend="handleTouchEnd"
       />
     </div>
   </div>
 </template>
 
 <script>
-
-import eventBus from '../eventBus.js';
+import eventBus from "../eventBus.js";
 
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -56,6 +50,7 @@ import {
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 
+import { Draggable } from "@/components";
 import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
@@ -75,6 +70,11 @@ export default {
     priority: Number,
     state: String,
   },
+/*
+  components: {
+    Draggable,
+  },
+*/
   inject: {
     reduceCellSize,
     increaseCellSize,
@@ -103,6 +103,8 @@ export default {
       currentRowIndex: null,
       documentEventListener: null,
       currentRows: this.rows,
+      ongoingTouches: [],
+      dragging: false,
     };
   },
   computed: {
@@ -120,16 +122,15 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
-    convertToRelative: function(start, end = null) {
-      if (!end)
-        end = this.calendarInit;
+    convertToRelative: function (start, end = null) {
+      if (!end) end = this.calendarInit;
 
       let df = getDiffDays(start, end);
       let sz = df / this.cellDays;
       if (sz < 1) {
         console.log("Too small to be displayed");
       }
-      return sz
+      return sz;
     },
     resetTaskPositions: function () {
       /* Recalculates the position of the task and rerenders it */
@@ -138,7 +139,14 @@ export default {
       this.endPosition = this.convertToRelative(this.dueDate);
 
       console.log("--- resetTaskPositions ------------------- ");
-      console.log("POS " + this.initPosition + " <=> " + this.endPosition + " DAYS " + this.convertToRelative(this.creationDate));
+      console.log(
+        "POS " +
+          this.initPosition +
+          " <=> " +
+          this.endPosition +
+          " DAYS " +
+          this.convertToRelative(this.creationDate)
+      );
 
       const taskElement = this.$refs.task;
       if (taskElement) {
@@ -151,7 +159,8 @@ export default {
 
       let w = this.convertToRelative(this.creationDate, this.dueDate);
 
-      if (w < 1) // Check why click doesn't work when width is 0
+      if (w < 1)
+        // Check why click doesn't work when width is 0
         w = 1.0;
 
       this.width = w;
@@ -202,18 +211,69 @@ export default {
       this.resetTaskPositions();
 
       this.documentEventListener = clickOutside(this.$refs.task, () => {
+        console.log(" clickOutside ");
         this.handleResizeClose();
       });
 
-      eventBus.emit('taskdatapanel', this);
+      eventBus.emit("taskdatapanel", this);
     },
     handleResizeClose: function () {
       this.showResizes = false;
+      console.log(" handleResizeClose ");
     },
     handleDragStart: function (e) {
       this.dragLayerX = e.layerX;
       this.dragLayerY = e.layerY;
+      console.log(" handleDragStart " + this.dragLayerX + " " + this.dragLayerY);
     },
+
+    handleTouchStart: function (evt) {
+      console.log(" TOUCH START ");
+
+      function copyTouch({ identifier, pageX, pageY }) {
+        return { identifier, pageX, pageY };
+      }
+
+      function colorForTouch(touch) {
+        let r = touch.identifier % 16;
+        let g = Math.floor(touch.identifier / 3) % 16;
+        let b = Math.floor(touch.identifier / 7) % 16;
+        r = r.toString(16); // make it a hex digit
+        g = g.toString(16); // make it a hex digit
+        b = b.toString(16); // make it a hex digit
+        const color = `#${r}${g}${b}`;
+        return color;
+      }
+
+      const el = document.getElementById("canvas");
+      const ctx = el.getContext("2d");
+      const touches = evt.changedTouches;
+
+      for (let i = 0; i < touches.length; i++) {
+        console.log(`touchstart: ${i}.`);
+        this.ongoingTouches.push(copyTouch(touches[i]));
+        const color = colorForTouch(touches[i]);
+        console.log(`color of touch with id ${touches[i].identifier} = ${color}`);
+        ctx.beginPath();
+        ctx.arc(touches[i].pageX, touches[i].pageY, 4, 0, 2 * Math.PI, false); // a circle at the start
+        ctx.fillStyle = color;
+        ctx.fill();
+      }
+
+      debugger;
+    },
+
+    handleTouchMove: function (e) {
+      console.log(" TOUCH MOVE ");
+      debugger;
+    },
+
+    handleTouchEnd: function (e) {
+      console.log(" TOUCH END ");
+      debugger;
+      this.handleUpdateDate();
+    },
+
     handleDrag: function (e) {
       const { layerX, clientX, layerY } = e;
       if (!clientX && layerX) return;
@@ -283,30 +343,31 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      if (layerX == 0)
-        return;
+      console.log(" handleResizeLeft " + layerX);
+      if (layerX == 0) return;
 
       let resize = layerX / this.cellSize;
       resize /= this.cellDays;
 
       if (resize > 0) {
         // We don't want to make it too small that you cannot grab it.
-        if ((this.endPosition - resize) < this.initPosition) {
+        if (this.endPosition - resize < this.initPosition) {
           console.log(" End cannot be bigger than Start");
           return;
         }
       }
 
-      this.initPosition += resize
+      this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
+
+      console.log(" handleResizeRight " + layerX);
       if (!clientX && layerX) return;
 
       const resize = layerX / (this.cellSize * this.cellDays);
-      if (resize == 0)
-        return;
+      if (resize == 0) return;
 
       if (this.width + resize >= 1) {
         this.endPosition += resize;
@@ -317,15 +378,15 @@ export default {
 
       console.log(" END " + this.endPosition + " => " + this.width);
     },
-    convertCellToDate: function(interval) {
-        // Converts the number of cells into a position in the calendar
-        // We append the position to the start of the first cell of the calendar
-        // so we can calculate the real start / end date.
-        let relative = interval * this.cellDays;
-        return addDays(this.calendarInit, relative);
+    convertCellToDate: function (interval) {
+      // Converts the number of cells into a position in the calendar
+      // We append the position to the start of the first cell of the calendar
+      // so we can calculate the real start / end date.
+      let relative = interval * this.cellDays;
+      return addDays(this.calendarInit, relative);
     },
     handleUpdateDate: function () {
-      let initDay =  this.convertCellToDate(this.initPosition);
+      let initDay = this.convertCellToDate(this.initPosition);
       let endDay = this.convertCellToDate(this.endPosition);
 
       let d = getDiffDays(initDay, endDay);
@@ -346,7 +407,7 @@ export default {
         priority: this.taskPriority,
       };
 
-      eventBus.emit('taskdatapanel', taskData);
+      eventBus.emit("taskdatapanel", taskData);
 
       try {
         delete taskData.groupName;
@@ -360,12 +421,11 @@ export default {
         debugger;
         console.log(" CRASH " + error);
       }
-
     },
-    invalidate: function() {
+    invalidate: function () {
       console.log("Invalidate task " + this.title);
       this.resetTaskPositions();
-    }
+    },
   },
   watch: {
     calendarInit: function () {
@@ -383,13 +443,12 @@ export default {
     if (this.priority > this.currentRows) {
       this.setRows(this.priority);
     }
-    eventBus.on('invalidate-timeline-items', this.invalidate);
+    eventBus.on("invalidate-timeline-items", this.invalidate);
   },
   beforeUnmount() {
     document.removeEventListener("click", this.documentEventListener);
-    eventBus.off('invalidate-timeline-items', this.invalidate);
+    eventBus.off("invalidate-timeline-items", this.invalidate);
   },
-
 };
 </script>
 
