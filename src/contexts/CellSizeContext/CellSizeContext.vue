@@ -11,6 +11,7 @@ export default {
   data() {
     return {
       cellSize: 25,
+      minSize: 15,
       cellHeight: 40,
     };
   },
@@ -27,7 +28,7 @@ export default {
       this.cellSize += 5;
     },
     resetCellSize: function () {
-      this.cellSize = 25;
+      this.cellSize = this.minSize;
     },
   },
   provide: function () {
@@ -40,6 +41,7 @@ export default {
       [k.increaseCellSize]: this.increaseCellSize,
       [k.resetCellSize]: this.resetCellSize,
       [k.setCellSizePx]: this.setCellSizePx,
+      [k.minSize]: this.minSize,
     };
   },
 };

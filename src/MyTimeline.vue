@@ -81,13 +81,24 @@ export default {
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
       let tasks = null;
 
+      if (!this.groupsToUse[oldRow]) {
+        console.log("[TODO] FAILED FINDING OLD ROW ");
+        return { tasksUpdated: [updatedTask], tasks: [] };
+      }
+
+      if (!this.groupsToUse[newRow]) {
+        console.log("[TODO] FAILED TO INSERT ROW ");
+        return { tasksUpdated: [updatedTask], tasks: [] };
+      }
+
       if (newRow !== oldRow) {
-        const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
+          const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
           return task.id === updatedTask.id;
         });
 
         this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
         this.groupsToUse[newRow].tasks.push(updatedTask);
+
       } else {
         let idx = this.groupsToUse.findIndex((group) => {
           return group.id === newRow;
@@ -224,11 +235,11 @@ export default {
   text-align: center;
   color: #707070;
 }
-.cal__days-container {
+.cal__int-container {
   display: flex;
 }
 
-.cal__days-container div {
+.cal__int-container div {
   width: v-bind(cellSizeInPx);
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);

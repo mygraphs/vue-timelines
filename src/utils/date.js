@@ -1,19 +1,16 @@
 import dayjs from "dayjs";
 
 export const getDiffDays = (firstDate, secondDate) => {
-  return Math.abs(dayjs(firstDate * 1000).diff(secondDate * 1000, "d"));
+  let diff = Math.abs((secondDate - firstDate) / (24 * 60 * 60));
+  return diff;
 };
 
 export const addDays = (timestamp, days) => {
-  return dayjs(timestamp * 1000)
-    .add(days, "day")
-    .unix();
+    return (timestamp + days * 24 * 60 * 60) | 0;
 };
 
 export const subtractDays = (timestamp, days) => {
-  return dayjs(timestamp * 1000)
-    .subtract(days, "day")
-    .unix();
+  return (timestamp - days * 24 * 60 * 60) | 0;
 };
 
 export const initDay = (timestamp) => {

@@ -1,3 +1,4 @@
+export const minSize = Symbol();
 export const cellSize = Symbol();
 export const cellSizeInPx = Symbol();
 export const cellHeight = Symbol();
