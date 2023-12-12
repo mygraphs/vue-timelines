@@ -81,13 +81,24 @@ export default {
     handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
       let tasks = null;
 
+      if (!this.groupsToUse[oldRow]) {
+        console.log("[TODO] FAILED FINDING OLD ROW ");
+        return { tasksUpdated: [updatedTask], tasks: [] };
+      }
+
+      if (!this.groupsToUse[newRow]) {
+        console.log("[TODO] FAILED TO INSERT ROW ");
+        return { tasksUpdated: [updatedTask], tasks: [] };
+      }
+
       if (newRow !== oldRow) {
-        const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
+          const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
           return task.id === updatedTask.id;
         });
 
         this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
         this.groupsToUse[newRow].tasks.push(updatedTask);
+
       } else {
         let idx = this.groupsToUse.findIndex((group) => {
           return group.id === newRow;

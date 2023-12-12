@@ -291,7 +291,7 @@ export default {
 
       if (resize > 0) {
         // We don't want to make it too small that you cannot grab it.
-        if ((this.endPosition - resize - 1) < this.initPosition) {
+        if ((this.endPosition - resize) < this.initPosition) {
           console.log(" End cannot be bigger than Start");
           return;
         }

@@ -52,7 +52,7 @@ dayjs.extend(weekOfYear);
 dayjs.extend(isSameOrAfter);
 
 import { mapState, mapMutations, mapGetters } from "vuex";
-import { cellSize } from "@/contexts/CellSizeContext";
+import { cellSize, resetCellSize } from "@/contexts/CellSizeContext";
 
 function adjustTextToCells(day, format, number_days, cell_size) {
   const LETTER_SIZE_PX = 10;
@@ -70,7 +70,7 @@ function adjustTextToCells(day, format, number_days, cell_size) {
 
 export default {
   name: "Calendar",
-  inject: { cellSize },
+  inject: { cellSize, resetCellSize },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
   },
@@ -92,6 +92,7 @@ export default {
       console.log(
         "================= DIVIDE IN " + this.cellDays + " =================== "
       );
+
       while (true) {
         let day = { title: "" };
 
@@ -174,7 +175,11 @@ export default {
   background-color: #f8f9fc;
   padding-top: 1.7rem;
   text-align: left;
-  margin-left: 10px;
+  font-size: 1.0vw;
+}
+
+.cal__inner-container span {
+  padding-left: 10px;
 }
 
 .cal__day-container {

@@ -13,11 +13,11 @@ import eventBus from '../eventBus.js';
 import { mapState, mapMutations, mapGetters } from "vuex";
 
 import { Calendar } from "../Calendar";
-import { cellSize, setCellSizePx } from "@/contexts/CellSizeContext";
+import { minSize, cellSize, setCellSizePx, resetCellSize } from "@/contexts/CellSizeContext";
 
 export default {
   name: "Timeline",
-  inject: { cellSize, setCellSizePx },
+  inject: { cellSize, minSize, setCellSizePx, resetCellSize },
   computed: {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
     ...mapGetters(["totalCells", "todayCell"]),
@@ -33,12 +33,15 @@ export default {
       }
 
       // Check if we can meet the minimum size in case of having to downsize
-      let MIN_SIZE_PX = 25;
+
+      let MIN_SIZE_PX = this.minSize;
       if (this.totalCells * this.cellSize > width) {
 
           if (this.totalCells * MIN_SIZE_PX > width) {
             // We cannot fit on the size minimum size
             console.log('Cannot fit into ', width);
+
+            this.resetCellSize();
             return;
           }
       }

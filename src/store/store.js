@@ -18,6 +18,10 @@ export default createStore({
     },
     setCalendarSize(state, { calendarInit, calendarEnd }) {
       let margin = (state.cellDays < 7) ? 7 : state.cellDays * 2;
+      if (state.cellDays < 1) {
+        margin = state.cellDays;
+      }
+
       state.calendarInit = date.subtractDays(calendarInit, margin);
       state.calendarEnd = date.addDays(calendarEnd, margin);
     },
