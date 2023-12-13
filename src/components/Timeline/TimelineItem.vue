@@ -1,31 +1,39 @@
 <template>
-  <div class="task" @click="handleResizeOpen" ref="task">
+  <div
+    class="task"
+    @click="handleResizeOpen"
+    @pointerdown.left="handleDragStartTask"
+    @pointerup="handleUpdateDate"
+    @pointercancel="handleUpdateDate"
+    @touchstart.prevent=""
+    @dragstart.prevent=""
+    ref="task"
+  >
     <div class="task__container">
+      <div
+        class="task__resize task_resize--left"
+        v-if="showResizes"
+        @pointerdown.left="handleDragStartLeft"
+        @pointerup="handleUpdateDate"
+        @pointercancel="handleUpdateDate"
+        @touchstart.prevent=""
+        @dragstart.prevent=""
+        :class="{ dragClientX }"
+      />
 
-        <div class="task__resize task_resize--left" v-if="showResizes"
-            @pointerdown.left="handleDragStart"
-            @pointerup="handleUpdateDate"
-            @pointercancel="handleUpdateDate"
-            @pointermove="dragLayerX ? handleDrag($event) : null"
-            @touchstart.prevent=""
-            @dragstart.prevent=""
-            :class="{ dragLayerX }"
-        />
-
-      <div class="task__content" :class="`task__state--${state}`">
+      <div class="task__content prevent-select" :class="`task__state--${state}`">
         <slot />
       </div>
 
       <div
         class="task__resize task_resize--right"
         v-if="showResizes"
-        draggable="true"
-        @drag.stop="handleResizeRight"
-        @dragend="handleUpdateDate"
-        @dragover.prevent=""
-        @dragleave.prevent=""
-        @touchstart="touchResizeRight"
-        @touchend="handleTouchEnd"
+        @pointerdown.left="handleDragStartRight"
+        @pointerup="handleUpdateDate"
+        @pointercancel="handleUpdateDate"
+        @touchstart.prevent=""
+        @dragstart.prevent=""
+        :class="{ dragClientX }"
       />
     </div>
   </div>
@@ -50,7 +58,6 @@ import {
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 
-import { Draggable } from "@/components";
 import { getDiffDays, addDays } from "@/utils/date";
 import { clickOutside } from "@/utils/listener";
 
@@ -70,7 +77,7 @@ export default {
     priority: Number,
     state: String,
   },
-/*
+  /*
   components: {
     Draggable,
   },
@@ -93,9 +100,10 @@ export default {
       endPosition: null,
       topPosition: this.priority - 1,
       showResizes: false,
+      dragStarted: false,
       width: null,
-      dragLayerX: null,
-      dragLayerY: null,
+      dragClientX: null,
+      dragClientY: null,
       topLimit: null,
       bottomLimit: 0,
       taskPriority: this.priority,
@@ -201,6 +209,7 @@ export default {
     },
     handleResizeOpen: function () {
       this.showResizes = true;
+      this.dragStarted = false;
 
       console.log("========= CLICKED ========== ");
       console.log(this.title);
@@ -219,71 +228,55 @@ export default {
     },
     handleResizeClose: function () {
       this.showResizes = false;
+      this.handleUpdateDate();
       console.log(" handleResizeClose ");
     },
+
+    clearHandlers: function(e) {
+      console.log(" -------------- CLEAR HANDLERS --------------- ");
+      window.removeEventListener("pointermove", this.handleResizeRight);
+      window.removeEventListener("pointermove", this.handleResizeLeft);
+      window.removeEventListener("pointermove", this.handleResizeTask);
+    },
+
+    handleDragStartTask: function (e) {
+      this.handleDragStart(e);
+      window.addEventListener("pointermove", this.handleResizeTask);
+    },
+
+    handleDragStartLeft: function (e) {
+      this.handleDragStart(e);
+      window.addEventListener("pointermove", this.handleResizeLeft);
+    },
+
+    handleDragStartRight: function (e) {
+      this.handleDragStart(e);
+      window.addEventListener("pointermove", this.handleResizeRight);
+    },
+
     handleDragStart: function (e) {
-      this.dragLayerX = e.layerX;
-      this.dragLayerY = e.layerY;
-      console.log(" handleDragStart " + this.dragLayerX + " " + this.dragLayerY);
+      e.preventDefault();
+      e.stopPropagation();
+
+      this.clearHandlers();
+
+      this.dragStarted = true;
+      this.dragClientX = e.clientX;
+      this.dragClientY = e.clientY;
+      console.log(" handleDragStart " + this.dragClientX + " " + this.dragClientY);
     },
 
-    handleTouchStart: function (evt) {
-      console.log(" TOUCH START ");
+    handleResizeTask: function (e) {
+      if (!this.dragStarted) return;
 
-      function copyTouch({ identifier, pageX, pageY }) {
-        return { identifier, pageX, pageY };
-      }
+      const cellsToMove = (this.dragClientX - e.clientX) / this.cellSize;
+      const rowToMove = ((this.dragClientY - e.clientY) / this.cellHeight);
 
-      function colorForTouch(touch) {
-        let r = touch.identifier % 16;
-        let g = Math.floor(touch.identifier / 3) % 16;
-        let b = Math.floor(touch.identifier / 7) % 16;
-        r = r.toString(16); // make it a hex digit
-        g = g.toString(16); // make it a hex digit
-        b = b.toString(16); // make it a hex digit
-        const color = `#${r}${g}${b}`;
-        return color;
-      }
+      this.dragClientX = e.clientX;
+      this.dragClientY = e.clientY;
 
-      const el = document.getElementById("canvas");
-      const ctx = el.getContext("2d");
-      const touches = evt.changedTouches;
-
-      for (let i = 0; i < touches.length; i++) {
-        console.log(`touchstart: ${i}.`);
-        this.ongoingTouches.push(copyTouch(touches[i]));
-        const color = colorForTouch(touches[i]);
-        console.log(`color of touch with id ${touches[i].identifier} = ${color}`);
-        ctx.beginPath();
-        ctx.arc(touches[i].pageX, touches[i].pageY, 4, 0, 2 * Math.PI, false); // a circle at the start
-        ctx.fillStyle = color;
-        ctx.fill();
-      }
-
-      debugger;
-    },
-
-    handleTouchMove: function (e) {
-      console.log(" TOUCH MOVE ");
-      debugger;
-    },
-
-    handleTouchEnd: function (e) {
-      console.log(" TOUCH END ");
-      debugger;
-      this.handleUpdateDate();
-    },
-
-    handleDrag: function (e) {
-      const { layerX, clientX, layerY } = e;
-      if (!clientX && layerX) return;
-
-      const cellsToMove = (this.dragLayerX - layerX) / (this.cellSize * this.cellDays);
-
-      const rowToMove = (this.dragLayerY - layerY) / this.cellHeight;
-
-      this.initPosition -= cellsToMove;
-      this.endPosition -= cellsToMove;
+      this.initPosition -= cellsToMove / this.cellDays;
+      this.endPosition -= cellsToMove / this.cellDays;
 
       if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
         this.topLimit -= rowToMove;
@@ -343,10 +336,12 @@ export default {
       const { layerX, clientX } = e;
       if (!clientX && layerX) return;
 
-      console.log(" handleResizeLeft " + layerX);
-      if (layerX == 0) return;
+      if (!this.dragStarted) return;
 
-      let resize = layerX / this.cellSize;
+      if (clientX == 0) return;
+
+      let resize = (clientX - this.dragClientX) / this.cellSize;
+      this.dragClientX = clientX;
       resize /= this.cellDays;
 
       if (resize > 0) {
@@ -357,16 +352,18 @@ export default {
         }
       }
 
+      // We keep our drag in the center, otherwise we will lose the event
       this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
 
-      console.log(" handleResizeRight " + layerX);
-      if (!clientX && layerX) return;
+      console.log(" handleResizeRight " + clientX);
+      if (!clientX && clientX) return;
 
-      const resize = layerX / (this.cellSize * this.cellDays);
+      const resize = (clientX - this.dragClientX) / (this.cellSize * this.cellDays);
+      this.dragClientX = clientX;
       if (resize == 0) return;
 
       if (this.width + resize >= 1) {
@@ -386,6 +383,9 @@ export default {
       return addDays(this.calendarInit, relative);
     },
     handleUpdateDate: function () {
+      this.clearHandlers();
+      this.dragStarted = false;
+
       let initDay = this.convertCellToDate(this.initPosition);
       let endDay = this.convertCellToDate(this.endPosition);
 
@@ -568,5 +568,11 @@ export default {
 
 .task__state--dark {
   background-color: #343a40;
+}
+
+.prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
 }
 </style>

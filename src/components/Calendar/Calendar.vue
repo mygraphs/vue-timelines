@@ -175,7 +175,7 @@ export default {
   background-color: #f8f9fc;
   padding-top: 1.7rem;
   text-align: left;
-  font-size: 1.0vw;
+  font-size: 0.9em;
 }
 
 .cal__inner-container span {
