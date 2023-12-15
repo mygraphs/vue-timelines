@@ -8,6 +8,7 @@
     @touchstart.prevent=""
     @dragstart.prevent=""
     ref="task"
+    :class="{ dragging }"
   >
     <div class="task__container">
       <div
@@ -18,7 +19,7 @@
         @pointercancel="handleUpdateDate"
         @touchstart.prevent=""
         @dragstart.prevent=""
-        :class="{ dragClientX }"
+        :class="{ dragging }"
       />
 
       <div class="task__content prevent-select" :class="`task__state--${state}`">
@@ -33,7 +34,7 @@
         @pointercancel="handleUpdateDate"
         @touchstart.prevent=""
         @dragstart.prevent=""
-        :class="{ dragClientX }"
+        :class="{ dragging }"
       />
     </div>
   </div>
@@ -75,7 +76,6 @@ export default {
     progress: Number,
     groupName: String,
     priority: Number,
-    state: String,
   },
   /*
   components: {
@@ -113,6 +113,7 @@ export default {
       currentRows: this.rows,
       ongoingTouches: [],
       dragging: false,
+      state: "NO_STATE",
     };
   },
   computed: {
@@ -210,8 +211,10 @@ export default {
     handleResizeOpen: function () {
       this.showResizes = true;
       this.dragStarted = false;
+      this.dragging = true;
+      this.state = "info";
 
-      console.log("========= CLICKED ========== ");
+      console.log(this.dragging + " ========= CLICKED ========== ");
       console.log(this.title);
 
       console.log(" START " + new Date(this.creationDate * 1000));
@@ -233,13 +236,15 @@ export default {
     },
 
     clearHandlers: function(e) {
-      console.log(" -------------- CLEAR HANDLERS --------------- ");
       window.removeEventListener("pointermove", this.handleResizeRight);
       window.removeEventListener("pointermove", this.handleResizeLeft);
       window.removeEventListener("pointermove", this.handleResizeTask);
     },
 
     handleDragStartTask: function (e) {
+      if (!this.showResizes)
+        this.handleResizeOpen(e);
+
       this.handleDragStart(e);
       window.addEventListener("pointermove", this.handleResizeTask);
     },
@@ -255,6 +260,8 @@ export default {
     },
 
     handleDragStart: function (e) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -263,6 +270,8 @@ export default {
       this.dragStarted = true;
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
+
+      this.state = "info";
       console.log(" handleDragStart " + this.dragClientX + " " + this.dragClientY);
     },
 
@@ -359,6 +368,8 @@ export default {
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
 
+      if (!this.dragStarted) return;
+
       console.log(" handleResizeRight " + clientX);
       if (!clientX && clientX) return;
 
@@ -417,6 +428,7 @@ export default {
           newRow: this.taskGroupName,
           oldRow: this.groupName,
         });
+
       } catch (error) {
         debugger;
         console.log(" CRASH " + error);
@@ -575,4 +587,8 @@ export default {
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
+
+.task { cursor: grab; }
+.task.dragging { user-select: none; cursor: grabbing; }
+
 </style>
