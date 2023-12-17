@@ -166,14 +166,7 @@ export default {
       this.getTopLimit();
       this.getBottomLimit();
 
-      let w = this.convertToRelative(this.creationDate, this.dueDate);
-
-      if (w < 1)
-        // Check why click doesn't work when width is 0
-        w = 1.0;
-
-      this.width = w;
-
+      this.width = this.convertToRelative(this.creationDate, this.dueDate);
       console.log(this.title + " WIDTH = " + this.width);
     },
     getTopLimit: function () {
@@ -236,15 +229,14 @@ export default {
       this.state = "close";
     },
 
-    clearHandlers: function(e) {
+    clearHandlers: function (e) {
       window.removeEventListener("pointermove", this.handleResizeRight);
       window.removeEventListener("pointermove", this.handleResizeLeft);
       window.removeEventListener("pointermove", this.handleResizeTask);
     },
 
     handleDragStartTask: function (e) {
-      if (!this.showResizes)
-        this.handleResizeOpen(e);
+      if (!this.showResizes) this.handleResizeOpen(e);
 
       this.handleDragStart(e);
       window.addEventListener("pointermove", this.handleResizeTask);
@@ -280,7 +272,7 @@ export default {
       if (!this.dragStarted) return;
 
       const cellsToMove = (this.dragClientX - e.clientX) / this.cellSize;
-      const rowToMove = ((this.dragClientY - e.clientY) / this.cellHeight);
+      const rowToMove = (this.dragClientY - e.clientY) / this.cellHeight;
 
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
@@ -289,7 +281,7 @@ export default {
       this.endPosition -= cellsToMove;
 
       this.topPosition -= rowToMove;
-/*
+      /*
       if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
         this.topLimit -= rowToMove;
         this.bottomLimit += rowToMove;
@@ -351,8 +343,7 @@ export default {
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
 
-      if (resize == 0)
-        return;
+      if (resize == 0) return;
 
       // We don't want to make it too small that you cannot grab it.
       if (this.endPosition - resize - 0.1 < this.initPosition) {
@@ -377,7 +368,7 @@ export default {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition;
       }
-      //console.log(" END " + this.endPosition + " => " + this.width);
+      console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
     },
     convertCellToDate: function (interval) {
       // Converts the number of cells into a position in the calendar
@@ -385,6 +376,9 @@ export default {
       // so we can calculate the real start / end date.
       let relative = interval * this.cellDays;
       return addDays(this.calendarInit, relative);
+    },
+    getMinDay: function() {
+      return this.cellDays / 3;
     },
     handleUpdateDate: function () {
       this.clearHandlers();
@@ -395,8 +389,8 @@ export default {
 
       let d = getDiffDays(initDay, endDay);
 
-      if (d < 1) {
-        endDay = addDays(initDay, 1);
+      if (d < this.getMinDay()) {
+        endDay = addDays(endDay, this.getMinDay());
       }
 
       console.log(" START " + new Date(initDay * 1000));
@@ -421,7 +415,6 @@ export default {
           newRow: this.taskGroupName,
           oldRow: this.groupName,
         });
-
       } catch (error) {
         debugger;
         console.log(" CRASH " + error);
@@ -478,7 +471,7 @@ export default {
 }
 
 .task__content {
-  padding: 0rem 1rem;
+  padding: 0rem 0.2rem;
   display: flex;
   align-items: center;
   position: relative;
@@ -581,7 +574,11 @@ export default {
   user-select: none; /* Standard syntax */
 }
 
-.task { cursor: grab; }
-.task.dragging { user-select: none; cursor: grabbing; }
-
+.task {
+  cursor: grab;
+}
+.task.dragging {
+  user-select: none;
+  cursor: grabbing;
+}
 </style>
