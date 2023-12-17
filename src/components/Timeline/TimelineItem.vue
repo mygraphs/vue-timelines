@@ -216,9 +216,7 @@ export default {
       this.dragging = true;
       this.state = "info";
 
-      console.log(this.dragging + " ========= CLICKED ========== ");
-      console.log(this.title);
-
+      console.log(this.title + " ================== CLICKED ========== " + this.dragging);
       console.log(" START " + new Date(this.creationDate * 1000));
       console.log("   END " + new Date(this.dueDate * 1000));
 
@@ -287,8 +285,8 @@ export default {
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
 
-      this.initPosition -= cellsToMove / this.cellDays;
-      this.endPosition -= cellsToMove / this.cellDays;
+      this.initPosition -= cellsToMove;
+      this.endPosition -= cellsToMove;
 
       this.topPosition -= rowToMove;
 /*
@@ -348,22 +346,18 @@ export default {
     },
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
-      if (!clientX && layerX) return;
-
-      if (!this.dragStarted) return;
-
-      if (clientX == 0) return;
+      if (!clientX || !this.dragStarted) return;
 
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
-      resize /= this.cellDays;
 
-      if (resize > 0) {
-        // We don't want to make it too small that you cannot grab it.
-        if (this.endPosition - resize < this.initPosition) {
-          console.log(" End cannot be bigger than Start");
-          return;
-        }
+      if (resize == 0)
+        return;
+
+      // We don't want to make it too small that you cannot grab it.
+      if (this.endPosition - resize - 0.1 < this.initPosition) {
+        console.log(" End cannot be bigger than Start");
+        return;
       }
 
       // We keep our drag in the center, otherwise we will lose the event
@@ -372,24 +366,18 @@ export default {
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
+      if (!clientX || !this.dragStarted) return;
 
-      if (!this.dragStarted) return;
-
-      console.log(" handleResizeRight " + clientX);
-      if (!clientX && clientX) return;
-
-      const resize = (clientX - this.dragClientX) / (this.cellSize * this.cellDays);
+      const resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
+
       if (resize == 0) return;
 
-      if (this.width + resize >= 1) {
+      if (this.width + resize >= 0.1) {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition;
-      } else {
-        //this.width = 1;
       }
-
-      console.log(" END " + this.endPosition + " => " + this.width);
+      //console.log(" END " + this.endPosition + " => " + this.width);
     },
     convertCellToDate: function (interval) {
       // Converts the number of cells into a position in the calendar
