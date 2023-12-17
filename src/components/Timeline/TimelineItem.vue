@@ -180,6 +180,7 @@ export default {
       const taskElement = this.$refs.task;
       const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+      console.log(" TOP LIMIT " + rowIndex);
 
       const timelineGroups = Array.from(row.parentNode.children);
       const prevTimelineGroups = timelineGroups.slice(0, rowIndex);
@@ -196,6 +197,7 @@ export default {
       const taskElement = this.$refs.task;
       const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
+      console.log(" BOTTOM LIMIT " + rowIndex);
 
       const timelineGroups = Array.from(row.parentNode.children);
       const nextTimelineRows = timelineGroups.slice(rowIndex + 1, timelineGroups.length);
@@ -233,6 +235,7 @@ export default {
       this.showResizes = false;
       this.handleUpdateDate();
       console.log(" handleResizeClose ");
+      this.state = "close";
     },
 
     clearHandlers: function(e) {
@@ -287,6 +290,8 @@ export default {
       this.initPosition -= cellsToMove / this.cellDays;
       this.endPosition -= cellsToMove / this.cellDays;
 
+      this.topPosition -= rowToMove;
+/*
       if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
         this.topLimit -= rowToMove;
         this.bottomLimit += rowToMove;
@@ -300,7 +305,7 @@ export default {
         this.topPosition -= rowToMove;
         this.handlePriorityAndGroup(rowToMove);
       }
-
+*/
       this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {

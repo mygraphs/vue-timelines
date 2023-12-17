@@ -3,41 +3,43 @@
     <div
       v-for="month in calendar"
       :key="month.name + month.year"
-      class="cal__inner-container"
+      class="cal__inner-header calendar_group_header"
     >
-      <div>{{ month.year }}</div>
-      <div>{{ month.name }}</div>
+      <div class="cal__inner-container">
+        <div>{{ month.year }}</div>
+        <div>{{ month.name }}</div>
 
-      <div class="cal__int-container" v-if="this.cellDays >= 1">
-        <template v-for="day in month.days" :key="day">
-          <div>{{ day.title }}</div>
-        </template>
-      </div>
-      <div v-else class="cal__day-container">
-        <template v-for="day in month.days" :key="day">
-          <table>
-            <tr>
-              <td>
-                <div>{{ day.title }}</div>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <div class="cal__int-container">
-                  <table>
-                    <tr>
-                      <template v-for="hour in day.hours" :key="hour">
-                        <td>
-                          <div>{{ hour }}</div>
-                        </td>
-                      </template>
-                    </tr>
-                  </table>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </template>
+        <div class="cal__int-container" v-if="this.cellDays >= 1">
+          <template v-for="day in month.days" :key="day">
+            <div>{{ day.title }}</div>
+          </template>
+        </div>
+        <div v-else class="cal__day-container">
+          <template v-for="day in month.days" :key="day">
+            <table>
+              <tr>
+                <td>
+                  <div>{{ day.title }}</div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="cal__int-container">
+                    <table>
+                      <tr>
+                        <template v-for="hour in day.hours" :key="hour">
+                          <td>
+                            <div>{{ hour }}</div>
+                          </td>
+                        </template>
+                      </tr>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -99,7 +101,7 @@ export default {
         if (this.cellDays === 7) {
           // Assuming 7 for work weeks
           day.title = currentDay.week();
-        } else if (this.cellDays < 14) day.title = currentDay.date();
+        } else if (this.cellDays <= 14) day.title = currentDay.date();
 
         if (this.cellDays < 1) {
           let oldDay = currentDay.day();
@@ -144,6 +146,7 @@ export default {
       console.log(
         "================= FINISHED UPDATE " + this.cellDays + " =================== "
       );
+
       if (days.length > 0)
         months.push({
           name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
@@ -158,6 +161,10 @@ export default {
 </script>
 
 <style>
+.calendar_group_header {
+  min-height: 80px;
+}
+
 .calendar {
   top: 0;
   display: flex;
@@ -171,11 +178,19 @@ export default {
   background-color: #f8f9fc;
 }
 
+.cal__inner-header {
+  display: flex;
+  height: 100%;
+}
+
 .cal__inner-container {
   background-color: #f8f9fc;
-  padding-top: 1.7rem;
+  padding-top: 0rem;
   text-align: left;
+
   font-size: 0.9em;
+  display: inline-block;
+  align-self: flex-end;
 }
 
 .cal__inner-container span {

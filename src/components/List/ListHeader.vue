@@ -1,5 +1,5 @@
 <template>
-  <div class="list__header">
+  <div class="list__header calendar_group_header">
     <slot />
   </div>
 </template>

@@ -70,6 +70,58 @@ var test = {
         },
       ],
     },
+    {
+      name: "group 03",
+      id: "3",
+      tasks: [
+        {
+          id: "07",
+          title: "Test task 07",
+          creationDate: 1642737099,
+          dueDate: 1651805099,
+          progress: 0.8,
+          priority: 1,
+        },
+        {
+          id: "08",
+          title: "Test task 08",
+          creationDate: 1645856299,
+          dueDate: 1647126699,
+          progress: 0.5,
+          priority: 2,
+        },
+      ],
+    },
+    {
+      name: "group 04",
+      id: "4",
+      tasks: [
+        {
+          id: "09",
+          title: "Test task 09",
+          creationDate: 1649031200,
+          dueDate: 1649410000,
+          progress: 0.8,
+          priority: 1,
+        },
+        {
+          id: "10",
+          title: "Test task 10",
+          creationDate: 1650596400,
+          dueDate: 1651374000,
+          progress: 0.5,
+          priority: 4,
+        },
+        {
+          id: "11",
+          title: "Test task 11",
+          creationDate: 1649031200,
+          dueDate: 1649410000,
+          progress: 0.0,
+          priority: 4,
+        },
+      ],
+    },
   ],
 };
 
