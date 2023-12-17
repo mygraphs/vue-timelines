@@ -72,6 +72,7 @@ export default {
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     updateTask: function (taskData) {
+      debugger;
       const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
       this.emitUpdatedTasks({ tasksUpdated, tasks });
     },
@@ -161,7 +162,10 @@ export default {
       timeline.scrollTop = scrollTop;
     },
   },
+  beforeUnmount() {
+  },
   mounted() {
+
     this.groupsToUse = this.groups;
 
     let init = null;

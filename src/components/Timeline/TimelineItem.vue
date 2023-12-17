@@ -113,6 +113,7 @@ export default {
       currentRows: this.rows,
       ongoingTouches: [],
       dragging: false,
+      drag: null, // Current drag original information to restore in case of cancelation.
       state: "NO_STATE",
     };
   },
@@ -224,6 +225,7 @@ export default {
     },
     handleResizeClose: function () {
       this.showResizes = false;
+      window.removeEventListener("keyup", this.handleKeyUp);
       this.handleUpdateDate();
       console.log(" handleResizeClose ");
       this.state = "close";
@@ -264,10 +266,29 @@ export default {
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
 
+      this.drag = {
+        begin: this.initPosition,
+        end: this.endPosition,
+        row: this.topPosition,
+      };
+
       this.state = "info";
       console.log(" handleDragStart " + this.dragClientX + " " + this.dragClientY);
+      window.addEventListener("keyup", this.handleKeyUp);
     },
+    restoreLastPosition: function (e) {},
+    handleKeyUp: function (e) {
+      // Handles the cancelation and restore of the task position
+      if (!this.showResizes) return;
 
+      if (event.key === "Escape") {
+        console.log(" PRESSED ESC KEY ");
+        this.initPosition = this.drag.begin;
+        this.endPosition = this.drag.end;
+        this.topPosition = this.drag.row;
+        this.handleResizeClose();
+      }
+    },
     handleResizeTask: function (e) {
       if (!this.dragStarted) return;
 
@@ -354,6 +375,7 @@ export default {
       // We keep our drag in the center, otherwise we will lose the event
       this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
+      this.updateDataPanel();
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
@@ -368,7 +390,9 @@ export default {
         this.endPosition += resize;
         this.width = this.endPosition - this.initPosition;
       }
+
       console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
+      this.updateDataPanel();
     },
     convertCellToDate: function (interval) {
       // Converts the number of cells into a position in the calendar
@@ -377,18 +401,14 @@ export default {
       let relative = interval * this.cellDays;
       return addDays(this.calendarInit, relative);
     },
-    getMinDay: function() {
+    getMinDay: function () {
       return this.cellDays / 3;
     },
-    handleUpdateDate: function () {
-      this.clearHandlers();
-      this.dragStarted = false;
-
+    updateDataPanel: function () {
       let initDay = this.convertCellToDate(this.initPosition);
       let endDay = this.convertCellToDate(this.endPosition);
 
       let d = getDiffDays(initDay, endDay);
-
       if (d < this.getMinDay()) {
         endDay = addDays(endDay, this.getMinDay());
       }
@@ -396,9 +416,7 @@ export default {
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
 
-      //debugger;
-
-      const taskData = {
+      let taskData = {
         ...this.$props,
         creationDate: initDay,
         dueDate: endDay,
@@ -406,7 +424,13 @@ export default {
       };
 
       eventBus.emit("taskdatapanel", taskData);
+      return taskData;
+    },
+    handleUpdateDate: function () {
+      this.clearHandlers();
+      this.dragStarted = false;
 
+      let taskData = this.updateDataPanel();
       try {
         delete taskData.groupName;
 
