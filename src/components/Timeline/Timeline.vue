@@ -33,10 +33,8 @@ export default {
       }
 
       // Check if we can meet the minimum size in case of having to downsize
-
       let MIN_SIZE_PX = this.minSize;
       if (this.totalCells * this.cellSize > width) {
-
           if (this.totalCells * MIN_SIZE_PX > width) {
             // We cannot fit on the size minimum size
             console.log('Cannot fit into ', width);

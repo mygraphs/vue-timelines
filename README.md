@@ -27,6 +27,7 @@ npm install vue-timelines --save
 <template>
   <MyTimeline
     :groups="taskGroups"
+    :tasks="tasks"
     @update="handleUpdatedTasks"
   />
 </template>

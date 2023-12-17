@@ -1,7 +1,7 @@
 <template>
   <CalendarContext>
     <CellSizeContext>
-      <MyTimeline :groups="groups">
+      <MyTimeline :groups="groups" :tasks="tasks">
         <slot />
       </MyTimeline>
     </CellSizeContext>
@@ -20,15 +20,19 @@ export default {
       type: Object,
       default: () => {},
     },
+    tasks: {
+      type: Object,
+      default: () => {},
+    },
   },
   methods: {
-    emitUpdatedTasks: function (updatedTasks) {
+    emitBubbleTask: function (updatedTasks) {
       this.$emit("update", updatedTasks);
     },
   },
   provide: function () {
     return {
-      emitUpdatedTasks: this.emitUpdatedTasks,
+      emitBubbleTask: this.emitBubbleTask,
     };
   },
   components: {

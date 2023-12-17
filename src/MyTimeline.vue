@@ -18,7 +18,13 @@
           <template v-for="group in groupsToUse" :key="group.id">
             <TimelineRow :rowid="group.id">
               <template v-for="task in group.tasks" :key="task.id">
-                <TimelineItem v-bind="task" :groupName="group.id">
+                <TimelineItem
+                  v-bind="task"
+                  v-bind:task="task"
+                  :groupName="group.id"
+                  ref="getRef(group.id, task.id)"
+                  :myupdate="`item-${task.id}-${task.updateTimestamp}`"
+                >
                   <small>
                     {{ task.title }}
                   </small>
@@ -48,10 +54,14 @@ export default {
   inject: {
     cellSizeInPx,
     cellSize,
-    emitUpdatedTasks: { from: "emitUpdatedTasks" },
+    emitBubbleTask: { from: "emitBubbleTask" },
   },
   props: {
     groups: {
+      type: Object,
+      default: () => {},
+    },
+    tasks: {
       type: Object,
       default: () => {},
     },
@@ -62,7 +72,9 @@ export default {
   },
   data: function () {
     return {
-      groupsToUse: [],
+      tasksDict: {}, // Fast search tasks
+      groupsDict: {}, // Groups dictionary
+      groupsToUse: [], // Display group
     };
   },
   computed: {
@@ -71,108 +83,48 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    getRef(groupId, taskId) {
+      return `timelineItem-${groupId}-${taskId}`;
+    },
+    refreshTimelineItem(task) {
+      const refName = this.getRef(task.group_id, task.id);
+      const timelineItem = this.$refs[refName];
+
+      if (timelineItem) {
+        timelineItem.task=task;
+      }
+    },
     updateTask: function (taskData) {
-      debugger;
-      const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
-      this.emitUpdatedTasks({ tasksUpdated, tasks });
+      this.refreshTimelineItem(taskData);
+      taskData.updateTimestamp = Date.now();
+      this.emitBubbleTask(taskData);
     },
     calendarScrollToday: function () {
       this.$refs.timeline.calendarScrollToday();
-    },
-    handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
-      let tasks = null;
-
-      if (!this.groupsToUse[oldRow]) {
-        console.log("[TODO] FAILED FINDING OLD ROW ");
-        return { tasksUpdated: [updatedTask], tasks: [] };
-      }
-
-      if (!this.groupsToUse[newRow]) {
-        console.log("[TODO] FAILED TO INSERT ROW ");
-        return { tasksUpdated: [updatedTask], tasks: [] };
-      }
-
-      if (newRow !== oldRow) {
-          const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
-          return task.id === updatedTask.id;
-        });
-
-        this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
-        this.groupsToUse[newRow].tasks.push(updatedTask);
-
-      } else {
-        let idx = this.groupsToUse.findIndex((group) => {
-          return group.id === newRow;
-        });
-
-        if (idx < 0) {
-          console.log(" Failed to find group ");
-          debugger;
-        }
-
-        let group = this.groupsToUse[idx];
-
-        for (let i = 0; i < group.tasks.length; i++) {
-          let task = group.tasks[i];
-          const is_task = task.id === updatedTask.id;
-          console.log("CHECK TASK " + task.id + " <=> " + updatedTask.id + " " + is_task);
-          if (is_task) {
-            group.tasks[i] = updatedTask;
-            tasks = group.tasks[i];
-            break;
-          }
-        }
-      }
-
-      /*
-      const { tasksUpdated, tasks } = orderTasks(
-        [updatedTask],
-        [...this.groupsToUse[newRow].tasks]
-      );
-
-      tasksUpdated.forEach((taskUpdated) => {
-        const taskIndex = this.groupsToUse[newRow].tasks.findIndex((task) => {
-          return task.id === taskUpdated.id;
-        });
-
-        console.log(taskUpdated);
-        this.groupsToUse[newRow].tasks[taskIndex] = taskUpdated;
-      });
-
-      this.checkCalendarSize(tasksUpdated);
-      */
-      /*
-      return {
-        tasksUpdated: tasksUpdated.map((task) => ({
-          ...task,
-          newGroup: this.groupsToUse[newRow].name,
-        })),
-        tasks: tasks.map((task) => task),
-      };
-      */
-
-      return {
-        tasksUpdated: [],
-        tasks: [],
-      };
     },
     handleScroll: function (e) {
       const scrollTop = e.target.scrollTop;
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
-  },
-  beforeUnmount() {
-  },
-  mounted() {
+    buildDataView() {
+      this.groupsToUse = [];
+      this.groupsDict = {};
 
-    this.groupsToUse = this.groups;
+      let init = null;
+      let end = null;
 
-    let init = null;
-    let end = null;
+      for (const key in this.groups) {
+        let group = this.groups[key];
+        group.tasks = [];
 
-    for (const key in this.groupsToUse) {
-      this.groupsToUse[key].tasks.map((task) => {
+        this.groupsDict[group.id] = group;
+        this.groupsToUse.push(group);
+      }
+
+      for (const key in this.tasks) {
+        let task = { ...this.tasks[key] };
+
         const creationDateInitDay = initDay(task.creationDate);
         const dueDateInitDay = initDay(task.dueDate);
 
@@ -180,31 +132,27 @@ export default {
 
         if (!end || dueDateInitDay > end) end = dueDateInitDay;
 
-        return {
-          ...task,
-          creationDate: creationDateInitDay,
-          dueDate: dueDateInitDay,
-          rowName: dueDateInitDay,
-        };
-      });
+        task.creationDate = initDay(task.creationDate);
+        task.dueDate = initDay(task.dueDate);
+        task.rowName = "WHATS IS THIS FOR?";
 
-      const { tasksUpdated, tasks } = setPriorityTasks(
-        [this.groupsToUse[key].tasks[0]],
-        [...this.groupsToUse[key].tasks]
-      );
+        this.tasksDict[task.id] = task;
+        this.groupsDict[task.group_id].tasks.push(task);
+      }
 
-      this.groupsToUse[key].tasks = tasks;
-      this.emitUpdatedTasks({ tasksUpdated, tasks });
-    }
+      let unix_time = Date.now() / 1000;
+      if (end < unix_time) {
+        console.log(" SET DATE TO TODAY " + unix_time);
+        //end = unix_time;
+      }
+      this.setCalendarSize({ calendarInit: init, calendarEnd: end });
+    },
+  },
+  beforeUnmount() {},
 
-    let unix_time = Date.now() / 1000;
-    if (end < unix_time) {
-      console.log(" SET DATE TO TODAY " + unix_time);
-      //end = unix_time;
-    }
-
+  mounted() {
+    this.buildDataView();
     this.setCellSizeDays(1);
-    this.setCalendarSize({ calendarInit: init, calendarEnd: end });
   },
   provide: function () {
     return {

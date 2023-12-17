@@ -69,13 +69,7 @@ export default {
   */
   name: "TimelineItem",
   props: {
-    id: String,
-    title: String,
-    creationDate: Number,
-    dueDate: Number,
-    progress: Number,
-    groupName: String,
-    priority: Number,
+    task: Object,
   },
   /*
   components: {
@@ -98,7 +92,7 @@ export default {
     return {
       initPosition: null,
       endPosition: null,
-      topPosition: this.priority - 1,
+      topPosition: this.task.priority - 1,
       showResizes: false,
       dragStarted: false,
       width: null,
@@ -106,7 +100,7 @@ export default {
       dragClientY: null,
       topLimit: null,
       bottomLimit: 0,
-      taskPriority: this.priority,
+      taskPriority: this.task.priority,
       taskGroupName: this.groupName,
       currentRowIndex: null,
       documentEventListener: null,
@@ -145,8 +139,8 @@ export default {
     resetTaskPositions: function () {
       /* Recalculates the position of the task and rerenders it */
 
-      this.initPosition = this.convertToRelative(this.creationDate);
-      this.endPosition = this.convertToRelative(this.dueDate);
+      this.initPosition = this.convertToRelative(this.task.creationDate);
+      this.endPosition = this.convertToRelative(this.task.dueDate);
 
       console.log("--- resetTaskPositions ------------------- ");
       console.log(
@@ -155,7 +149,7 @@ export default {
           " <=> " +
           this.endPosition +
           " DAYS " +
-          this.convertToRelative(this.creationDate)
+          this.convertToRelative(this.task.creationDate)
       );
 
       const taskElement = this.$refs.task;
@@ -165,10 +159,10 @@ export default {
       }
 
       this.getTopLimit();
-      this.getBottomLimit();
+      //this.getBottomLimit();
 
-      this.width = this.convertToRelative(this.creationDate, this.dueDate);
-      console.log(this.title + " WIDTH = " + this.width);
+      this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
+      console.log(this.task.title + " WIDTH = " + this.width);
     },
     getTopLimit: function () {
       const taskElement = this.$refs.task;
@@ -184,7 +178,7 @@ export default {
           return prev + curr.offsetHeight / this.cellHeight;
         }, 0);
 
-        this.topLimit = prevRowsLimit + this.priority - 1;
+        this.topLimit = prevRowsLimit + this.task.priority - 1;
       });
     },
     getBottomLimit: function () {
@@ -201,7 +195,7 @@ export default {
           return prev + curr.offsetHeight / this.cellHeight;
         }, 0);
 
-        this.bottomLimit = prevRowsLimit + this.currentRows - this.priority;
+        this.bottomLimit = prevRowsLimit + this.currentRows - this.task.priority;
       });
     },
     handleResizeOpen: function () {
@@ -210,9 +204,11 @@ export default {
       this.dragging = true;
       this.state = "info";
 
-      console.log(this.title + " ================== CLICKED ========== " + this.dragging);
-      console.log(" START " + new Date(this.creationDate * 1000));
-      console.log("   END " + new Date(this.dueDate * 1000));
+      console.log(
+        this.task.title + " ================== CLICKED ========== " + this.dragging
+      );
+      console.log(" START " + new Date(this.task.creationDate * 1000));
+      console.log("   END " + new Date(this.task.dueDate * 1000));
 
       this.resetTaskPositions();
 
@@ -320,8 +316,8 @@ export default {
       this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {
+      /*
       this.taskPriority -= rowToMove;
-
       if (this.taskPriority <= 0) {
         const taskElement = this.$refs.task;
         const row = taskElement.closest(".cal__row");
@@ -356,6 +352,7 @@ export default {
         this.taskGroupName = nextRowName;
         this.currentRows = nextRowPriorities;
       }
+    */
     },
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
@@ -416,11 +413,10 @@ export default {
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
 
+      let task = { ...this.task, creationDate: initDay, dueDate: endDay, msg: "TEST" };
+
       let taskData = {
-        ...this.$props,
-        creationDate: initDay,
-        dueDate: endDay,
-        priority: this.taskPriority,
+        task: task,
       };
 
       eventBus.emit("taskdatapanel", taskData);
@@ -430,22 +426,19 @@ export default {
       this.clearHandlers();
       this.dragStarted = false;
 
+      // Reset position to be the closest so we align the ROW
+      this.topPosition = Math.round(this.topPosition);
+
       let taskData = this.updateDataPanel();
       try {
-        delete taskData.groupName;
-
-        this.updateTask({
-          updatedTask: taskData,
-          newRow: this.taskGroupName,
-          oldRow: this.groupName,
-        });
+        this.updateTask(taskData.task);
       } catch (error) {
         debugger;
         console.log(" CRASH " + error);
       }
     },
     invalidate: function () {
-      console.log("Invalidate task " + this.title);
+      console.log("Invalidate task " + this.task.title);
       this.resetTaskPositions();
     },
   },
@@ -462,9 +455,10 @@ export default {
   },
   mounted() {
     this.invalidate();
-    if (this.priority > this.currentRows) {
-      this.setRows(this.priority);
+    if (this.task.priority > this.currentRows) {
+      this.setRows(this.task.priority);
     }
+
     eventBus.on("invalidate-timeline-items", this.invalidate);
   },
   beforeUnmount() {
@@ -516,7 +510,7 @@ export default {
   top: 0;
   display: block;
   height: 100%;
-  width: calc(100% * (1 - v-bind(progress)));
+  width: calc(100% * (1 - v-bind(task.progress)));
   background-color: rgba(255, 255, 255, 0.25);
   z-index: 2;
 }
