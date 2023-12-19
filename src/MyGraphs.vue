@@ -24,6 +24,10 @@ export default {
       type: Object,
       default: () => {},
     },
+    force_update: {
+      type: Number,
+      default: 1,
+    }
   },
   methods: {
     emitBubbleTask: function (updatedTasks) {

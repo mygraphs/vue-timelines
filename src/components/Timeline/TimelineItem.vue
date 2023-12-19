@@ -69,13 +69,11 @@ export default {
   */
   name: "TimelineItem",
   props: {
-    task: Object,
+    task: {
+      type: Object,
+      required: true,
+    },
   },
-  /*
-  components: {
-    Draggable,
-  },
-*/
   inject: {
     reduceCellSize,
     increaseCellSize,
@@ -198,6 +196,16 @@ export default {
         this.bottomLimit = prevRowsLimit + this.currentRows - this.task.priority;
       });
     },
+    selectedTimeline: function(task) {
+      // We invalidate the current view in case some other timeline item is being selected
+      if (this.task.id == task.id)
+        return;
+
+      if (!this.showResizes)
+        return;
+
+      this.handleResizeClose();
+    },
     handleResizeOpen: function () {
       this.showResizes = true;
       this.dragStarted = false;
@@ -217,7 +225,8 @@ export default {
         this.handleResizeClose();
       });
 
-      eventBus.emit("taskdatapanel", this);
+      eventBus.emit("selected-timeline-item", this.task);
+      eventBus.emit("taskdatapanel", this.task);
     },
     handleResizeClose: function () {
       this.showResizes = false;
@@ -413,14 +422,10 @@ export default {
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
 
-      let task = { ...this.task, creationDate: initDay, dueDate: endDay, msg: "TEST" };
-
-      let taskData = {
-        task: task,
-      };
-
-      eventBus.emit("taskdatapanel", taskData);
-      return taskData;
+      let json = JSON.parse(JSON.stringify(this.task));
+      let task = { ...json, creationDate: initDay, dueDate: endDay, msg: "TEST" };
+      eventBus.emit("taskdatapanel", task);
+      return task;
     },
     handleUpdateDate: function () {
       this.clearHandlers();
@@ -429,9 +434,9 @@ export default {
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
 
-      let taskData = this.updateDataPanel();
+      let task = this.updateDataPanel();
       try {
-        this.updateTask(taskData.task);
+        this.updateTask(task);
       } catch (error) {
         debugger;
         console.log(" CRASH " + error);
@@ -452,6 +457,7 @@ export default {
     rows: function () {
       this.currentRows = this.rows;
     },
+
   },
   mounted() {
     this.invalidate();
@@ -460,10 +466,12 @@ export default {
     }
 
     eventBus.on("invalidate-timeline-items", this.invalidate);
+    eventBus.on("selected-timeline-item", this.selectedTimeline);
   },
   beforeUnmount() {
     document.removeEventListener("click", this.documentEventListener);
     eventBus.off("invalidate-timeline-items", this.invalidate);
+    eventBus.off("selected-timeline-item", this.selectedTimeline);
   },
 };
 </script>

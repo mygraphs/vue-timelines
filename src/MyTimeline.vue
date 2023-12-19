@@ -19,10 +19,9 @@
             <TimelineRow :rowid="group.id">
               <template v-for="task in group.tasks" :key="task.id">
                 <TimelineItem
-                  v-bind="task"
                   v-bind:task="task"
-                  :groupName="group.id"
-                  ref="getRef(group.id, task.id)"
+                  v-bind:groupName="group.id"
+                  :ref="getRef(group.id, task.id)"
                   :myupdate="`item-${task.id}-${task.updateTimestamp}`"
                 >
                   <small>
@@ -40,6 +39,7 @@
 </template>
 
 <script>
+import { reactive } from 'vue';
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
@@ -72,6 +72,7 @@ export default {
   },
   data: function () {
     return {
+      initialized: false,
       tasksDict: {}, // Fast search tasks
       groupsDict: {}, // Groups dictionary
       groupsToUse: [], // Display group
@@ -84,19 +85,21 @@ export default {
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     getRef(groupId, taskId) {
-      return `timelineItem-${groupId}-${taskId}`;
-    },
-    refreshTimelineItem(task) {
-      const refName = this.getRef(task.group_id, task.id);
-      const timelineItem = this.$refs[refName];
-
-      if (timelineItem) {
-        timelineItem.task=task;
-      }
+      let refName = `timelineItem-${groupId}-${taskId}`;
+      return refName;
     },
     updateTask: function (taskData) {
-      this.refreshTimelineItem(taskData);
-      taskData.updateTimestamp = Date.now();
+
+      // Update the task in the groupsToUse array
+      const groupIdx = this.groupsToUse.findIndex(group => group.id === taskData.group_id);
+      if (groupIdx !== -1) {
+        const taskIdx = this.groupsToUse[groupIdx].tasks.findIndex(task => task.id === taskData.id);
+        if (taskIdx !== -1) {
+          // Update the task data
+          this.groupsToUse[groupIdx].tasks[taskIdx] = { ...this.groupsToUse[groupIdx].tasks[taskIdx], ...taskData };
+        }
+      }
+
       this.emitBubbleTask(taskData);
     },
     calendarScrollToday: function () {
@@ -107,7 +110,7 @@ export default {
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
-    buildDataView() {
+    buildDataView: function() {
       this.groupsToUse = [];
       this.groupsDict = {};
 

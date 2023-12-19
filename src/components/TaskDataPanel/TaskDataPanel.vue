@@ -22,9 +22,8 @@ export default {
   inject: {
   },
   methods: {
-    handleTask: function (task_container) {
-      const task = task_container.task;
-      console.log("Display TASK")
+    handleTask: function (task) {
+      console.log("Display TASK" + task.title )
       this.groupName = task.groupName;
       this.title = task.title;
       this.state = task.state;
