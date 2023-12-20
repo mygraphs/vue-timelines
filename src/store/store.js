@@ -8,6 +8,7 @@ export default createStore({
       calendarInit: 0,
       calendarEnd: 0,
       cellDays: 1,
+      debug: false,
     };
   },
   mutations: {
@@ -40,6 +41,9 @@ export default createStore({
     },
   },
   getters: {
+    isDebug(state) {
+      return state.debug;
+    },
     totalCells: (state) => {
       let days = date.getDiffDays(state.calendarEnd, state.calendarInit);
       let cells = Math.ceil(days / state.cellDays);

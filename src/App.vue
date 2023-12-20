@@ -1,6 +1,6 @@
 <template>
   <div>
-    <MyGraphs :groups="groups" :tasks="tasks" :force_update="force_update" @update="handleUpdatedTasks" />
+    <MyGraphs :groups="groups" :tasks="tasks" @update="handleUpdatedTasks" />
   </div>
 </template>
 
@@ -164,7 +164,6 @@ export default {
     return {
       tasks: test.tasks,
       groups: test.groups,
-      force_update: 1,
     };
   },
   methods: {
@@ -173,8 +172,7 @@ export default {
       let t = task.title.split("|");
       task.title = t[0] + " | " + Math.round(Math.random() * 100);
       this.tasks[task.id] = task;
-      this.force_update = this.force_update + 1;
-      console.log("***************************************** UPDATED TASK " + task.title + " ********************************");
+      console.log("***** UPDATED TASK " + task.title + " *****");
     },
   },
   components: {

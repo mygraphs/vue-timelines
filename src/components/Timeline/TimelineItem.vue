@@ -86,23 +86,23 @@ export default {
   },
   data: function () {
     return {
-      initPosition: null,         // Absolute X position from creationDate
-      endPosition: null,          // Absolute Y position from dueDate
-      topPosition: this.task.row + 1,          // Absolute Y position from dueDate
-      width: null,                // Width of the display in pixels
-      showResizes: false,         // Displays the resize handlers
-      drag: null,                 // Current drag original information to restore in case of cancelation.
-      dragging: false,            // Display class
-      dragStarted: false,         // Someone clicked on us we are being drag
-      dragClientX: null,          // Global click on this item,
-      dragClientY: null,          // we use mouse pointer events so they work on tablet too
+      initPosition: null, // Absolute X position from creationDate
+      endPosition: null, // Absolute Y position from dueDate
+      topPosition: this.task.row + 1, // Absolute Y position from dueDate
+      width: null, // Width of the display in pixels
+      showResizes: false, // Displays the resize handlers
+      drag: null, // Current drag original information to restore in case of cancelation.
+      dragging: false, // Display class
+      dragStarted: false, // Someone clicked on us we are being drag
+      dragClientX: null, // Global click on this item,
+      dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
 
-      state: "NO_STATE",           // State color of the task, with bootstrap color structure
+      state: "NO_STATE", // State color of the task, with bootstrap color structure
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
     ...mapGetters(["totalCells", "todayCell"]),
 
     // Absolute ROW position calculated on parent
@@ -128,8 +128,9 @@ export default {
 
       let df = getDiffDays(start, end);
       let sz = df / this.cellDays;
-      if (sz < 1) {
-        console.log("Too small to be displayed");
+
+      if (this.isDebug && sz < 1) {
+        console.log("TODO: Check if we want to use a minimum size");
       }
       return sz;
     },
@@ -138,51 +139,24 @@ export default {
 
       this.initPosition = this.convertToRelative(this.task.creationDate);
       this.endPosition = this.convertToRelative(this.task.dueDate);
-
-      console.log("--- resetTaskPositions ------------------- ");
-      console.log(
-        "POS " +
-          this.initPosition +
-          " <=> " +
-          this.endPosition +
-          " DAYS " +
-          this.convertToRelative(this.task.creationDate)
-      );
-
-      this.getTopLimit();
-
       this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
-      console.log(this.task.title + " WIDTH = " + this.width);
+
+      if (this.isDebug) {
+        console.log("--- resetTaskPositions ------------------- ");
+        console.log(
+          "POS " +
+            this.initPosition +
+            " <=> " +
+            this.endPosition +
+            " DAYS " +
+            this.convertToRelative(this.task.creationDate)
+        );
+        console.log(this.task.title + " WIDTH = " + this.width);
+      }
     },
-    getTopLimit: function () {
-      // Calculates the global row position
-      const taskElement = this.$refs.task;
-      /*
-      const row = taskElement.closest(".cal__row");
-      const rowIndex = Array.from(row.parentNode.children).indexOf(row);
-      console.log(" TOP LIMIT " + rowIndex);
-
-      const timelineGroups = Array.from(row.parentNode.children);
-      const prevTimelineGroups = timelineGroups.slice(0, rowIndex);
-
-      this.$nextTick(() => {
-        const prevRowsLimit = prevTimelineGroups.reduce((prev, curr) => {
-          return prev + curr.offsetHeight / this.cellHeight;
-        }, 0);
-
-        this.topLimit = prevRowsLimit + this.task.priority - 1;
-      });
-
-      */
-     this.topLimit = this.task.priority - 1;
-    },
-    selectedTimeline: function(task) {
+    selectedTimeline: function (task) {
       // We invalidate the current view in case some other timeline item is being selected
-      if (this.task.id == task.id)
-        return;
-
-      if (!this.showResizes)
-        return;
+      if (!this.showResizes || this.task.id == task.id) return;
 
       this.handleResizeClose();
     },
@@ -192,16 +166,17 @@ export default {
       this.dragging = true;
       this.state = "info";
 
-      console.log(
-        this.task.title + " ================== CLICKED ========== " + this.dragging
-      );
-      console.log(" START " + new Date(this.task.creationDate * 1000));
-      console.log("   END " + new Date(this.task.dueDate * 1000));
+      this.topPosition = this.task.row + 1;
+
+      if (this.isDebug) {
+        console.log(this.task.title + " === CLICKED === ");
+        console.log(" START " + new Date(this.task.creationDate * 1000));
+        console.log("   END " + new Date(this.task.dueDate * 1000));
+      }
 
       this.resetTaskPositions();
 
       this.documentEventListener = clickOutside(this.$refs.task, () => {
-        console.log(" clickOutside ");
         this.handleResizeClose();
       });
 
@@ -209,10 +184,10 @@ export default {
       eventBus.emit("taskdatapanel", this.task);
     },
     handleResizeClose: function () {
-      this.showResizes = false;
       window.removeEventListener("keyup", this.handleKeyUp);
+
+      this.showResizes = false;
       this.handleUpdateDate();
-      console.log(" handleResizeClose ");
       this.state = "close";
     },
 
@@ -257,10 +232,7 @@ export default {
         row: this.topPosition,
       };
 
-      console.log(" START TOP POSITION " + this.topPosition);
-
       this.state = "info";
-      console.log(" handleDragStart " + this.dragClientX + " " + this.dragClientY);
       window.addEventListener("keyup", this.handleKeyUp);
     },
     restoreLastPosition: function (e) {},
@@ -291,8 +263,7 @@ export default {
       this.topPosition -= rowToMove;
       this.width = this.endPosition - this.initPosition;
     },
-    handlePriorityAndGroup: function (rowToMove) {
-    },
+    handlePriorityAndGroup: function (rowToMove) {},
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
       if (!clientX || !this.dragStarted) return;
@@ -327,7 +298,7 @@ export default {
         this.width = this.endPosition - this.initPosition;
       }
 
-      console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
+      //console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
       this.updateDataPanel();
     },
     convertCellToDate: function (interval) {
@@ -349,16 +320,18 @@ export default {
         endDay = addDays(endDay, this.getMinDay());
       }
 
-      console.log(" START " + new Date(initDay * 1000));
-      console.log("   END " + new Date(endDay * 1000));
+      if (this.isDebug) {
+        console.log(" START " + new Date(initDay * 1000));
+        console.log("   END " + new Date(endDay * 1000));
+      }
 
       let json = this.task;
-      let task = { ...json, creationDate: initDay, dueDate: endDay, row:  this.topPosition - 1 };
-
-      if (this.topPosition != task.priority) {
-        console.log(" ROW CHANGE, WE HAVE TO CALCULATE WHERE WE ARE NOW ");
-        task.row_change = this.topPosition;
-      }
+      let task = {
+        ...json,
+        creationDate: initDay,
+        dueDate: endDay,
+        row: this.topPosition - 1,
+      };
 
       eventBus.emit("taskdatapanel", task);
       return task;
@@ -369,8 +342,6 @@ export default {
 
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
-      console.log(" TOP POSITION " + this.topPosition);
-
       let task = this.updateDataPanel();
       try {
         this.updateTask(task);
@@ -380,7 +351,8 @@ export default {
       }
     },
     invalidate: function () {
-      console.log("Invalidate task " + this.task.title);
+      if (this.isDebug) console.log("Invalidate task " + this.task.title);
+
       this.resetTaskPositions();
     },
   },

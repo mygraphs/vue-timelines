@@ -101,23 +101,27 @@ export default {
         return g.id === group.id;
       });
 
-      this.groupsToUse[groupIdx] = { ...group, name: "test", rows: group.rows + 1 };
-
       // Propagate the row creation
       for (let g of this.groupsToUse.values()) {
-        if (g.timeline_row <= group.timeline_row) continue;
-          group.timeline_row += 1;
+        if (g.timeline_row <= group.timeline_row)
+          continue;
+
+          g.timeline_row += 1;
+          g.name = " " + g.timeline_row
       }
+
+      this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
       for (let idx in this.tasksDict) {
         let task = this.tasksDict[idx];
-        //+ group.rows
-        if (task.row < group.timeline_row ) {
+
+        // Append at the end of the group
+        if (task.row <= group.timeline_row + group.rows) {
           continue;
         }
 
         let newt = { ...task, row: task.row + 1 };
-        console.log(" MOVE " + newt.title + " " + newt.row + "<>" + task.row);
+        //console.log(" MOVE " + newt.title + " " + newt.row + "<>" + task.row);
         this.updateTask(newt);
       }
     },
