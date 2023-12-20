@@ -277,6 +277,8 @@ export default {
         row: this.topPosition,
       };
 
+      console.log(" START TOP POSITION " + this.topPosition);
+
       this.state = "info";
       console.log(" handleDragStart " + this.dragClientX + " " + this.dragClientY);
       window.addEventListener("keyup", this.handleKeyUp);
@@ -307,61 +309,9 @@ export default {
       this.endPosition -= cellsToMove;
 
       this.topPosition -= rowToMove;
-      /*
-      if (rowToMove > 0 && this.topLimit - rowToMove >= 0) {
-        this.topLimit -= rowToMove;
-        this.bottomLimit += rowToMove;
-        this.topPosition -= rowToMove;
-        this.handlePriorityAndGroup(rowToMove);
-      }
-
-      if (rowToMove < 0 && this.bottomLimit + rowToMove >= 0) {
-        this.topLimit -= rowToMove;
-        this.bottomLimit += rowToMove;
-        this.topPosition -= rowToMove;
-        this.handlePriorityAndGroup(rowToMove);
-      }
-*/
       this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {
-      /*
-      this.taskPriority -= rowToMove;
-      if (this.taskPriority <= 0) {
-        const taskElement = this.$refs.task;
-        const row = taskElement.closest(".cal__row");
-
-        this.currentRowIndex -= 1;
-
-        const prevGroup = row.parentNode.children[this.currentRowIndex];
-        const prevGroupPriorities = prevGroup.offsetHeight / this.cellHeight;
-
-        const newRowName = prevGroup.getAttribute("rowid");
-        const prevRowPriorities = Array.from(
-          prevGroup.querySelectorAll(".cal__inner-row")
-        ).length;
-        const newPriority = prevGroupPriorities;
-
-        this.taskPriority = newPriority;
-        this.taskGroupName = newRowName;
-        this.currentRows = prevRowPriorities;
-      } else if (this.taskPriority > this.currentRows) {
-        const taskElement = this.$refs.task;
-        const row = taskElement.closest(".cal__row");
-
-        this.currentRowIndex += 1;
-
-        const newtGroup = row.parentNode.children[this.currentRowIndex];
-        const nextRowPriorities = Array.from(
-          newtGroup.querySelectorAll(".cal__inner-row")
-        ).length;
-        const nextRowName = newtGroup.getAttribute("rowid");
-
-        this.taskPriority = 1;
-        this.taskGroupName = nextRowName;
-        this.currentRows = nextRowPriorities;
-      }
-    */
     },
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
@@ -422,8 +372,14 @@ export default {
       console.log(" START " + new Date(initDay * 1000));
       console.log("   END " + new Date(endDay * 1000));
 
-      let json = JSON.parse(JSON.stringify(this.task));
-      let task = { ...json, creationDate: initDay, dueDate: endDay, msg: "TEST" };
+      let json = this.task;
+      let task = { ...json, creationDate: initDay, dueDate: endDay, row_change:this.topPosition };
+
+      if (this.topPosition != task.priority) {
+        console.log(" ROW CHANGE, WE HAVE TO CALCULATE WHERE WE ARE NOW ");
+        task.row_change = this.topPosition;
+      }
+
       eventBus.emit("taskdatapanel", task);
       return task;
     },
@@ -433,6 +389,7 @@ export default {
 
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
+      console.log(" TOP POSITION " + this.topPosition);
 
       let task = this.updateDataPanel();
       try {

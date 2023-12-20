@@ -23,13 +23,14 @@ export default {
   },
   methods: {
     handleTask: function (task) {
-      console.log("Display TASK" + task.title )
+      console.log("Display TASK" + task.title + " " + task.priority )
       this.groupName = task.groupName;
       this.title = task.title;
       this.state = task.state;
 
       this.creationDate = dayjs(new Date(task.creationDate * 1000)).format('LLL');
       this.dueDate = dayjs(new Date(task.dueDate * 1000)).format('LLL');
+
     },
     invalidate: function() {
       console.log("Invalidate")
