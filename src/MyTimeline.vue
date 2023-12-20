@@ -24,6 +24,7 @@
           <template v-for="task in tasksArray" :key="task.id">
             <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
               <small>
+                {{ task.row }}
                 {{ task.title }}
               </small>
             </TimelineItem>
@@ -105,18 +106,19 @@ export default {
       // Propagate the row creation
       for (let g of this.groupsToUse.values()) {
         if (g.timeline_row <= group.timeline_row) continue;
-        group.timeline_row += 1;
+          group.timeline_row += 1;
       }
 
       for (let idx in this.tasksDict) {
         let task = this.tasksDict[idx];
-        if (task.row < group.timeline_row + group.rows) {
+        //+ group.rows
+        if (task.row < group.timeline_row ) {
           continue;
         }
 
-        console.log(" MOVE " + task.title + " " + task.row);
-        this.tasksDict[task.id] = { ...task, row: task.row + 1 };
-        this.updateTask(task);
+        let newt = { ...task, row: task.row + 1 };
+        console.log(" MOVE " + newt.title + " " + newt.row + "<>" + task.row);
+        this.updateTask(newt);
       }
     },
     calendarScrollToday: function () {

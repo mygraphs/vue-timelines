@@ -88,16 +88,14 @@ export default {
     return {
       initPosition: null,         // Absolute X position from creationDate
       endPosition: null,          // Absolute Y position from dueDate
-      topPosition: this.task.row + 1, // Absolute ROW position calculated on parent
+      topPosition: this.task.row + 1,          // Absolute Y position from dueDate
       width: null,                // Width of the display in pixels
-
       showResizes: false,         // Displays the resize handlers
       drag: null,                 // Current drag original information to restore in case of cancelation.
       dragging: false,            // Display class
       dragStarted: false,         // Someone clicked on us we are being drag
       dragClientX: null,          // Global click on this item,
       dragClientY: null,          // we use mouse pointer events so they work on tablet too
-
       documentEventListener: null, // Invalidate our click and disable resize
 
       state: "NO_STATE",           // State color of the task, with bootstrap color structure
@@ -106,8 +104,15 @@ export default {
   computed: {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
     ...mapGetters(["totalCells", "todayCell"]),
+
+    // Absolute ROW position calculated on parent
     taskTopPosition: function () {
-      return `${this.cellHeight * this.topPosition}px`;
+      if (this.showResizes) {
+        return `${this.cellHeight * this.topPosition}px`;
+      }
+
+      let row_pos = this.task.row + 1;
+      return `${this.cellHeight * row_pos}px`;
     },
     taskWidth: function () {
       return `${this.cellSize * this.width}px`;
@@ -348,7 +353,7 @@ export default {
       console.log("   END " + new Date(endDay * 1000));
 
       let json = this.task;
-      let task = { ...json, creationDate: initDay, dueDate: endDay, row_change:this.topPosition };
+      let task = { ...json, creationDate: initDay, dueDate: endDay, row:  this.topPosition - 1 };
 
       if (this.topPosition != task.priority) {
         console.log(" ROW CHANGE, WE HAVE TO CALCULATE WHERE WE ARE NOW ");
