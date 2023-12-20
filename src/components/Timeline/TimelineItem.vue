@@ -83,30 +83,24 @@ export default {
     cellHeight,
     cellHeightInPx,
     updateTask: { from: "updateTask" },
-    rows: { from: "rows" },
-    setRows: { from: "setRows" },
   },
   data: function () {
     return {
-      initPosition: null,
-      endPosition: null,
-      topPosition: this.task.priority - 1,
-      showResizes: false,
-      dragStarted: false,
-      width: null,
-      dragClientX: null,
-      dragClientY: null,
-      topLimit: null,
-      bottomLimit: 0,
-      taskPriority: this.task.priority,
-      taskGroupName: this.groupName,
-      currentRowIndex: null,
-      documentEventListener: null,
-      currentRows: this.rows,
-      ongoingTouches: [],
-      dragging: false,
-      drag: null, // Current drag original information to restore in case of cancelation.
-      state: "NO_STATE",
+      initPosition: null,         // Absolute X position from creationDate
+      endPosition: null,          // Absolute Y position from dueDate
+      topPosition: this.task.row + 1, // Absolute ROW position calculated on parent
+      width: null,                // Width of the display in pixels
+
+      showResizes: false,         // Displays the resize handlers
+      drag: null,                 // Current drag original information to restore in case of cancelation.
+      dragging: false,            // Display class
+      dragStarted: false,         // Someone clicked on us we are being drag
+      dragClientX: null,          // Global click on this item,
+      dragClientY: null,          // we use mouse pointer events so they work on tablet too
+
+      documentEventListener: null, // Invalidate our click and disable resize
+
+      state: "NO_STATE",           // State color of the task, with bootstrap color structure
     };
   },
   computed: {
@@ -150,20 +144,15 @@ export default {
           this.convertToRelative(this.task.creationDate)
       );
 
-      const taskElement = this.$refs.task;
-      if (taskElement) {
-        const row = taskElement.closest(".cal__row");
-        this.currentRowIndex = Array.from(row.parentNode.children).indexOf(row);
-      }
-
       this.getTopLimit();
-      //this.getBottomLimit();
 
       this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
       console.log(this.task.title + " WIDTH = " + this.width);
     },
     getTopLimit: function () {
+      // Calculates the global row position
       const taskElement = this.$refs.task;
+      /*
       const row = taskElement.closest(".cal__row");
       const rowIndex = Array.from(row.parentNode.children).indexOf(row);
       console.log(" TOP LIMIT " + rowIndex);
@@ -178,23 +167,9 @@ export default {
 
         this.topLimit = prevRowsLimit + this.task.priority - 1;
       });
-    },
-    getBottomLimit: function () {
-      const taskElement = this.$refs.task;
-      const row = taskElement.closest(".cal__row");
-      const rowIndex = Array.from(row.parentNode.children).indexOf(row);
-      console.log(" BOTTOM LIMIT " + rowIndex);
 
-      const timelineGroups = Array.from(row.parentNode.children);
-      const nextTimelineRows = timelineGroups.slice(rowIndex + 1, timelineGroups.length);
-
-      this.$nextTick(() => {
-        const prevRowsLimit = nextTimelineRows.reduce((prev, curr) => {
-          return prev + curr.offsetHeight / this.cellHeight;
-        }, 0);
-
-        this.bottomLimit = prevRowsLimit + this.currentRows - this.task.priority;
-      });
+      */
+     this.topLimit = this.task.priority - 1;
     },
     selectedTimeline: function(task) {
       // We invalidate the current view in case some other timeline item is being selected
@@ -411,17 +386,9 @@ export default {
     creationDate: function () {
       this.invalidate();
     },
-    rows: function () {
-      this.currentRows = this.rows;
-    },
-
   },
   mounted() {
     this.invalidate();
-    if (this.task.priority > this.currentRows) {
-      this.setRows(this.task.priority);
-    }
-
     eventBus.on("invalidate-timeline-items", this.invalidate);
     eventBus.on("selected-timeline-item", this.selectedTimeline);
   },

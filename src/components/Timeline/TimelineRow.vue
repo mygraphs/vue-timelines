@@ -37,6 +37,10 @@ export default {
     cellSizeInPx,
   },
   props: {
+    group: {
+      type: Object,
+      required: true,
+    },
     rowid: {
       type: String,
       required: true,
@@ -82,7 +86,9 @@ export default {
     };
   },
   mounted() {
+    console.log(this.group.name + " GROUP ROWS " + this.group.rows);
     this.$nextTick(() => {
+      this.rows = this.group.rows;
       this.setListRowHeight();
     });
   },

@@ -16,20 +16,20 @@
 
         <Timeline ref="timeline">
           <template v-for="group in groupsToUse" :key="group.id">
-            <TimelineRow :rowid="group.id">
-              <template v-for="task in group.tasks" :key="task.id">
-                <TimelineItem
-                  v-bind:task="task"
-                  v-bind:groupName="group.id"
-                  :ref="getRef(group.id, task.id)"
-                  :myupdate="`item-${task.id}-${task.updateTimestamp}`"
-                >
-                  <small>
-                    {{ task.title }}
-                  </small>
-                </TimelineItem>
-              </template>
+            <TimelineRow :group="group" :rowid="group.id">
+              <!--
+              -->
             </TimelineRow>
+          </template>
+          <template v-for="task in Object.values(tasksDict)" :key="task.id">
+            <TimelineItem
+              v-bind:task="task"
+              :ref="getRef(task.group_id, task.id)"
+            >
+              <small>
+                {{ task.title }}
+              </small>
+            </TimelineItem>
           </template>
         </Timeline>
       </template>
@@ -39,11 +39,14 @@
 </template>
 
 <script>
-import { reactive } from 'vue';
+/* eslint-disable vue/no-unused-components */
+
+import { reactive } from "vue";
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
+
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
@@ -89,17 +92,7 @@ export default {
       return refName;
     },
     updateTask: function (taskData) {
-
-      // Update the task in the groupsToUse array
-      const groupIdx = this.groupsToUse.findIndex(group => group.id === taskData.group_id);
-      if (groupIdx !== -1) {
-        const taskIdx = this.groupsToUse[groupIdx].tasks.findIndex(task => task.id === taskData.id);
-        if (taskIdx !== -1) {
-          // Update the task data
-          this.groupsToUse[groupIdx].tasks[taskIdx] = { ...this.groupsToUse[groupIdx].tasks[taskIdx], ...taskData };
-        }
-      }
-
+      this.tasksDict[taskData.id] = taskData;
       this.emitBubbleTask(taskData);
     },
     calendarScrollToday: function () {
@@ -110,37 +103,53 @@ export default {
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
-    buildDataView: function() {
+    buildDataView: function () {
       this.groupsToUse = [];
       this.groupsDict = {};
 
+      // Get the groups and create the dictionary and array to display them
+      for (const key in this.groups) {
+        let group = this.groups[key];
+        this.groupsDict[group.id] = group;
+        this.groupsToUse.push(group);
+
+        group.order = this.groupsToUse.length;
+      }
+
+      // First pass to calculate how many rows do we have in each group
+      for (const task of this.tasks.values()) {
+        let group = this.groupsDict[task.group_id];
+        if (!group.rows || task.priority > group.rows) {
+          group.rows = task.priority;
+        }
+        task.group = group;
+      }
+
+      // Calculate the incrementals of the rows
+      let current_row = 0;
+      for (let group of this.groupsToUse.values()) {
+          group.timeline_row = current_row;
+          current_row += group.rows;
+      }
+
+      // Start and end of the calendar
       let init = null;
       let end = null;
 
-      for (const key in this.groups) {
-        let group = this.groups[key];
-        group.tasks = [];
-
-        this.groupsDict[group.id] = group;
-        this.groupsToUse.push(group);
-      }
-
+      // Build the task structure
       for (const key in this.tasks) {
         let task = { ...this.tasks[key] };
+        let group = this.groupsDict[task.group_id];
 
-        const creationDateInitDay = initDay(task.creationDate);
-        const dueDateInitDay = initDay(task.dueDate);
+        task.row = group.timeline_row + task.priority;
 
-        if (!init || creationDateInitDay < init) init = creationDateInitDay;
+        const startDay = initDay(task.creationDate);
+        const endDay = initDay(task.dueDate);
 
-        if (!end || dueDateInitDay > end) end = dueDateInitDay;
-
-        task.creationDate = initDay(task.creationDate);
-        task.dueDate = initDay(task.dueDate);
-        task.rowName = "WHATS IS THIS FOR?";
+        init = init ? Math.min(init, startDay) : startDay;
+        end = Math.max(end, endDay);
 
         this.tasksDict[task.id] = task;
-        this.groupsDict[task.group_id].tasks.push(task);
       }
 
       let unix_time = Date.now() / 1000;

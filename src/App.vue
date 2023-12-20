@@ -169,7 +169,9 @@ export default {
   },
   methods: {
     handleUpdatedTasks: function (task) {
-      task.title = task.title + "TEST " + Math.random();
+
+      let t = task.title.split("|");
+      task.title = t[0] + " | " + Math.round(Math.random() * 100);
       this.tasks[task.id] = task;
       this.force_update = this.force_update + 1;
       console.log("***************************************** UPDATED TASK " + task.title + " ********************************");
