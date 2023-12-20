@@ -497,6 +497,7 @@ export default {
 
 .task__state--info {
   background-color: #3c8dbc;
+  z-index: 4000;
 }
 
 .task__state--success {
