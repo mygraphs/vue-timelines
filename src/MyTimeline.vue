@@ -24,7 +24,6 @@
           <template v-for="task in tasksArray" :key="task.id">
             <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
               <small>
-                {{ task.row }}
                 {{ task.title }}
               </small>
             </TimelineItem>
