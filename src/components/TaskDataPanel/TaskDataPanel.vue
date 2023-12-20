@@ -4,6 +4,7 @@
     <div>
       <div>START: <b>{{ creationDate }}</b></div>
       <div>&nbsp;&nbsp;&nbsp;END: <b>{{ dueDate }}</b></div>
+
     </div>
   </div>
 </template>
@@ -23,7 +24,6 @@ export default {
   },
   methods: {
     handleTask: function (task) {
-      console.log("Display TASK")
       this.groupName = task.groupName;
       this.title = task.title;
       this.state = task.state;

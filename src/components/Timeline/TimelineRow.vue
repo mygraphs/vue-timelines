@@ -35,8 +35,13 @@ export default {
     cellHeightInPx,
     cellHeight,
     cellSizeInPx,
+    increaseRow: { from: "increaseRow" },
   },
   props: {
+    group: {
+      type: Object,
+      required: true,
+    },
     rowid: {
       type: String,
       required: true,
@@ -57,11 +62,13 @@ export default {
     handleAddRow: function () {
       this.rows += 1;
       this.setListRowHeight();
+      this.increaseRow(this.group);
     },
     handleReduceRow: function () {},
     setRows: function (rowCount) {
       this.rows = rowCount;
     },
+
     setListRowHeight: function () {
       const timelineRow = this.$refs.timelineRow;
       const timelineRowIndex = Array.from(
@@ -82,7 +89,9 @@ export default {
     };
   },
   mounted() {
+    console.log(this.group.name + " GROUP ROWS " + this.group.rows);
     this.$nextTick(() => {
+      this.rows = this.group.rows;
       this.setListRowHeight();
     });
   },

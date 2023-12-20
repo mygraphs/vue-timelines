@@ -16,15 +16,18 @@
 
         <Timeline ref="timeline">
           <template v-for="group in groupsToUse" :key="group.id">
-            <TimelineRow :rowid="group.id">
-              <template v-for="task in group.tasks" :key="task.id">
-                <TimelineItem v-bind="task" :groupName="group.id">
-                  <small>
-                    {{ task.title }}
-                  </small>
-                </TimelineItem>
-              </template>
+            <TimelineRow :group="group" :rowid="group.id">
+              <!--
+              -->
             </TimelineRow>
+          </template>
+          <template v-for="task in tasksArray" :key="task.id">
+            <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
+              <small>
+                {{ task.row }}
+                {{ task.title }}
+              </small>
+            </TimelineItem>
           </template>
         </Timeline>
       </template>
@@ -34,10 +37,14 @@
 </template>
 
 <script>
+/* eslint-disable vue/no-unused-components */
+
+import { reactive } from "vue";
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
+
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
@@ -48,10 +55,14 @@ export default {
   inject: {
     cellSizeInPx,
     cellSize,
-    emitUpdatedTasks: { from: "emitUpdatedTasks" },
+    emitBubbleTask: { from: "emitBubbleTask" },
   },
   props: {
     groups: {
+      type: Object,
+      default: () => {},
+    },
+    tasks: {
       type: Object,
       default: () => {},
     },
@@ -62,149 +73,158 @@ export default {
   },
   data: function () {
     return {
-      groupsToUse: [],
+      initialized: false,
+      tasksDict: {}, // Fast search tasks
+      groupsDict: {}, // Groups dictionary
+      groupsToUse: [], // Display group
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
     ...mapGetters(["totalCells", "todayCell"]),
+    tasksArray() {
+      return Object.values(this.tasksDict);
+    },
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    getRef(groupId, taskId) {
+      let refName = `timelineItem-${groupId}-${taskId}`;
+      return refName;
+    },
+    updateGroup: function(task) {
+      // Find the group for a task and update it's priority.
+      // Priorities are a number between 0 and n in the group, that define the current row.
+      let row = task.row;
+      for (let g of this.groupsToUse.values()) {
+        if (row >= g.timeline_row && row <= g.timeline_row + g.rows) {
+          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name );
+
+          if (g.id != task.group_id) {
+            if (this.isDebug)
+              console.log(" Update group " + task.group_id + " => " + g.id);
+            task.group_id = g.id;
+          }
+
+          let old = task.priority;
+          task.priority = row - g.timeline_row;
+          if (this.isDebug)
+              console.log(" Update priority " + old + " => " + task.priority);
+          break;
+        }
+      }
+
+      return task;
+    },
     updateTask: function (taskData) {
-      const { tasksUpdated, tasks } = this.handleTaskUpdate(taskData);
-      this.emitUpdatedTasks({ tasksUpdated, tasks });
+      this.tasksDict[taskData.id] = this.updateGroup(taskData);
+      this.emitBubbleTask(taskData);
+    },
+    increaseRow: function (group) {
+      const groupIdx = this.groupsToUse.findIndex((g) => {
+        return g.id === group.id;
+      });
+
+      // Propagate the row creation
+      for (let g of this.groupsToUse.values()) {
+        if (g.timeline_row <= group.timeline_row)
+          continue;
+
+          g.timeline_row += 1;
+          g.name = " " + g.timeline_row
+      }
+
+      this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
+
+      for (let idx in this.tasksDict) {
+        let task = this.tasksDict[idx];
+
+        // Append at the end of the group
+        if (task.row <= group.timeline_row + group.rows) {
+          continue;
+        }
+
+        let newt = { ...task, row: task.row + 1 };
+        //console.log(" MOVE " + newt.title + " " + newt.row + "<>" + task.row);
+        this.updateTask(newt);
+      }
     },
     calendarScrollToday: function () {
       this.$refs.timeline.calendarScrollToday();
-    },
-    handleTaskUpdate: function ({ updatedTask, newRow, oldRow }) {
-      let tasks = null;
-
-      if (!this.groupsToUse[oldRow]) {
-        console.log("[TODO] FAILED FINDING OLD ROW ");
-        return { tasksUpdated: [updatedTask], tasks: [] };
-      }
-
-      if (!this.groupsToUse[newRow]) {
-        console.log("[TODO] FAILED TO INSERT ROW ");
-        return { tasksUpdated: [updatedTask], tasks: [] };
-      }
-
-      if (newRow !== oldRow) {
-          const taskIndex = this.groupsToUse[oldRow].tasks.findIndex((task) => {
-          return task.id === updatedTask.id;
-        });
-
-        this.groupsToUse[oldRow].tasks.splice(taskIndex, 1);
-        this.groupsToUse[newRow].tasks.push(updatedTask);
-
-      } else {
-        let idx = this.groupsToUse.findIndex((group) => {
-          return group.id === newRow;
-        });
-
-        if (idx < 0) {
-          console.log(" Failed to find group ");
-          debugger;
-        }
-
-        let group = this.groupsToUse[idx];
-
-        for (let i = 0; i < group.tasks.length; i++) {
-          let task = group.tasks[i];
-          const is_task = task.id === updatedTask.id;
-          console.log("CHECK TASK " + task.id + " <=> " + updatedTask.id + " " + is_task);
-          if (is_task) {
-            group.tasks[i] = updatedTask;
-            tasks = group.tasks[i];
-            break;
-          }
-        }
-      }
-
-      /*
-      const { tasksUpdated, tasks } = orderTasks(
-        [updatedTask],
-        [...this.groupsToUse[newRow].tasks]
-      );
-
-      tasksUpdated.forEach((taskUpdated) => {
-        const taskIndex = this.groupsToUse[newRow].tasks.findIndex((task) => {
-          return task.id === taskUpdated.id;
-        });
-
-        console.log(taskUpdated);
-        this.groupsToUse[newRow].tasks[taskIndex] = taskUpdated;
-      });
-
-      this.checkCalendarSize(tasksUpdated);
-      */
-      /*
-      return {
-        tasksUpdated: tasksUpdated.map((task) => ({
-          ...task,
-          newGroup: this.groupsToUse[newRow].name,
-        })),
-        tasks: tasks.map((task) => task),
-      };
-      */
-
-      return {
-        tasksUpdated: [],
-        tasks: [],
-      };
     },
     handleScroll: function (e) {
       const scrollTop = e.target.scrollTop;
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
+    buildDataView: function () {
+      this.groupsToUse = [];
+      this.groupsDict = {};
+
+      // Get the groups and create the dictionary and array to display them
+      for (const key in this.groups) {
+        let group = this.groups[key];
+        this.groupsDict[group.id] = group;
+        this.groupsToUse.push(group);
+
+        group.order = this.groupsToUse.length;
+      }
+
+      // First pass to calculate how many rows do we have in each group
+      for (const task of this.tasks.values()) {
+        let group = this.groupsDict[task.group_id];
+        if (!group.rows || task.priority > group.rows) {
+          group.rows = task.priority;
+        }
+        task.group = group;
+      }
+
+      // Calculate the incrementals of the rows
+      let current_row = 0;
+      for (let group of this.groupsToUse.values()) {
+        group.timeline_row = current_row;
+        current_row += group.rows;
+      }
+
+      // Start and end of the calendar
+      let init = null;
+      let end = null;
+
+      // Build the task structure
+      for (const key in this.tasks) {
+        let task = { ...this.tasks[key] };
+        let group = this.groupsDict[task.group_id];
+
+        task.row = group.timeline_row + task.priority;
+
+        const startDay = initDay(task.creationDate);
+        const endDay = initDay(task.dueDate);
+
+        init = init ? Math.min(init, startDay) : startDay;
+        end = Math.max(end, endDay);
+
+        this.tasksDict[task.id] = task;
+      }
+
+      let unix_time = Date.now() / 1000;
+      if (end < unix_time) {
+        console.log(" SET DATE TO TODAY " + unix_time);
+        //end = unix_time;
+      }
+
+      this.setCalendarSize({ calendarInit: init, calendarEnd: end });
+    },
   },
+  beforeUnmount() {},
+
   mounted() {
-    this.groupsToUse = this.groups;
-
-    let init = null;
-    let end = null;
-
-    for (const key in this.groupsToUse) {
-      this.groupsToUse[key].tasks.map((task) => {
-        const creationDateInitDay = initDay(task.creationDate);
-        const dueDateInitDay = initDay(task.dueDate);
-
-        if (!init || creationDateInitDay < init) init = creationDateInitDay;
-
-        if (!end || dueDateInitDay > end) end = dueDateInitDay;
-
-        return {
-          ...task,
-          creationDate: creationDateInitDay,
-          dueDate: dueDateInitDay,
-          rowName: dueDateInitDay,
-        };
-      });
-
-      const { tasksUpdated, tasks } = setPriorityTasks(
-        [this.groupsToUse[key].tasks[0]],
-        [...this.groupsToUse[key].tasks]
-      );
-
-      this.groupsToUse[key].tasks = tasks;
-      this.emitUpdatedTasks({ tasksUpdated, tasks });
-    }
-
-    let unix_time = Date.now() / 1000;
-    if (end < unix_time) {
-      console.log(" SET DATE TO TODAY " + unix_time);
-      //end = unix_time;
-    }
-
+    this.buildDataView();
     this.setCellSizeDays(1);
-    this.setCalendarSize({ calendarInit: init, calendarEnd: end });
   },
   provide: function () {
     return {
       updateTask: this.updateTask,
+      increaseRow: this.increaseRow,
     };
   },
   components: {

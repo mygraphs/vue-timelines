@@ -11,7 +11,7 @@ export default {
   data() {
     return {
       cellSize: 25,
-      minSize: 15,
+      minSize: 20,
       cellHeight: 40,
     };
   },
