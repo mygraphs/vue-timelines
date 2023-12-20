@@ -80,7 +80,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
+    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
     ...mapGetters(["totalCells", "todayCell"]),
     tasksArray() {
       return Object.values(this.tasksDict);
@@ -92,8 +92,32 @@ export default {
       let refName = `timelineItem-${groupId}-${taskId}`;
       return refName;
     },
+    updateGroup: function(task) {
+      // Find the group for a task and update it's priority.
+      // Priorities are a number between 0 and n in the group, that define the current row.
+      let row = task.row;
+      for (let g of this.groupsToUse.values()) {
+        if (row >= g.timeline_row && row <= g.timeline_row + g.rows) {
+          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name );
+
+          if (g.id != task.group_id) {
+            if (this.isDebug)
+              console.log(" Update group " + task.group_id + " => " + g.id);
+            task.group_id = g.id;
+          }
+
+          let old = task.priority;
+          task.priority = row - g.timeline_row;
+          if (this.isDebug)
+              console.log(" Update priority " + old + " => " + task.priority);
+          break;
+        }
+      }
+
+      return task;
+    },
     updateTask: function (taskData) {
-      this.tasksDict[taskData.id] = taskData;
+      this.tasksDict[taskData.id] = this.updateGroup(taskData);
       this.emitBubbleTask(taskData);
     },
     increaseRow: function (group) {

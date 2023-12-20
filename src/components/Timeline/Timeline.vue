@@ -38,7 +38,6 @@ export default {
           if (this.totalCells * MIN_SIZE_PX > width) {
             // We cannot fit on the size minimum size
             //console.log('Cannot fit into ', width);
-
             this.resetCellSize();
             return;
           }

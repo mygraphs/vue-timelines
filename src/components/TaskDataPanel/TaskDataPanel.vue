@@ -4,6 +4,7 @@
     <div>
       <div>START: <b>{{ creationDate }}</b></div>
       <div>&nbsp;&nbsp;&nbsp;END: <b>{{ dueDate }}</b></div>
+
     </div>
   </div>
 </template>

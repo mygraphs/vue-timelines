@@ -158,6 +158,8 @@ var testTask = {
   ],
 };
 
+import { mapState } from "vuex";
+
 export default {
   name: "App",
   data() {
@@ -166,11 +168,17 @@ export default {
       groups: test.groups,
     };
   },
+  computed: {
+    ...mapState(["isDebug"]),
+  },
   methods: {
     handleUpdatedTasks: function (task) {
 
-      let t = task.title.split("|");
-      task.title = t[0] + " | " + Math.round(Math.random() * 100);
+      if (this.isDebug) {
+        let t = task.title.split("|");
+        task.title = t[0] + " | " + Math.round(Math.random() * 100);
+      }
+
       this.tasks[task.id] = task;
       console.log("***** UPDATED TASK " + task.title + " *****");
     },
