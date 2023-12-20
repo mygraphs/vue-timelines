@@ -102,7 +102,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
+    ...mapState([
+      "calendarInit",
+      "calendarEnd",
+      "cellDays",
+      "isDebug",
+      "timelineMinRow",
+      "timelineMaxRow",
+    ]),
     ...mapGetters(["totalCells", "todayCell"]),
 
     // Absolute ROW position calculated on parent
@@ -248,6 +255,15 @@ export default {
         this.handleResizeClose();
       }
     },
+    isRowValid(newRow) {
+      // I don't have brain right now to figure out why it is -1 :(
+      // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
+      newRow -= 1
+      if (newRow < this.timelineMinRow) return false;
+      if (newRow > this.timelineMaxRow) return false;
+
+      return true;
+    },
     handleResizeTask: function (e) {
       if (!this.dragStarted) return;
 
@@ -260,7 +276,11 @@ export default {
       this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
-      this.topPosition -= rowToMove;
+      let check = this.topPosition - rowToMove;
+      if (this.isRowValid(check)) {
+        this.topPosition -= rowToMove;
+      }
+
       this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {},
@@ -477,6 +497,7 @@ export default {
 
 .task__state--info {
   background-color: #3c8dbc;
+  z-index: 4000;
 }
 
 .task__state--success {
