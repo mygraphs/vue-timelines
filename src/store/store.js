@@ -8,10 +8,17 @@ export default createStore({
       calendarInit: 0,
       calendarEnd: 0,
       cellDays: 1,
-      debug: false,
+      timelineMinRow: 0,
+      timelineMaxRow: 0,
+      debug: true,
     };
   },
   mutations: {
+    setRowBoundaries(state, { minRow, maxRow }) {
+      // Minimum and maximum timeline positions defined by the groups
+      state.timelineMinRow = minRow;
+      state.timelineMaxRow = maxRow;
+    },
     setCellSizeDays(state, days) {
       // Selector we should be able to extract the day from text like 1 hour or 8 hours.
       console.log("CELL DAYS " + days);

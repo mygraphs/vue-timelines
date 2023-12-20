@@ -102,7 +102,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
+    ...mapState([
+      "calendarInit",
+      "calendarEnd",
+      "cellDays",
+      "isDebug",
+      "timelineMinRow",
+      "timelineMaxRow",
+    ]),
     ...mapGetters(["totalCells", "todayCell"]),
 
     // Absolute ROW position calculated on parent
@@ -248,6 +255,13 @@ export default {
         this.handleResizeClose();
       }
     },
+    isRowValid(newRow) {
+      console.log(" CHECK " + newRow);
+      if (newRow < this.timelineMinRow) return false;
+      if (newRow > this.timelineMaxRow) return false;
+
+      return true;
+    },
     handleResizeTask: function (e) {
       if (!this.dragStarted) return;
 
@@ -260,7 +274,14 @@ export default {
       this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
-      this.topPosition -= rowToMove;
+      let check = this.topPosition - rowToMove;
+      if (this.isRowValid(check)) {
+        console.log(" OK CHECK ");
+        this.topPosition -= rowToMove;
+      } else {
+        console.log(" NOT VALID ");
+      }
+
       this.width = this.endPosition - this.initPosition;
     },
     handlePriorityAndGroup: function (rowToMove) {},

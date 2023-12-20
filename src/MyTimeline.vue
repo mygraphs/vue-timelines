@@ -79,14 +79,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug"]),
+    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug", "timelineMaxRow", "timelineMinRow"]),
     ...mapGetters(["totalCells", "todayCell"]),
     tasksArray() {
       return Object.values(this.tasksDict);
     },
   },
   methods: {
-    ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    ...mapMutations(["setCalendarSize", "setCellSizeDays", "setRowBoundaries"]),
     getRef(groupId, taskId) {
       let refName = `timelineItem-${groupId}-${taskId}`;
       return refName;
@@ -124,14 +124,18 @@ export default {
         return g.id === group.id;
       });
 
-      // Propagate the row creation
+
       for (let g of this.groupsToUse.values()) {
         if (g.timeline_row <= group.timeline_row)
           continue;
 
           g.timeline_row += 1;
           g.name = " " + g.timeline_row
+          const t = g.timeline_row + g.rows;
       }
+
+      // Propagate the row creation
+      this.setRowBoundaries({ minRow:2, maxRow: this.timelineMaxRow + 1});
 
       this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
@@ -184,6 +188,8 @@ export default {
         group.timeline_row = current_row;
         current_row += group.rows;
       }
+
+      this.setRowBoundaries({ minRow:2, maxRow:current_row + 1});
 
       // Start and end of the calendar
       let init = null;
