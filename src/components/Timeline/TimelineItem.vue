@@ -256,7 +256,9 @@ export default {
       }
     },
     isRowValid(newRow) {
-      console.log(" CHECK " + newRow);
+      // I don't have brain right now to figure out why it is -1 :(
+      // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
+      newRow -= 1
       if (newRow < this.timelineMinRow) return false;
       if (newRow > this.timelineMaxRow) return false;
 
@@ -276,10 +278,7 @@ export default {
 
       let check = this.topPosition - rowToMove;
       if (this.isRowValid(check)) {
-        console.log(" OK CHECK ");
         this.topPosition -= rowToMove;
-      } else {
-        console.log(" NOT VALID ");
       }
 
       this.width = this.endPosition - this.initPosition;

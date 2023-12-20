@@ -135,7 +135,7 @@ export default {
       }
 
       // Propagate the row creation
-      this.setRowBoundaries({ minRow:2, maxRow: this.timelineMaxRow + 1});
+      this.setRowBoundaries({ minRow:1, maxRow: this.timelineMaxRow + 1});
 
       this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
@@ -189,7 +189,7 @@ export default {
         current_row += group.rows;
       }
 
-      this.setRowBoundaries({ minRow:2, maxRow:current_row + 1});
+      this.setRowBoundaries({ minRow:1, maxRow:current_row});
 
       // Start and end of the calendar
       let init = null;
