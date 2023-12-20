@@ -35,6 +35,7 @@ export default {
     cellHeightInPx,
     cellHeight,
     cellSizeInPx,
+    increaseRow: { from: "increaseRow" },
   },
   props: {
     group: {
@@ -61,11 +62,13 @@ export default {
     handleAddRow: function () {
       this.rows += 1;
       this.setListRowHeight();
+      this.increaseRow(this.group);
     },
     handleReduceRow: function () {},
     setRows: function (rowCount) {
       this.rows = rowCount;
     },
+
     setListRowHeight: function () {
       const timelineRow = this.$refs.timelineRow;
       const timelineRowIndex = Array.from(

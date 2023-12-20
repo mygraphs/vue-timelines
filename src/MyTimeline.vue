@@ -21,11 +21,8 @@
               -->
             </TimelineRow>
           </template>
-          <template v-for="task in Object.values(tasksDict)" :key="task.id">
-            <TimelineItem
-              v-bind:task="task"
-              :ref="getRef(task.group_id, task.id)"
-            >
+          <template v-for="task in tasksArray" :key="task.id">
+            <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
               <small>
                 {{ task.title }}
               </small>
@@ -84,6 +81,9 @@ export default {
   computed: {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
     ...mapGetters(["totalCells", "todayCell"]),
+    tasksArray() {
+      return Object.values(this.tasksDict);
+    },
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
@@ -94,6 +94,30 @@ export default {
     updateTask: function (taskData) {
       this.tasksDict[taskData.id] = taskData;
       this.emitBubbleTask(taskData);
+    },
+    increaseRow: function (group) {
+      const groupIdx = this.groupsToUse.findIndex((g) => {
+        return g.id === group.id;
+      });
+
+      this.groupsToUse[groupIdx] = { ...group, name: "test", rows: group.rows + 1 };
+
+      // Propagate the row creation
+      for (let g of this.groupsToUse.values()) {
+        if (g.timeline_row <= group.timeline_row) continue;
+        group.timeline_row += 1;
+      }
+
+      for (let idx in this.tasksDict) {
+        let task = this.tasksDict[idx];
+        if (task.row < group.timeline_row + group.rows) {
+          continue;
+        }
+
+        console.log(" MOVE " + task.title + " " + task.row);
+        this.tasksDict[task.id] = { ...task, row: task.row + 1 };
+        this.updateTask(task);
+      }
     },
     calendarScrollToday: function () {
       this.$refs.timeline.calendarScrollToday();
@@ -128,8 +152,8 @@ export default {
       // Calculate the incrementals of the rows
       let current_row = 0;
       for (let group of this.groupsToUse.values()) {
-          group.timeline_row = current_row;
-          current_row += group.rows;
+        group.timeline_row = current_row;
+        current_row += group.rows;
       }
 
       // Start and end of the calendar
@@ -157,6 +181,7 @@ export default {
         console.log(" SET DATE TO TODAY " + unix_time);
         //end = unix_time;
       }
+
       this.setCalendarSize({ calendarInit: init, calendarEnd: end });
     },
   },
@@ -169,6 +194,7 @@ export default {
   provide: function () {
     return {
       updateTask: this.updateTask,
+      increaseRow: this.increaseRow,
     };
   },
   components: {
