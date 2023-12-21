@@ -22,7 +22,11 @@
             </TimelineRow>
           </template>
           <template v-for="task in tasksArray" :key="task.id">
-            <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
+            <TimelineItem
+              v-bind:task="task"
+              :row="task.row"
+              :ref="getRef(task.group_id, task.id)"
+            >
               <small>
                 {{ task.title }}
               </small>
@@ -79,7 +83,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug", "timelineMaxRow", "timelineMinRow"]),
+    ...mapState([
+      "calendarInit",
+      "calendarEnd",
+      "cellDays",
+      "isDebug",
+      "timelineMaxRow",
+      "timelineMinRow",
+    ]),
     ...mapGetters(["totalCells", "todayCell"]),
     tasksArray() {
       return Object.values(this.tasksDict);
@@ -91,24 +102,27 @@ export default {
       let refName = `timelineItem-${groupId}-${taskId}`;
       return refName;
     },
-    updateGroup: function(task) {
+    updateGroup: function (task) {
       // Find the group for a task and update it's priority.
       // Priorities are a number between 0 and n in the group, that define the current row.
+
       let row = task.row;
       for (let g of this.groupsToUse.values()) {
         if (row >= g.timeline_row && row < g.timeline_row + g.rows) {
-          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name );
+          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name);
 
           if (g.id != task.group_id) {
             if (this.isDebug)
               console.log(" Update group " + task.group_id + " => " + g.id);
+
             task.group_id = g.id;
           }
 
           let old = task.priority;
           task.priority = row - g.timeline_row;
           if (this.isDebug)
-              console.log(" Update priority " + old + " => " + task.priority);
+            console.log(" Update priority " + old + " => " + task.priority);
+
           break;
         }
       }
@@ -125,16 +139,15 @@ export default {
       });
 
       for (let g of this.groupsToUse.values()) {
-        if (g.timeline_row <= group.timeline_row)
-          continue;
+        if (g.timeline_row <= group.timeline_row) continue;
 
-          g.timeline_row += 1;
-          g.name = " " + g.timeline_row
-          const t = g.timeline_row + g.rows;
+        g.timeline_row += 1;
+        g.name = " " + g.timeline_row;
+        const t = g.timeline_row + g.rows;
       }
 
       // Propagate the row creation
-      this.setRowBoundaries({ minRow:0, maxRow: this.timelineMaxRow + 1});
+      this.setRowBoundaries({ minRow: 0, maxRow: this.timelineMaxRow + 1 });
 
       this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
@@ -189,7 +202,7 @@ export default {
         current_row += group.rows;
       }
 
-      this.setRowBoundaries({ minRow:0, maxRow:current_row});
+      this.setRowBoundaries({ minRow: 0, maxRow: current_row });
 
       // Start and end of the calendar
       let init = null;

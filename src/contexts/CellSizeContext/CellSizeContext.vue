@@ -12,7 +12,7 @@ export default {
     return {
       cellSize: 25,
       minSize: 20,
-      headerHeight: 80,
+      headerHeight: 68,
       cellHeight: 30,
     };
   },
