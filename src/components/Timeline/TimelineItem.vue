@@ -330,7 +330,10 @@ export default {
       return addDays(this.calendarInit, relative);
     },
     getMinDay: function () {
-      return this.cellDays / 3;
+      if (this.cellDays > 1)
+        return 0.5;
+
+      return this.cellDays / 5;
     },
     updateDataPanel: function () {
       let initDay = this.convertCellToDate(this.initPosition);
