@@ -96,7 +96,7 @@ export default {
       // Priorities are a number between 0 and n in the group, that define the current row.
       let row = task.row;
       for (let g of this.groupsToUse.values()) {
-        if (row >= g.timeline_row && row <= g.timeline_row + g.rows) {
+        if (row >= g.timeline_row && row < g.timeline_row + g.rows) {
           if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name );
 
           if (g.id != task.group_id) {
@@ -124,7 +124,6 @@ export default {
         return g.id === group.id;
       });
 
-
       for (let g of this.groupsToUse.values()) {
         if (g.timeline_row <= group.timeline_row)
           continue;
@@ -135,7 +134,7 @@ export default {
       }
 
       // Propagate the row creation
-      this.setRowBoundaries({ minRow:1, maxRow: this.timelineMaxRow + 1});
+      this.setRowBoundaries({ minRow:0, maxRow: this.timelineMaxRow + 1});
 
       this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
@@ -176,8 +175,9 @@ export default {
       // First pass to calculate how many rows do we have in each group
       for (const task of this.tasks.values()) {
         let group = this.groupsDict[task.group_id];
-        if (!group.rows || task.priority > group.rows) {
-          group.rows = task.priority;
+        if (!group.rows || task.priority >= group.rows) {
+          // Size of the rows is task + 1 because tasks start at 0 priority.
+          group.rows = task.priority + 1;
         }
         task.group = group;
       }
@@ -189,7 +189,7 @@ export default {
         current_row += group.rows;
       }
 
-      this.setRowBoundaries({ minRow:1, maxRow:current_row});
+      this.setRowBoundaries({ minRow:0, maxRow:current_row});
 
       // Start and end of the calendar
       let init = null;

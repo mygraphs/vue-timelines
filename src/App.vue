@@ -16,7 +16,7 @@ var test = {
       creationDate: 1641437099,
       dueDate: 1651805099,
       progress: 0.8,
-      priority: 1,
+      priority: 0,
     },
     {
       id: "02",
@@ -25,7 +25,7 @@ var test = {
       creationDate: 1643856299,
       dueDate: 1649126699,
       progress: 0.5,
-      priority: 2,
+      priority: 1,
     },
     {
       id: "03",
@@ -34,7 +34,7 @@ var test = {
       creationDate: 1649041200,
       dueDate: 1650510000,
       progress: 0.8,
-      priority: 1,
+      priority: 0,
     },
     {
       id: "04",
@@ -43,7 +43,7 @@ var test = {
       creationDate: 1650596400,
       dueDate: 1651374000,
       progress: 0.5,
-      priority: 2,
+      priority: 1,
     },
     {
       id: "05",
@@ -52,7 +52,7 @@ var test = {
       creationDate: 1651719600,
       dueDate: 1651892400,
       progress: 0.5,
-      priority: 2,
+      priority: 1,
     },
     {
       id: "06",
@@ -61,7 +61,7 @@ var test = {
       creationDate: 1652151600,
       dueDate: 1652152600,
       progress: 0.5,
-      priority: 1,
+      priority: 0,
     },
     {
       id: "07",
@@ -70,7 +70,7 @@ var test = {
       creationDate: 1642737099,
       dueDate: 1651805099,
       progress: 0.8,
-      priority: 1,
+      priority: 0,
     },
     {
       id: "08",
@@ -79,7 +79,7 @@ var test = {
       creationDate: 1645856299,
       dueDate: 1647126699,
       progress: 0.5,
-      priority: 2,
+      priority: 1,
     },
     {
       id: "09",
@@ -97,7 +97,7 @@ var test = {
       creationDate: 1650596400,
       dueDate: 1651374000,
       progress: 0.5,
-      priority: 4,
+      priority: 3,
     },
     {
       id: "11",
@@ -129,35 +129,6 @@ var test = {
   ],
 };
 
-var testTask = {
-  tasks: [
-    {
-      id: "01",
-      group_id: "1",
-      title: "Test task 01",
-      creationDate: 1651802099,
-      dueDate: 1651805099,
-      progress: 0.8,
-      priority: 1,
-    },
-    {
-      id: "02",
-      group_id: "1",
-      title: "Test task 02",
-      creationDate: 1651702099,
-      dueDate: 1651912099,
-      progress: 0.5,
-      priority: 2,
-    },
-  ],
-  groups: [
-    {
-      name: "group 01",
-      id: "1",
-    },
-  ],
-};
-
 import { mapState } from "vuex";
 
 export default {
@@ -180,7 +151,7 @@ export default {
       }
 
       this.tasks[task.id] = task;
-      console.log("***** UPDATED TASK " + task.title + " *****");
+      console.log("***** UPDATED TASK " + task.title + " ***** " + task.group_id);
     },
   },
   components: {

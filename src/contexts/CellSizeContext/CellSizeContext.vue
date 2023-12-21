@@ -12,7 +12,8 @@ export default {
     return {
       cellSize: 25,
       minSize: 20,
-      cellHeight: 40,
+      headerHeight: 80,
+      cellHeight: 30,
     };
   },
   methods: {
@@ -33,6 +34,8 @@ export default {
   },
   provide: function () {
     return {
+      [k.headerHeight]: computed(() => this.headerHeight),
+      [k.headerHeightInPx]: computed(() => `${this.headerHeight}px`),
       [k.cellSize]: computed(() => this.cellSize),
       [k.cellSizeInPx]: computed(() => `${this.cellSize}px`),
       [k.cellHeight]: computed(() => this.cellHeight),

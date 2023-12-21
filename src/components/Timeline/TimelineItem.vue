@@ -53,6 +53,8 @@ import {
   resetCellSize,
   cellSize,
   cellSizeInPx,
+  headerHeight,
+  headerHeightInPx,
   cellHeight,
   cellHeightInPx,
 } from "@/contexts/CellSizeContext";
@@ -80,6 +82,8 @@ export default {
     resetCellSize,
     cellSize,
     cellSizeInPx,
+    headerHeight,
+    headerHeightInPx,
     cellHeight,
     cellHeightInPx,
     updateTask: { from: "updateTask" },
@@ -88,7 +92,7 @@ export default {
     return {
       initPosition: null, // Absolute X position from creationDate
       endPosition: null, // Absolute Y position from dueDate
-      topPosition: this.task.row + 1, // Absolute Y position from dueDate
+      topPosition: this.task.row, // Absolute Y position from dueDate
       width: null, // Width of the display in pixels
       showResizes: false, // Displays the resize handlers
       drag: null, // Current drag original information to restore in case of cancelation.
@@ -106,20 +110,17 @@ export default {
       "calendarInit",
       "calendarEnd",
       "cellDays",
-      "isDebug",
       "timelineMinRow",
       "timelineMaxRow",
     ]),
-    ...mapGetters(["totalCells", "todayCell"]),
+    ...mapGetters(["totalCells", "todayCell", "isDebug"]),
 
     // Absolute ROW position calculated on parent
     taskTopPosition: function () {
       if (this.showResizes) {
-        return `${this.cellHeight * this.topPosition}px`;
+        return `${this.headerHeight + this.cellHeight * this.topPosition}px`;
       }
-
-      let row_pos = this.task.row + 1;
-      return `${this.cellHeight * row_pos}px`;
+      return `${this.headerHeight + this.cellHeight * this.task.row}px`;
     },
     taskWidth: function () {
       return `${this.cellSize * this.width}px`;
@@ -173,7 +174,7 @@ export default {
       this.dragging = true;
       this.state = "info";
 
-      this.topPosition = this.task.row + 1;
+      this.topPosition = this.task.row;
 
       if (this.isDebug) {
         console.log(this.task.title + " === CLICKED === ");
@@ -258,9 +259,9 @@ export default {
     isRowValid(newRow) {
       // I don't have brain right now to figure out why it is -1 :(
       // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
-      newRow -= 1
+
       if (newRow < this.timelineMinRow) return false;
-      if (newRow > this.timelineMaxRow) return false;
+      if (newRow > this.timelineMaxRow - 1) return false;
 
       return true;
     },
@@ -350,7 +351,7 @@ export default {
         ...json,
         creationDate: initDay,
         dueDate: endDay,
-        row: this.topPosition - 1,
+        row: this.topPosition,
       };
 
       eventBus.emit("taskdatapanel", task);
@@ -426,9 +427,9 @@ export default {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  height: 62%;
+  height: 85%;
   background-color: tomato;
-  border-radius: 4px;
+  border-radius: 2px;
   width: 100%;
 }
 
@@ -452,16 +453,16 @@ export default {
 
 .task__resize {
   position: absolute;
-  margin: 1px 0;
-  top: 6px;
-  height: 70%;
-  width: 14px;
+  margin: 3px 0;
+  top: -4px;
+  height: 110%;
+  width: 18px;
   display: flex;
   align-items: center;
   z-index: 10;
   cursor: ew-resize;
   background-color: rgba(160, 160, 160, 0.7);
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
 .task__resize:hover {
