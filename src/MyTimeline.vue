@@ -133,6 +133,9 @@ export default {
       this.tasksDict[taskData.id] = this.updateGroup(taskData);
       this.emitBubbleTask(taskData);
     },
+    decreaseRow: function(group) {
+      console.log(" decreaseRow ");
+    },
     increaseRow: function (group) {
       const groupIdx = this.groupsToUse.findIndex((g) => {
         return g.id === group.id;
@@ -243,6 +246,7 @@ export default {
     return {
       updateTask: this.updateTask,
       increaseRow: this.increaseRow,
+      decreaseRow: this.decreaseRow,
     };
   },
   components: {

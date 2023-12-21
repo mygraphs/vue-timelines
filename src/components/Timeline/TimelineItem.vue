@@ -357,12 +357,13 @@ export default {
         row: this.topPosition,
       };
 
-      eventBus.emit("taskdatapanel", task);
+      if (this.dragStarted)
+        eventBus.emit("taskdatapanel", task);
+
       return task;
     },
     handleUpdateDate: function () {
       this.clearHandlers();
-      this.dragStarted = false;
 
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
@@ -373,6 +374,8 @@ export default {
         debugger;
         console.log(" CRASH " + error);
       }
+
+      this.dragStarted = false;
     },
     invalidate: function () {
       if (this.isDebug) console.log("Invalidate task " + this.task.title);
