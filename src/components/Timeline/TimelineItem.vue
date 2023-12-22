@@ -240,6 +240,11 @@ export default {
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
 
+      // We use the following to clamp the dates to start and end of a different task.
+      // We might get adjusted by an external task
+      this.newStartDate = null;
+      this.newEndDate = null;
+
       this.drag = {
         begin: this.initPosition,
         end: this.endPosition,
@@ -326,7 +331,7 @@ export default {
         this.topPosition -= rowToMove;
       }
 
-      this.calculateConflictTask()
+      this.calculateConflictTask();
 
       this.width = this.endPosition - this.initPosition;
     },
@@ -347,15 +352,21 @@ export default {
       }
 
       // We find a task that has a conflict with this one and we adjust the start to be 1 second before it ends.
+      // We adjust our current position so we don't wait until next frame to hit the task
+      let old_pos = this.initPosition;
+      this.initPosition += resize;
+
       let conflict = this.calculateConflictTask();
       if (conflict) {
         const s = this.getConfig("TASK_MIN_SEPARATION_S", 1);
-        this.initPosition = this.convertToRelative(conflict.end + s);
+        this.newStartDate = conflict.end + s;
 
         // We cancel the invalidation of the task, otherwise it will go back to the original position
         this.isValidDrop = true;
+        this.initPosition = old_pos; // Reset the position to before the conflict
       } else {
-        this.initPosition += resize;
+        // We don't have a conflict reset any clamp if there is any.
+        this.newStartDate = null;
       }
 
       this.width = this.endPosition - this.initPosition;
@@ -378,14 +389,19 @@ export default {
       }
 
       // We find a task that has a conflict with this one and we adjust the end to be 1 second before it starts.
+      let old_pos = this.endPosition;
+      this.endPosition += resize;
+
       let conflict = this.calculateConflictTask();
       if (conflict) {
-        this.endPosition = this.convertToRelative(conflict.start - this.getConfig("TASK_MIN_SEPARATION_S", 1));
+        const s = this.getConfig("TASK_MIN_SEPARATION_S", 1);
+        this.newEndDate = conflict.start - s;
 
         // We cancel the invalidation of the task, otherwise it will go back to the original position
         this.isValidDrop = true;
+        this.endPosition = old_pos; // Restore position, we failed to move
       } else {
-        this.endPosition += resize;
+        this.newEndDate = null;
       }
 
       this.width = this.endPosition - this.initPosition;
@@ -409,13 +425,24 @@ export default {
     },
 
     updateDataPanel: function () {
-      let initDay = this.convertCellToDate(this.initPosition);
-      let endDay = this.convertCellToDate(this.endPosition);
+      /*
+        Updates the data panel, we also create the final task so we can send it over to update the timeline.
+        Might not be the best architectural decision on this application.
 
-      let d = getDiffDays(initDay, endDay);
-      if (d < this.getMinDay()) {
-        endDay = addDays(endDay, this.getMinDay());
-      }
+        Check if we have to adjust either to a date or to an position relative to the cellsize.
+        Giving that our cellsizes might be only be a few pixels for many days, we have to be able to adjust
+        to the previous task.
+
+        Here we check if we have to replace our screen coordinates to a real position in time.
+      */
+
+      let initDay = this.newStartDate
+        ? this.newStartDate
+        : this.convertCellToDate(this.initPosition);
+
+      let endDay = this.newEndDate
+        ? this.newEndDate
+        : this.convertCellToDate(this.endPosition);
 
       if (this.isDebug) {
         console.log(" START " + new Date(initDay * 1000));
@@ -431,7 +458,6 @@ export default {
       };
 
       if (this.dragging) eventBus.emit("taskdatapanel", task);
-
       return task;
     },
 
@@ -510,7 +536,7 @@ export default {
   overflow: hidden;
   height: 85%;
   background-color: tomato;
-  border-radius: 2px;
+  border-radius: 4px;
   width: 100%;
 }
 

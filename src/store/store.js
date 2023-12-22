@@ -12,7 +12,8 @@ export default createStore({
       timelineMaxRow: 0,
       debug: false,
       config: {
-        TASK_MIN_SEPARATION_S: 1, // Doesn't work very well yet
+        // Configurable minimum distance in seconds between tasks.
+        TASK_MIN_SEPARATION_S: 300,
       },
     };
   },
