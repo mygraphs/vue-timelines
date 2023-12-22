@@ -97,8 +97,7 @@ export default {
       width: null, // Width of the display in pixels
       showResizes: false, // Displays the resize handlers
       drag: null, // Current drag original information to restore in case of cancelation.
-      dragging: false, // Display class
-      dragStarted: false, // Someone clicked on us we are being drag
+      dragging: false, // Someone clicked on us we are being drag also used for z-index
       dragClientX: null, // Global click on this item,
       dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
@@ -171,7 +170,6 @@ export default {
     },
     handleResizeOpen: function () {
       this.showResizes = true;
-      this.dragStarted = false;
       this.dragging = true;
       this.state = "info";
 
@@ -234,7 +232,7 @@ export default {
 
       this.clearHandlers();
 
-      this.dragStarted = true;
+      this.dragging = true;
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
 
@@ -303,7 +301,7 @@ export default {
       return this.isValidDrop;
     },
     handleResizeTask: function (e) {
-      if (!this.dragStarted) return;
+      if (!this.dragging) return;
 
       const cellsToMove = (this.dragClientX - e.clientX) / this.cellSize;
       const rowToMove = (this.dragClientY - e.clientY) / this.cellHeight;
@@ -329,7 +327,7 @@ export default {
     handlePriorityAndGroup: function (rowToMove) {},
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
-      if (!clientX || !this.dragStarted) return;
+      if (!clientX || !this.dragging) return;
 
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
@@ -355,7 +353,7 @@ export default {
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
-      if (!clientX || !this.dragStarted) return;
+      if (!clientX || !this.dragging) return;
 
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
@@ -410,7 +408,7 @@ export default {
         row: this.topPosition,
       };
 
-      if (this.dragStarted) eventBus.emit("taskdatapanel", task);
+      if (this.dragging) eventBus.emit("taskdatapanel", task);
 
       return task;
     },
@@ -428,7 +426,7 @@ export default {
         console.log(" CRASH " + error);
       }
 
-      this.dragStarted = false;
+      this.dragging = false;
     },
     invalidate: function () {
       if (this.isDebug) console.log("Invalidate task " + this.task.title);
@@ -515,13 +513,14 @@ export default {
   margin: 3px 0;
   top: -4px;
   height: 110%;
-  width: 18px;
+  width: 12px;
   display: flex;
   align-items: center;
   z-index: 10;
   cursor: ew-resize;
   background-color: rgba(160, 160, 160, 0.7);
   border-radius: 1px;
+  z-index: 10001 !important;
 }
 
 .task__resize:hover {
@@ -587,6 +586,6 @@ export default {
 .task.dragging {
   user-select: none;
   cursor: grabbing;
-  z-index: 4000;
+  z-index: 4000 !important;
 }
 </style>
