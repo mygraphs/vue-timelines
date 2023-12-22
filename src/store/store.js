@@ -10,7 +10,7 @@ export default createStore({
       cellDays: 1,
       timelineMinRow: 0,
       timelineMaxRow: 0,
-      debug: true,
+      debug: false,
     };
   },
   mutations: {

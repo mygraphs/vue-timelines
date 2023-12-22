@@ -53,6 +53,22 @@ import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 
+function binarySearch(tasks, startTime) {
+  let low = 0,
+    high = tasks.length - 1;
+  while (low <= high) {
+    let mid = Math.floor((low + high) / 2);
+    if (tasks[mid].start < startTime) {
+      low = mid + 1;
+    } else if (tasks[mid].start > startTime) {
+      high = mid - 1;
+    } else {
+      return mid;
+    }
+  }
+  return low;
+}
+
 export default {
   name: "VueTimeline",
   inject: {
@@ -132,8 +148,9 @@ export default {
     updateTask: function (taskData) {
       this.tasksDict[taskData.id] = this.updateGroup(taskData);
       this.emitBubbleTask(taskData);
+      this.buildSearchCache();
     },
-    decreaseRow: function(group) {
+    decreaseRow: function (group) {
       console.log(" decreaseRow ");
     },
     increaseRow: function (group) {
@@ -175,6 +192,76 @@ export default {
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
+    buildSearchCache: function () {
+      // Internally we have several caches to be able to find on the fly
+      // if the task moved will have a conflict with another one.
+      this.cacheRows = [];
+      for (let [key, task] of Object.entries(this.tasksDict)) {
+        let row = this.cacheRows[task.row];
+        if (!row) row = this.cacheRows[task.row] = [];
+
+        row.push({
+          start: task.creationDate,
+          end: task.dueDate,
+          id: task.id,
+        });
+      }
+
+      for (const key in this.cacheRows) {
+        this.cacheRows[key].sort((a, b) => a.start - b.start);
+      }
+    },
+    findConflicts: function (task) {
+      //debugger;
+      //console.log("Updated: findConflicts");
+      let tasks = this.cacheRows[task.row];
+      if (!tasks) {
+        //console.log(" NO TASKS ON THIS LIST ");
+        return false;
+      }
+
+      const ts = { start: task.creationDate, end: task.dueDate, id: task.id };
+
+      for (let t = 0; t < tasks.length; t++) {
+        let tc = tasks[t];
+        if (tc.id == ts.id) continue; // Same task, we ignore it
+
+        // Covers case we overlap on left or it is contained on the left side
+        if (ts.start < tc.end && ts.end > tc.start) return true;
+
+        // Covers case we overlap on the right or it is contained on the right
+        if (tc.start < ts.end && tc.end > ts.start) return true;
+
+        /*
+        if (ts.start < tc.start && ts.end > tc.end) {
+          // Our task fits in the middle
+          //console.log(" TASKS ENCLOSES OTHER ");
+          return true;
+        }
+
+        if (tc.start > ts.start && ts.end > tc.start) {
+          // Our conflict starts before this one ends
+          //console.log(" TASKS OVERLAPS LEFT ");
+          return true;
+        }
+
+        if (tc.start < ts.start && tc.end > ts.end) {
+          // Our task fits in another task
+          //console.log(" TASKS IS INSIDE ANOTHER ");
+          return true;
+        }
+
+        if (tc.start < ts.start && ts.start < tc.end) {
+          // Our tasks starts before the other ended
+          //console.log(" TASKS OVERLAPS RIGHT ");
+          return true;
+        }
+        */
+      }
+
+      return false;
+    },
+
     buildDataView: function () {
       this.groupsToUse = [];
       this.groupsDict = {};
@@ -234,6 +321,8 @@ export default {
       }
 
       this.setCalendarSize({ calendarInit: init, calendarEnd: end });
+
+      this.buildSearchCache();
     },
   },
   beforeUnmount() {},
@@ -244,6 +333,7 @@ export default {
   },
   provide: function () {
     return {
+      findConflicts: this.findConflicts,
       updateTask: this.updateTask,
       increaseRow: this.increaseRow,
       decreaseRow: this.decreaseRow,

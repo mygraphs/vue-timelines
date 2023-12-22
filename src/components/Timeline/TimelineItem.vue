@@ -86,6 +86,7 @@ export default {
     headerHeightInPx,
     cellHeight,
     cellHeightInPx,
+    findConflicts: { from: "findConflicts" },
     updateTask: { from: "updateTask" },
   },
   data: function () {
@@ -175,6 +176,7 @@ export default {
       this.state = "info";
 
       this.topPosition = this.task.row;
+      this.isValidDrop = true;
 
       if (this.isDebug) {
         console.log(this.task.title + " === CLICKED === ");
@@ -193,6 +195,8 @@ export default {
     },
     handleResizeClose: function () {
       window.removeEventListener("keyup", this.handleKeyUp);
+
+      this.cancelDropCheck();
 
       this.showResizes = false;
       this.handleUpdateDate();
@@ -237,26 +241,40 @@ export default {
       this.drag = {
         begin: this.initPosition,
         end: this.endPosition,
-        row: this.topPosition,
+        row: Math.round(this.topPosition),
       };
 
       this.state = "info";
       window.addEventListener("keyup", this.handleKeyUp);
     },
     restoreLastPosition: function (e) {},
+
+    cancelDropCheck: function () {
+      if (this.isValidDrop)
+        return;
+
+      if (this.drag == null)
+        return;
+
+      console.log(this.isValidDrop + " ************* INVALIDATE DROP ******************");
+
+      this.initPosition = this.drag.begin;
+      this.endPosition = this.drag.end;
+      this.topPosition = this.drag.row;
+      this.drag = null;
+    },
+
     handleKeyUp: function (e) {
       // Handles the cancelation and restore of the task position
       if (!this.showResizes) return;
 
       if (event.key === "Escape") {
         console.log(" PRESSED ESC KEY ");
-        this.initPosition = this.drag.begin;
-        this.endPosition = this.drag.end;
-        this.topPosition = this.drag.row;
+        this.isValidDrop = false;
         this.handleResizeClose();
       }
     },
-    isRowValid(newRow) {
+    isRowValid: function (newRow) {
       // I don't have brain right now to figure out why it is -1 :(
       // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
 
@@ -264,6 +282,23 @@ export default {
       if (newRow > this.timelineMaxRow - 1) return false;
 
       return true;
+    },
+    isPositionValid: function (newRow) {
+      let task = {
+        id: this.task.id,
+        creationDate: this.convertCellToDate(this.initPosition),
+        dueDate: this.convertCellToDate(this.endPosition),
+        row: Math.round(this.topPosition),
+      };
+
+      if (this.findConflicts(task)) {
+        this.state = "dark";
+        this.isValidDrop = false;
+      } else {
+        this.state = "info";
+        this.isValidDrop = true;
+      }
+      return this.isValidDrop;
     },
     handleResizeTask: function (e) {
       if (!this.dragStarted) return;
@@ -278,8 +313,13 @@ export default {
       this.endPosition -= cellsToMove;
 
       let check = this.topPosition - rowToMove;
+
       if (this.isRowValid(check)) {
         this.topPosition -= rowToMove;
+      }
+
+      if (this.isPositionValid()) {
+        //console.log(" IS VALID ");
       }
 
       this.width = this.endPosition - this.initPosition;
@@ -303,6 +343,8 @@ export default {
       // We keep our drag in the center, otherwise we will lose the event
       this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
+
+      this.isPositionValid();
       this.updateDataPanel();
     },
     handleResizeRight: function (e) {
@@ -320,6 +362,7 @@ export default {
       }
 
       //console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
+      this.isPositionValid();
       this.updateDataPanel();
     },
     convertCellToDate: function (interval) {
@@ -330,8 +373,7 @@ export default {
       return addDays(this.calendarInit, relative);
     },
     getMinDay: function () {
-      if (this.cellDays > 1)
-        return 0.5;
+      if (this.cellDays > 1) return 0.5;
 
       return this.cellDays / 5;
     },
@@ -357,13 +399,13 @@ export default {
         row: this.topPosition,
       };
 
-      if (this.dragStarted)
-        eventBus.emit("taskdatapanel", task);
+      if (this.dragStarted) eventBus.emit("taskdatapanel", task);
 
       return task;
     },
     handleUpdateDate: function () {
       this.clearHandlers();
+      this.cancelDropCheck();
 
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
