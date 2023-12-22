@@ -250,6 +250,8 @@ export default {
     restoreLastPosition: function (e) {},
 
     cancelDropCheck: function () {
+      this.isPositionValid();
+
       if (this.isValidDrop)
         return;
 
@@ -341,20 +343,30 @@ export default {
       }
 
       // We keep our drag in the center, otherwise we will lose the event
+      if (!this.isPositionValid()) {
+        this.isValidDrop = true;
+        resize = 0.1;
+      }
+
       this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
 
-      this.isPositionValid();
       this.updateDataPanel();
     },
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
       if (!clientX || !this.dragStarted) return;
 
-      const resize = (clientX - this.dragClientX) / this.cellSize;
+      let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
 
       if (resize == 0) return;
+
+      if (!this.isPositionValid()) {
+        //debugger;
+        this.isValidDrop = true;
+        resize = -0.1;
+      }
 
       if (this.width + resize >= 0.1) {
         this.endPosition += resize;
@@ -362,7 +374,6 @@ export default {
       }
 
       //console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
-      this.isPositionValid();
       this.updateDataPanel();
     },
     convertCellToDate: function (interval) {

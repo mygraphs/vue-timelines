@@ -212,8 +212,6 @@ export default {
       }
     },
     findConflicts: function (task) {
-      //debugger;
-      //console.log("Updated: findConflicts");
       let tasks = this.cacheRows[task.row];
       if (!tasks) {
         //console.log(" NO TASKS ON THIS LIST ");
@@ -227,36 +225,12 @@ export default {
         if (tc.id == ts.id) continue; // Same task, we ignore it
 
         // Covers case we overlap on left or it is contained on the left side
-        if (ts.start < tc.end && ts.end > tc.start) return true;
+        if (ts.start <= tc.end && ts.end >= tc.start)
+          return true;
 
         // Covers case we overlap on the right or it is contained on the right
-        if (tc.start < ts.end && tc.end > ts.start) return true;
-
-        /*
-        if (ts.start < tc.start && ts.end > tc.end) {
-          // Our task fits in the middle
-          //console.log(" TASKS ENCLOSES OTHER ");
+        if (tc.start <= ts.end && tc.end >= ts.start)
           return true;
-        }
-
-        if (tc.start > ts.start && ts.end > tc.start) {
-          // Our conflict starts before this one ends
-          //console.log(" TASKS OVERLAPS LEFT ");
-          return true;
-        }
-
-        if (tc.start < ts.start && tc.end > ts.end) {
-          // Our task fits in another task
-          //console.log(" TASKS IS INSIDE ANOTHER ");
-          return true;
-        }
-
-        if (tc.start < ts.start && ts.start < tc.end) {
-          // Our tasks starts before the other ended
-          //console.log(" TASKS OVERLAPS RIGHT ");
-          return true;
-        }
-        */
       }
 
       return false;
