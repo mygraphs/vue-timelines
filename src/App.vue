@@ -143,8 +143,24 @@ export default {
     ...mapState(["isDebug"]),
   },
   methods: {
+    listTasks: function () {
+      for (const key in this.tasks) {
+        const t = this.tasks[key];
+        console.log(
+          key +
+            ": (" +
+            t.title +
+            ") GROUP " +
+            t.group_id +
+            "[" +
+            new Date(t.creationDate * 1000).toLocaleDateString() +
+            "] [" +
+            new Date(t.dueDate * 1000).toLocaleDateString() +
+            "]"
+        );
+      }
+    },
     handleUpdatedTasks: function (task) {
-
       if (this.isDebug) {
         let t = task.title.split("|");
         task.title = t[0] + " | " + Math.round(Math.random() * 100);
@@ -152,6 +168,7 @@ export default {
 
       this.tasks[task.id] = task;
       console.log("***** UPDATED TASK " + task.title + " ***** " + task.group_id);
+      this.listTasks();
     },
   },
   components: {

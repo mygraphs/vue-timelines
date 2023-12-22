@@ -110,10 +110,11 @@ export default {
       "calendarInit",
       "calendarEnd",
       "cellDays",
+
       "timelineMinRow",
       "timelineMaxRow",
     ]),
-    ...mapGetters(["totalCells", "todayCell", "isDebug"]),
+    ...mapGetters(["totalCells", "todayCell", "isDebug", "getConfig"]),
 
     // Absolute ROW position calculated on parent
     taskTopPosition: function () {
@@ -122,9 +123,11 @@ export default {
       }
       return `${this.headerHeight + this.cellHeight * this.task.row}px`;
     },
+
     taskWidth: function () {
       return `${this.cellSize * this.width}px`;
     },
+
     taskLeftPosition: function () {
       return `${this.cellSize * this.initPosition}px`;
     },
@@ -142,6 +145,7 @@ export default {
       }
       return sz;
     },
+
     resetTaskPositions: function () {
       /* Recalculates the position of the task and rerenders it */
 
@@ -162,12 +166,14 @@ export default {
         console.log(this.task.title + " WIDTH = " + this.width);
       }
     },
+
     selectedTimeline: function (task) {
       // We invalidate the current view in case some other timeline item is being selected
       if (!this.showResizes || this.task.id == task.id) return;
 
       this.handleResizeClose();
     },
+
     handleResizeOpen: function () {
       this.showResizes = true;
       this.dragging = true;
@@ -191,6 +197,7 @@ export default {
       eventBus.emit("selected-timeline-item", this.task);
       eventBus.emit("taskdatapanel", this.task);
     },
+
     handleResizeClose: function () {
       window.removeEventListener("keyup", this.handleKeyUp);
 
@@ -202,35 +209,32 @@ export default {
     },
 
     clearHandlers: function (e) {
-      window.removeEventListener("pointermove", this.handleResizeRight);
-      window.removeEventListener("pointermove", this.handleResizeLeft);
-      window.removeEventListener("pointermove", this.handleResizeTask);
+      window.removeEventListener("pointermove", this.handleResizeFunction);
     },
 
     handleDragStartTask: function (e) {
       if (!this.showResizes) this.handleResizeOpen(e);
 
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeTask);
+      this.handleDragStart(e, this.handleResizeTask.bind(this));
     },
 
     handleDragStartLeft: function (e) {
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeLeft);
+      this.handleDragStart(e, this.handleResizeLeft.bind(this));
     },
 
     handleDragStartRight: function (e) {
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeRight);
+      this.handleDragStart(e, this.handleResizeRight.bind(this));
     },
 
-    handleDragStart: function (e) {
+    handleDragStart: function (e, callback) {
+      this.clearHandlers();
+
       e.currentTarget.setPointerCapture(e.pointerId);
+      window.addEventListener("pointermove", callback);
+      this.handleResizeFunction = callback;
 
       e.preventDefault();
       e.stopPropagation();
-
-      this.clearHandlers();
 
       this.dragging = true;
       this.dragClientX = e.clientX;
@@ -245,16 +249,15 @@ export default {
       this.state = "info";
       window.addEventListener("keyup", this.handleKeyUp);
     },
+
     restoreLastPosition: function (e) {},
 
     cancelDropCheck: function () {
-      this.isPositionValid();
+      this.calculateConflictTask();
 
-      if (this.isValidDrop)
-        return;
+      if (this.isValidDrop) return;
 
-      if (this.drag == null)
-        return;
+      if (this.drag == null) return;
 
       console.log(this.isValidDrop + " ************* INVALIDATE DROP ******************");
 
@@ -274,6 +277,7 @@ export default {
         this.handleResizeClose();
       }
     },
+
     isRowValid: function (newRow) {
       // I don't have brain right now to figure out why it is -1 :(
       // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
@@ -283,7 +287,8 @@ export default {
 
       return true;
     },
-    isPositionValid: function (newRow) {
+
+    calculateConflictTask: function () {
       let task = {
         id: this.task.id,
         creationDate: this.convertCellToDate(this.initPosition),
@@ -291,15 +296,18 @@ export default {
         row: Math.round(this.topPosition),
       };
 
-      if (this.findConflicts(task)) {
+      let conflict = this.findConflicts(task);
+      if (conflict != null) {
         this.state = "dark";
         this.isValidDrop = false;
       } else {
         this.state = "info";
         this.isValidDrop = true;
       }
-      return this.isValidDrop;
+
+      return conflict;
     },
+
     handleResizeTask: function (e) {
       if (!this.dragging) return;
 
@@ -318,13 +326,11 @@ export default {
         this.topPosition -= rowToMove;
       }
 
-      if (this.isPositionValid()) {
-        //console.log(" IS VALID ");
-      }
+      this.calculateConflictTask()
 
       this.width = this.endPosition - this.initPosition;
     },
-    handlePriorityAndGroup: function (rowToMove) {},
+
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
       if (!clientX || !this.dragging) return;
@@ -335,22 +341,27 @@ export default {
       if (resize == 0) return;
 
       // We don't want to make it too small that you cannot grab it.
-      if (this.endPosition - resize - 0.1 < this.initPosition) {
+      if (this.endPosition - resize < this.initPosition) {
         console.log(" End cannot be bigger than Start");
         return;
       }
 
-      // We keep our drag in the center, otherwise we will lose the event
-      if (!this.isPositionValid()) {
+      // We find a task that has a conflict with this one and we adjust the start to be 1 second before it ends.
+      let conflict = this.calculateConflictTask();
+      if (conflict) {
+        const s = this.getConfig("TASK_MIN_SEPARATION_S", 1);
+        this.initPosition = this.convertToRelative(conflict.end + s);
+
+        // We cancel the invalidation of the task, otherwise it will go back to the original position
         this.isValidDrop = true;
-        resize = 0.1;
+      } else {
+        this.initPosition += resize;
       }
 
-      this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
-
       this.updateDataPanel();
     },
+
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
       if (!clientX || !this.dragging) return;
@@ -360,20 +371,29 @@ export default {
 
       if (resize == 0) return;
 
-      if (!this.isPositionValid()) {
-        //debugger;
-        this.isValidDrop = true;
-        resize = -0.1;
+      // We don't want to make it too small that you cannot grab it.
+      if (this.endPosition + resize <= this.initPosition) {
+        console.log(" End cannot be bigger than Start");
+        return;
       }
 
-      if (this.width + resize >= 0.1) {
+      // We find a task that has a conflict with this one and we adjust the end to be 1 second before it starts.
+      let conflict = this.calculateConflictTask();
+      if (conflict) {
+        this.endPosition = this.convertToRelative(conflict.start - this.getConfig("TASK_MIN_SEPARATION_S", 1));
+
+        // We cancel the invalidation of the task, otherwise it will go back to the original position
+        this.isValidDrop = true;
+      } else {
         this.endPosition += resize;
-        this.width = this.endPosition - this.initPosition;
       }
+
+      this.width = this.endPosition - this.initPosition;
 
       //console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
       this.updateDataPanel();
     },
+
     convertCellToDate: function (interval) {
       // Converts the number of cells into a position in the calendar
       // We append the position to the start of the first cell of the calendar
@@ -381,11 +401,13 @@ export default {
       let relative = interval * this.cellDays;
       return addDays(this.calendarInit, relative);
     },
+
     getMinDay: function () {
       if (this.cellDays > 1) return 0.5;
 
       return this.cellDays / 5;
     },
+
     updateDataPanel: function () {
       let initDay = this.convertCellToDate(this.initPosition);
       let endDay = this.convertCellToDate(this.endPosition);
@@ -412,6 +434,7 @@ export default {
 
       return task;
     },
+
     handleUpdateDate: function () {
       this.clearHandlers();
       this.cancelDropCheck();
@@ -428,6 +451,7 @@ export default {
 
       this.dragging = false;
     },
+
     invalidate: function () {
       if (this.isDebug) console.log("Invalidate task " + this.task.title);
 

@@ -107,7 +107,7 @@ export default {
       "timelineMaxRow",
       "timelineMinRow",
     ]),
-    ...mapGetters(["totalCells", "todayCell"]),
+    ...mapGetters(["totalCells", "todayCell", "getConfig"]),
     tasksArray() {
       return Object.values(this.tasksDict);
     },
@@ -242,23 +242,24 @@ export default {
       let tasks = this.cacheRows[task.row];
       if (!tasks) {
         //console.log(" NO TASKS ON THIS LIST ");
-        return false;
+        return null;
       }
 
-      const ts = { start: task.creationDate, end: task.dueDate, id: task.id };
+      let m = this.getConfig("TASK_MIN_SEPARATION_S", 1) - 1;
+      const ts = { start: task.creationDate - m, end: task.dueDate - m, id: task.id };
 
       for (let t = 0; t < tasks.length; t++) {
         let tc = tasks[t];
         if (tc.id == ts.id) continue; // Same task, we ignore it
 
         // Covers case we overlap on left or it is contained on the left side
-        if (ts.start <= tc.end && ts.end >= tc.start) return true;
+        if (ts.start <= tc.end && ts.end >= tc.start) return tc;
 
         // Covers case we overlap on the right or it is contained on the right
-        if (tc.start <= ts.end && tc.end >= ts.start) return true;
+        if (tc.start <= ts.end && tc.end >= ts.start) return tc;
       }
 
-      return false;
+      return null;
     },
 
     buildDataView: function () {
