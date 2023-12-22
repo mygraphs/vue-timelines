@@ -1,9 +1,6 @@
 <template>
   <div class="cal__row" ref="timelineRow" :rowid="rowid">
-    <div
-      class="cal__inner-row-container"
-      :class="{ 'cal__row--dragover': isDragover }"
-    >
+    <div class="cal__inner-row-container" :class="{ 'cal__row--dragover': isDragover }">
       <template v-for="(_, index) in Array(rows)" :key="index">
         <div class="cal__inner-row" />
       </template>
@@ -15,6 +12,8 @@
 
     <slot />
     <button class="cal__button" @click="handleAddRow">+</button>
+    <button class="cal__button-bottom" @click="handleRemoveRow">-</button>
+
   </div>
 </template>
 
@@ -23,11 +22,7 @@ import { computed } from "vue";
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 
-import {
-  cellHeightInPx,
-  cellHeight,
-  cellSizeInPx,
-} from "@/contexts/CellSizeContext";
+import { cellHeightInPx, cellHeight, cellSizeInPx } from "@/contexts/CellSizeContext";
 
 export default {
   name: "TimelineRow",
@@ -36,6 +31,7 @@ export default {
     cellHeight,
     cellSizeInPx,
     increaseRow: { from: "increaseRow" },
+    decreaseRow: { from: "decreaseRow" },
   },
   props: {
     group: {
@@ -59,6 +55,14 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    handleRemoveRow: function () {
+      if (this.rows == 1)
+        return;
+
+      this.rows -= 1;
+      this.setListRowHeight();
+      this.decreaseRow(this.group);
+    },
     handleAddRow: function () {
       this.rows += 1;
       this.setListRowHeight();
@@ -140,6 +144,14 @@ export default {
   position: sticky;
   height: 20px;
   right: 0;
+  z-index: 10;
+  font-size: 0.7rem;
+}
+
+.cal__button-bottom {
+  position: sticky;
+  right: 10;
+  height: 20px;
   z-index: 10;
   font-size: 0.7rem;
 }

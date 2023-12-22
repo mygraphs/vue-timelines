@@ -22,7 +22,11 @@
             </TimelineRow>
           </template>
           <template v-for="task in tasksArray" :key="task.id">
-            <TimelineItem v-bind:task="task" :row="task.row" :ref="getRef(task.group_id, task.id)">
+            <TimelineItem
+              v-bind:task="task"
+              :row="task.row"
+              :ref="getRef(task.group_id, task.id)"
+            >
               <small>
                 {{ task.title }}
               </small>
@@ -48,6 +52,22 @@ import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
+
+function binarySearch(tasks, startTime) {
+  let low = 0,
+    high = tasks.length - 1;
+  while (low <= high) {
+    let mid = Math.floor((low + high) / 2);
+    if (tasks[mid].start < startTime) {
+      low = mid + 1;
+    } else if (tasks[mid].start > startTime) {
+      high = mid - 1;
+    } else {
+      return mid;
+    }
+  }
+  return low;
+}
 
 export default {
   name: "VueTimeline",
@@ -79,7 +99,14 @@ export default {
     };
   },
   computed: {
-    ...mapState(["calendarInit", "calendarEnd", "cellDays", "isDebug", "timelineMaxRow", "timelineMinRow"]),
+    ...mapState([
+      "calendarInit",
+      "calendarEnd",
+      "cellDays",
+      "isDebug",
+      "timelineMaxRow",
+      "timelineMinRow",
+    ]),
     ...mapGetters(["totalCells", "todayCell"]),
     tasksArray() {
       return Object.values(this.tasksDict);
@@ -91,24 +118,27 @@ export default {
       let refName = `timelineItem-${groupId}-${taskId}`;
       return refName;
     },
-    updateGroup: function(task) {
+    updateGroup: function (task) {
       // Find the group for a task and update it's priority.
       // Priorities are a number between 0 and n in the group, that define the current row.
+
       let row = task.row;
       for (let g of this.groupsToUse.values()) {
-        if (row >= g.timeline_row && row <= g.timeline_row + g.rows) {
-          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name );
+        if (row >= g.timeline_row && row < g.timeline_row + g.rows) {
+          if (this.isDebug) console.log(" Found group " + g.id + " <=> " + g.name);
 
           if (g.id != task.group_id) {
             if (this.isDebug)
               console.log(" Update group " + task.group_id + " => " + g.id);
+
             task.group_id = g.id;
           }
 
           let old = task.priority;
           task.priority = row - g.timeline_row;
           if (this.isDebug)
-              console.log(" Update priority " + old + " => " + task.priority);
+            console.log(" Update priority " + old + " => " + task.priority);
+
           break;
         }
       }
@@ -118,24 +148,26 @@ export default {
     updateTask: function (taskData) {
       this.tasksDict[taskData.id] = this.updateGroup(taskData);
       this.emitBubbleTask(taskData);
+      this.buildSearchCache();
+    },
+    decreaseRow: function (group) {
+      console.log(" decreaseRow ");
     },
     increaseRow: function (group) {
       const groupIdx = this.groupsToUse.findIndex((g) => {
         return g.id === group.id;
       });
 
-
       for (let g of this.groupsToUse.values()) {
-        if (g.timeline_row <= group.timeline_row)
-          continue;
+        if (g.timeline_row <= group.timeline_row) continue;
 
-          g.timeline_row += 1;
-          g.name = " " + g.timeline_row
-          const t = g.timeline_row + g.rows;
+        g.timeline_row += 1;
+        g.name = " " + g.timeline_row;
+        const t = g.timeline_row + g.rows;
       }
 
       // Propagate the row creation
-      this.setRowBoundaries({ minRow:1, maxRow: this.timelineMaxRow + 1});
+      this.setRowBoundaries({ minRow: 0, maxRow: this.timelineMaxRow + 1 });
 
       this.groupsToUse[groupIdx] = { ...group, rows: group.rows + 1 };
 
@@ -160,6 +192,50 @@ export default {
       const timeline = document.querySelector(".timeline");
       timeline.scrollTop = scrollTop;
     },
+    buildSearchCache: function () {
+      // Internally we have several caches to be able to find on the fly
+      // if the task moved will have a conflict with another one.
+      this.cacheRows = [];
+      for (let [key, task] of Object.entries(this.tasksDict)) {
+        let row = this.cacheRows[task.row];
+        if (!row) row = this.cacheRows[task.row] = [];
+
+        row.push({
+          start: task.creationDate,
+          end: task.dueDate,
+          id: task.id,
+        });
+      }
+
+      for (const key in this.cacheRows) {
+        this.cacheRows[key].sort((a, b) => a.start - b.start);
+      }
+    },
+    findConflicts: function (task) {
+      let tasks = this.cacheRows[task.row];
+      if (!tasks) {
+        //console.log(" NO TASKS ON THIS LIST ");
+        return false;
+      }
+
+      const ts = { start: task.creationDate, end: task.dueDate, id: task.id };
+
+      for (let t = 0; t < tasks.length; t++) {
+        let tc = tasks[t];
+        if (tc.id == ts.id) continue; // Same task, we ignore it
+
+        // Covers case we overlap on left or it is contained on the left side
+        if (ts.start <= tc.end && ts.end >= tc.start)
+          return true;
+
+        // Covers case we overlap on the right or it is contained on the right
+        if (tc.start <= ts.end && tc.end >= ts.start)
+          return true;
+      }
+
+      return false;
+    },
+
     buildDataView: function () {
       this.groupsToUse = [];
       this.groupsDict = {};
@@ -176,8 +252,9 @@ export default {
       // First pass to calculate how many rows do we have in each group
       for (const task of this.tasks.values()) {
         let group = this.groupsDict[task.group_id];
-        if (!group.rows || task.priority > group.rows) {
-          group.rows = task.priority;
+        if (!group.rows || task.priority >= group.rows) {
+          // Size of the rows is task + 1 because tasks start at 0 priority.
+          group.rows = task.priority + 1;
         }
         task.group = group;
       }
@@ -189,7 +266,7 @@ export default {
         current_row += group.rows;
       }
 
-      this.setRowBoundaries({ minRow:1, maxRow:current_row});
+      this.setRowBoundaries({ minRow: 0, maxRow: current_row });
 
       // Start and end of the calendar
       let init = null;
@@ -218,6 +295,8 @@ export default {
       }
 
       this.setCalendarSize({ calendarInit: init, calendarEnd: end });
+
+      this.buildSearchCache();
     },
   },
   beforeUnmount() {},
@@ -228,8 +307,10 @@ export default {
   },
   provide: function () {
     return {
+      findConflicts: this.findConflicts,
       updateTask: this.updateTask,
       increaseRow: this.increaseRow,
+      decreaseRow: this.decreaseRow,
     };
   },
   components: {

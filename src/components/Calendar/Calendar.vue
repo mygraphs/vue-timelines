@@ -46,6 +46,7 @@
 </template>
 
 <script>
+
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
@@ -54,7 +55,7 @@ dayjs.extend(weekOfYear);
 dayjs.extend(isSameOrAfter);
 
 import { mapState, mapMutations, mapGetters } from "vuex";
-import { cellSize, resetCellSize } from "@/contexts/CellSizeContext";
+import { cellSize, resetCellSize, headerHeightInPx } from "@/contexts/CellSizeContext";
 
 function adjustTextToCells(day, format, number_days, cell_size) {
   const LETTER_SIZE_PX = 10;
@@ -72,7 +73,7 @@ function adjustTextToCells(day, format, number_days, cell_size) {
 
 export default {
   name: "Calendar",
-  inject: { cellSize, resetCellSize },
+  inject: { cellSize, resetCellSize,headerHeightInPx },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
   },
@@ -162,7 +163,7 @@ export default {
 
 <style>
 .calendar_group_header {
-  min-height: 80px;
+  min-height: v-bind(headerHeightInPx);
 }
 
 .calendar {

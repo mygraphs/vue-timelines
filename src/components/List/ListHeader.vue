@@ -5,12 +5,23 @@
 </template>
 
 <script>
+import {
+  headerHeightInPx,
+} from "@/contexts/CellSizeContext";
+
 export default {
   name: "ListHeader",
-};
+  inject: {
+    headerHeightInPx,
+  }
+}
 </script>
 
 <style scoped>
+.calendar_group_header {
+  min-height: v-bind(headerHeightInPx);
+}
+
 .list__header {
   color: #707070;
   background-color: #f8f9fc;
