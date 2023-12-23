@@ -27,9 +27,16 @@
               :row="task.row"
               :ref="getRef(task.group_id, task.id)"
             >
-              <small>
-                {{ task.title }}
-              </small>
+              <template v-slot:task_text>
+                <small>
+                  {{ task.title }}
+                </small>
+              </template>
+              <template v-slot:task_icon>
+                <span class='task_icon_font'>
+                   {{ Math.round(task.progress * 100) }}%
+                </span>
+              </template>
             </TimelineItem>
           </template>
         </Timeline>
@@ -352,6 +359,16 @@ export default {
 };
 </script>
 
+<style scoped>
+.task_icon_font {
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.6em
+}
+</style>
 <style>
 .main-container {
   display: flex;

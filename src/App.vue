@@ -69,7 +69,7 @@ var test = {
       title: "Test task 07",
       creationDate: 1642737099,
       dueDate: 1651805099,
-      progress: 0.8,
+      progress: 1.0,
       priority: 0,
     },
     {
@@ -96,7 +96,7 @@ var test = {
       title: "Test task 10",
       creationDate: 1650596400,
       dueDate: 1651374000,
-      progress: 0.5,
+      progress: 0.9,
       priority: 3,
     },
     {

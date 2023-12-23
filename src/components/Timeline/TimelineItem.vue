@@ -11,6 +11,11 @@
     :class="{ dragging }"
   >
     <div class="task__container">
+      <div class="task__icon">
+        <slot name="task_icon">
+          <i :class="taskIcon" />
+        </slot>
+      </div>
       <div
         class="task__resize task_resize--left"
         v-if="showResizes"
@@ -23,7 +28,7 @@
       />
 
       <div class="task__content prevent-select" :class="`task__state--${state}`">
-        <slot />
+        <slot name="task_text" />
       </div>
 
       <div
@@ -101,8 +106,8 @@ export default {
       dragClientX: null, // Global click on this item,
       dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
-
       state: "NO_STATE", // State color of the task, with bootstrap color structure
+      taskIcon: "fa fa-eye fa-xs text-white",
     };
   },
   computed: {
@@ -505,6 +510,23 @@ export default {
 };
 </script>
 
+<style scoped>
+.task__icon {
+  position: absolute;
+  right: 0px;
+  z-index: 4001 !important;
+  padding: 0rem 0.2rem;
+  align-items: center;
+  z-index: 3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  height: 85%;
+  background:rgba(205,206,255,0.4);
+  border-radius: 4px;
+}
+</style>
+
 <style>
 .task {
   position: absolute;
@@ -633,6 +655,7 @@ export default {
 .task {
   cursor: grab;
 }
+
 .task.dragging {
   user-select: none;
   cursor: grabbing;
