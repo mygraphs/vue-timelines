@@ -32,7 +32,6 @@ import {
   resetCellSize,
   cellSize,
   cellSizeInPx,
-  cellSizeDays,
 } from "@/contexts/CellSizeContext";
 
 export default {

@@ -52,7 +52,7 @@ export default {
     postcss({}),
     buble({
       objectAssign: "Object.assign",
-      transforms: { forOf: false },
+      transforms: { forOf: false, asyncAwait: false  },
     }),
     terser({ output: { ecma: 5 } }),
   ],

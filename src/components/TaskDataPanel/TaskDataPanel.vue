@@ -11,7 +11,7 @@
 
 <script>
 import dayjs from 'dayjs';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import * as localizedFormat from 'dayjs/plugin/localizedFormat';
 
 import eventBus from '../eventBus.js';
 
