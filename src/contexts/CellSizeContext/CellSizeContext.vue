@@ -12,8 +12,8 @@ export default {
     return {
       cellSize: 25,
       minSize: 20,
-      headerHeight: 68,
-      cellHeight: 30,
+      headerHeight: 75,
+      cellHeight: 60,
     };
   },
   methods: {
