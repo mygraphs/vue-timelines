@@ -6,8 +6,7 @@
       class="cal__inner-header calendar_group_header"
     >
       <div class="cal__inner-container">
-        <div>{{ month.year }}</div>
-        <div>{{ month.name }}</div>
+        <div>{{ month.name }} {{ month.year }}</div>
 
         <div class="cal__int-container" v-if="this.cellDays >= 1">
           <template v-for="day in month.days" :key="day">
@@ -57,11 +56,19 @@ import { cellSize, resetCellSize, headerHeightInPx } from "@/contexts/CellSizeCo
 import { getWeekNumber } from "@/utils/date";
 
 function adjustTextToCells(day, format, number_days, cell_size) {
-  const LETTER_SIZE_PX = 10;
+  const LETTER_SIZE_PX = 15;
 
   // Adjust the text to the available space
   let text = day.format(format);
   let size_px = cell_size * number_days;
+
+  if (size_px < 50 && format == "YYYY") {
+      return "";
+  }
+
+  if (size_px < 30 && format == "MMMM") {
+      return "";
+  }
   if (size_px < text.length * LETTER_SIZE_PX) {
     if (format == "MMMM") text = text.substring(0, 3);
     else text = text.substring(2);
