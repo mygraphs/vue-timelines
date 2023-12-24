@@ -1,5 +1,10 @@
 <h1 style="text-align: center;">My Timeline</h1>
 
+## 🚩DEMO
+
+Visit our demo!
+[http://mygraphs.github.io](http://mygraphs.github.io)
+
 ## 📦 Install
 
 ```
