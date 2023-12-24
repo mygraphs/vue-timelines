@@ -18,7 +18,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
-    "build:demo": "vue-cli-service build --mode prod",
+    "build:demo": "vue-cli-service build --mode prod & rm mygraphs.github.io/* -rf & cp dist/* mygraphs.github.io -r" ,
     "build": "rimraf dist & cross-env NODE_ENV=production & npm run build:unpkg & npm run build:es & npm run build:umd",
     "build:umd": "rollup --config rollup.config.js --format umd --file dist/vue-timelines.umd.js",
     "build:es": "rollup --config rollup.config.js --format es --file dist/vue-timelines.esm.js",
