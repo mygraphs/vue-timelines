@@ -80,6 +80,7 @@ var test = {
       dueDate: 1647126699,
       progress: 0.5,
       priority: 1,
+      icon: "eye",
     },
     {
       id: "09",

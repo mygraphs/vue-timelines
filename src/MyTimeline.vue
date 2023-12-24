@@ -32,7 +32,7 @@
                   {{ task.title }}
                 </small>
               </template>
-              <template v-slot:task_icon>
+              <template v-slot:taskInfo>
                 <span class='task_icon_font'>
                    {{ Math.round(task.progress * 100) }}%
                 </span>

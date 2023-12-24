@@ -11,10 +11,9 @@
     :class="{ dragging }"
   >
     <div class="task__container">
-      <div class="task__icon">
-        <slot name="task_icon">
-          <i :class="taskIcon" />
-        </slot>
+      <div v-if="iconVisible" class="task__icon">
+        <div v-if="taskIcon"><i :class="taskIcon" /></div>
+        <div v-else><slot name="taskInfo" /></div>
       </div>
       <div
         class="task__resize task_resize--left"
@@ -96,10 +95,12 @@ export default {
   },
   data: function () {
     return {
+      ICON_WIDTH: 25, // Width of the Icon, probably will move to config that is why is all capital letters
       initPosition: null, // Absolute X position from creationDate
       endPosition: null, // Absolute Y position from dueDate
       topPosition: this.task.row, // Absolute Y position from dueDate
       width: null, // Width of the display in pixels
+      widthPx: null, // Width in pixels to show or hide the right icon
       showResizes: false, // Displays the resize handlers
       drag: null, // Current drag original information to restore in case of cancelation.
       dragging: false, // Someone clicked on us we are being drag also used for z-index
@@ -107,7 +108,7 @@ export default {
       dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
       state: "NO_STATE", // State color of the task, with bootstrap color structure
-      taskIcon: "fa fa-eye fa-xs text-white",
+      taskIcon: null,
     };
   },
   computed: {
@@ -121,11 +122,32 @@ export default {
     ]),
     ...mapGetters(["totalCells", "todayCell", "isDebug", "getConfig"]),
 
-    // Absolute ROW position calculated on parent
-    taskTopPosition: function () {
-      if (this.showResizes) {
-        return `${this.headerHeight + this.cellHeight * this.topPosition}px`;
+    iconVisible: function () {
+      // Right side icon, if the task is too small we don't display it.
+      let widthPx = this.width * this.cellSize;
+      if (widthPx < this.ICON_WIDTH) {
+        return false;
       }
+      return true;
+    },
+
+    borderWidth: function () {
+      // We don't display the border if the icon is not visible so we can see it well.
+      if (!this.iconVisible) return "0px";
+      return "5px";
+    },
+
+    iconWidth: function () {
+      // If the icon is not visible we don't have a width either.
+      if (!this.iconVisible) return "0px";
+      return this.ICON_WIDTH + "px";
+    },
+
+    taskTopPosition: function () {
+      // Absolute ROW position calculated on parent
+      if (this.showResizes)
+        return `${this.headerHeight + this.cellHeight * this.topPosition}px`;
+
       return `${this.headerHeight + this.cellHeight * this.task.row}px`;
     },
 
@@ -157,6 +179,9 @@ export default {
       this.initPosition = this.convertToRelative(this.task.creationDate);
       this.endPosition = this.convertToRelative(this.task.dueDate);
       this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
+
+      if (this.task.icon)
+        this.taskIcon = "fa fa-" + this.task.icon + " fa-xs";
 
       if (this.isDebug) {
         console.log("--- resetTaskPositions ------------------- ");
@@ -512,18 +537,22 @@ export default {
 
 <style scoped>
 .task__icon {
+  display: flex;
   position: absolute;
   right: 0px;
+  width: v-bind(iconWidth);
   z-index: 4001 !important;
   padding: 0rem 0.2rem;
   align-items: center;
+  justify-content: center;
   z-index: 3;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   height: 85%;
-  background:rgba(205,206,255,0.4);
-  border-radius: 4px;
+  background: rgba(205, 206, 255, 1);
+  color: black;
+  border-radius: 0px v-bind(borderWidth) v-bind(borderWidth) 0px;
 }
 </style>
 
@@ -544,7 +573,6 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
 }
 
 .task__content {
@@ -558,8 +586,8 @@ export default {
   overflow: hidden;
   height: 85%;
   background-color: tomato;
-  border-radius: 4px;
-  width: 100%;
+  border-radius: v-bind(borderWidth) 0px 0px v-bind(borderWidth);
+  width: calc(100% - v-bind(iconWidth));
 }
 
 .task__content::after {
