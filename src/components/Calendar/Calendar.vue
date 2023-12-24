@@ -46,16 +46,15 @@
 </template>
 
 <script>
-
 import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
-dayjs.extend(weekOfYear);
 dayjs.extend(isSameOrAfter);
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { cellSize, resetCellSize, headerHeightInPx } from "@/contexts/CellSizeContext";
+
+import { getWeekNumber } from "@/utils/date";
 
 function adjustTextToCells(day, format, number_days, cell_size) {
   const LETTER_SIZE_PX = 10;
@@ -73,7 +72,7 @@ function adjustTextToCells(day, format, number_days, cell_size) {
 
 export default {
   name: "Calendar",
-  inject: { cellSize, resetCellSize,headerHeightInPx },
+  inject: { cellSize, resetCellSize, headerHeightInPx },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
   },
@@ -101,7 +100,12 @@ export default {
 
         if (this.cellDays === 7) {
           // Assuming 7 for work weeks
-          day.title = currentDay.week();
+          try {
+            day.title = getWeekNumber(currentDay);
+          } catch (err) {
+            console.log(err);
+            debugger;
+          }
         } else if (this.cellDays <= 14) day.title = currentDay.date();
 
         if (this.cellDays < 1) {

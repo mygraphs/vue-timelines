@@ -48,8 +48,6 @@
 import eventBus from "../eventBus.js";
 
 import dayjs from "dayjs";
-import weekOfYear from "dayjs/plugin/weekOfYear";
-dayjs.extend(weekOfYear);
 
 import {
   reduceCellSize,
