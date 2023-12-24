@@ -539,7 +539,6 @@ export default {
   position: absolute;
   right: 0px;
   width: v-bind(iconWidth);
-  z-index: 4001 !important;
   padding: 0rem 0.2rem;
   align-items: center;
   justify-content: center;
