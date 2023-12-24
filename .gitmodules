@@ -1,0 +1,3 @@
+[submodule "mygraphs.github.io"]
+	path = mygraphs.github.io
+	url = git@github.com:mygraphs/mygraphs.github.io.git
