@@ -69,7 +69,7 @@ var test = {
       title: "Test task 07",
       creationDate: 1642737099,
       dueDate: 1651805099,
-      progress: 0.8,
+      progress: 1.0,
       priority: 0,
     },
     {
@@ -80,6 +80,7 @@ var test = {
       dueDate: 1647126699,
       progress: 0.5,
       priority: 1,
+      icon: "eye",
     },
     {
       id: "09",
@@ -96,7 +97,7 @@ var test = {
       title: "Test task 10",
       creationDate: 1650596400,
       dueDate: 1651374000,
-      progress: 0.5,
+      progress: 0.9,
       priority: 3,
     },
     {
@@ -143,8 +144,24 @@ export default {
     ...mapState(["isDebug"]),
   },
   methods: {
+    listTasks: function () {
+      for (const key in this.tasks) {
+        const t = this.tasks[key];
+        console.log(
+          key +
+            ": (" +
+            t.title +
+            ") GROUP " +
+            t.group_id +
+            "[" +
+            new Date(t.creationDate * 1000).toLocaleDateString() +
+            "] [" +
+            new Date(t.dueDate * 1000).toLocaleDateString() +
+            "]"
+        );
+      }
+    },
     handleUpdatedTasks: function (task) {
-
       if (this.isDebug) {
         let t = task.title.split("|");
         task.title = t[0] + " | " + Math.round(Math.random() * 100);
@@ -152,6 +169,7 @@ export default {
 
       this.tasks[task.id] = task;
       console.log("***** UPDATED TASK " + task.title + " ***** " + task.group_id);
+      //this.listTasks();
     },
   },
   components: {

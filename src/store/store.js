@@ -11,6 +11,10 @@ export default createStore({
       timelineMinRow: 0,
       timelineMaxRow: 0,
       debug: false,
+      config: {
+        // Configurable minimum distance in seconds between tasks.
+        TASK_MIN_SEPARATION_S: 300,
+      },
     };
   },
   mutations: {
@@ -48,6 +52,15 @@ export default createStore({
     },
   },
   getters: {
+    // A getter can be a function, but you have to return
+    // a function with parameters using the following format:
+
+    getConfig: (state) => (param, default_value = null) => {
+      if (param in state.config)
+        return state.config[param];
+
+      return default_value;
+    },
     isDebug(state) {
       return state.debug;
     },

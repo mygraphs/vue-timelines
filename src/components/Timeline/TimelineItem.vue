@@ -11,6 +11,10 @@
     :class="{ dragging }"
   >
     <div class="task__container">
+      <div v-if="iconVisible" class="task__icon">
+        <div v-if="taskIcon"><i :class="taskIcon" /></div>
+        <div v-else><slot name="taskInfo" /></div>
+      </div>
       <div
         class="task__resize task_resize--left"
         v-if="showResizes"
@@ -23,7 +27,7 @@
       />
 
       <div class="task__content prevent-select" :class="`task__state--${state}`">
-        <slot />
+        <slot name="task_text" />
       </div>
 
       <div
@@ -91,19 +95,20 @@ export default {
   },
   data: function () {
     return {
+      ICON_WIDTH: 25, // Width of the Icon, probably will move to config that is why is all capital letters
       initPosition: null, // Absolute X position from creationDate
       endPosition: null, // Absolute Y position from dueDate
       topPosition: this.task.row, // Absolute Y position from dueDate
       width: null, // Width of the display in pixels
+      widthPx: null, // Width in pixels to show or hide the right icon
       showResizes: false, // Displays the resize handlers
       drag: null, // Current drag original information to restore in case of cancelation.
-      dragging: false, // Display class
-      dragStarted: false, // Someone clicked on us we are being drag
+      dragging: false, // Someone clicked on us we are being drag also used for z-index
       dragClientX: null, // Global click on this item,
       dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
-
       state: "NO_STATE", // State color of the task, with bootstrap color structure
+      taskIcon: null,
     };
   },
   computed: {
@@ -111,21 +116,45 @@ export default {
       "calendarInit",
       "calendarEnd",
       "cellDays",
+
       "timelineMinRow",
       "timelineMaxRow",
     ]),
-    ...mapGetters(["totalCells", "todayCell", "isDebug"]),
+    ...mapGetters(["totalCells", "todayCell", "isDebug", "getConfig"]),
 
-    // Absolute ROW position calculated on parent
-    taskTopPosition: function () {
-      if (this.showResizes) {
-        return `${this.headerHeight + this.cellHeight * this.topPosition}px`;
+    iconVisible: function () {
+      // Right side icon, if the task is too small we don't display it.
+      let widthPx = this.width * this.cellSize;
+      if (widthPx < this.ICON_WIDTH) {
+        return false;
       }
+      return true;
+    },
+
+    borderWidth: function () {
+      // We don't display the border if the icon is not visible so we can see it well.
+      if (!this.iconVisible) return "0px";
+      return "5px";
+    },
+
+    iconWidth: function () {
+      // If the icon is not visible we don't have a width either.
+      if (!this.iconVisible) return "0px";
+      return this.ICON_WIDTH + "px";
+    },
+
+    taskTopPosition: function () {
+      // Absolute ROW position calculated on parent
+      if (this.showResizes)
+        return `${this.headerHeight + this.cellHeight * this.topPosition}px`;
+
       return `${this.headerHeight + this.cellHeight * this.task.row}px`;
     },
+
     taskWidth: function () {
       return `${this.cellSize * this.width}px`;
     },
+
     taskLeftPosition: function () {
       return `${this.cellSize * this.initPosition}px`;
     },
@@ -143,12 +172,16 @@ export default {
       }
       return sz;
     },
+
     resetTaskPositions: function () {
       /* Recalculates the position of the task and rerenders it */
 
       this.initPosition = this.convertToRelative(this.task.creationDate);
       this.endPosition = this.convertToRelative(this.task.dueDate);
       this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
+
+      if (this.task.icon)
+        this.taskIcon = "fa fa-" + this.task.icon + " fa-xs";
 
       if (this.isDebug) {
         console.log("--- resetTaskPositions ------------------- ");
@@ -163,15 +196,16 @@ export default {
         console.log(this.task.title + " WIDTH = " + this.width);
       }
     },
+
     selectedTimeline: function (task) {
       // We invalidate the current view in case some other timeline item is being selected
       if (!this.showResizes || this.task.id == task.id) return;
 
       this.handleResizeClose();
     },
+
     handleResizeOpen: function () {
       this.showResizes = true;
-      this.dragStarted = false;
       this.dragging = true;
       this.state = "info";
 
@@ -193,6 +227,7 @@ export default {
       eventBus.emit("selected-timeline-item", this.task);
       eventBus.emit("taskdatapanel", this.task);
     },
+
     handleResizeClose: function () {
       window.removeEventListener("keyup", this.handleKeyUp);
 
@@ -204,39 +239,41 @@ export default {
     },
 
     clearHandlers: function (e) {
-      window.removeEventListener("pointermove", this.handleResizeRight);
-      window.removeEventListener("pointermove", this.handleResizeLeft);
-      window.removeEventListener("pointermove", this.handleResizeTask);
+      window.removeEventListener("pointermove", this.handleResizeFunction);
     },
 
     handleDragStartTask: function (e) {
       if (!this.showResizes) this.handleResizeOpen(e);
 
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeTask);
+      this.handleDragStart(e, this.handleResizeTask.bind(this));
     },
 
     handleDragStartLeft: function (e) {
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeLeft);
+      this.handleDragStart(e, this.handleResizeLeft.bind(this));
     },
 
     handleDragStartRight: function (e) {
-      this.handleDragStart(e);
-      window.addEventListener("pointermove", this.handleResizeRight);
+      this.handleDragStart(e, this.handleResizeRight.bind(this));
     },
 
-    handleDragStart: function (e) {
+    handleDragStart: function (e, callback) {
+      this.clearHandlers();
+
       e.currentTarget.setPointerCapture(e.pointerId);
+      window.addEventListener("pointermove", callback);
+      this.handleResizeFunction = callback;
 
       e.preventDefault();
       e.stopPropagation();
 
-      this.clearHandlers();
-
-      this.dragStarted = true;
+      this.dragging = true;
       this.dragClientX = e.clientX;
       this.dragClientY = e.clientY;
+
+      // We use the following to clamp the dates to start and end of a different task.
+      // We might get adjusted by an external task
+      this.newStartDate = null;
+      this.newEndDate = null;
 
       this.drag = {
         begin: this.initPosition,
@@ -247,16 +284,15 @@ export default {
       this.state = "info";
       window.addEventListener("keyup", this.handleKeyUp);
     },
+
     restoreLastPosition: function (e) {},
 
     cancelDropCheck: function () {
-      this.isPositionValid();
+      this.calculateConflictTask();
 
-      if (this.isValidDrop)
-        return;
+      if (this.isValidDrop) return;
 
-      if (this.drag == null)
-        return;
+      if (this.drag == null) return;
 
       console.log(this.isValidDrop + " ************* INVALIDATE DROP ******************");
 
@@ -276,6 +312,7 @@ export default {
         this.handleResizeClose();
       }
     },
+
     isRowValid: function (newRow) {
       // I don't have brain right now to figure out why it is -1 :(
       // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
@@ -285,7 +322,8 @@ export default {
 
       return true;
     },
-    isPositionValid: function (newRow) {
+
+    calculateConflictTask: function () {
       let task = {
         id: this.task.id,
         creationDate: this.convertCellToDate(this.initPosition),
@@ -293,17 +331,20 @@ export default {
         row: Math.round(this.topPosition),
       };
 
-      if (this.findConflicts(task)) {
+      let conflict = this.findConflicts(task);
+      if (conflict != null) {
         this.state = "dark";
         this.isValidDrop = false;
       } else {
         this.state = "info";
         this.isValidDrop = true;
       }
-      return this.isValidDrop;
+
+      return conflict;
     },
+
     handleResizeTask: function (e) {
-      if (!this.dragStarted) return;
+      if (!this.dragging) return;
 
       const cellsToMove = (this.dragClientX - e.clientX) / this.cellSize;
       const rowToMove = (this.dragClientY - e.clientY) / this.cellHeight;
@@ -320,16 +361,14 @@ export default {
         this.topPosition -= rowToMove;
       }
 
-      if (this.isPositionValid()) {
-        //console.log(" IS VALID ");
-      }
+      this.calculateConflictTask();
 
       this.width = this.endPosition - this.initPosition;
     },
-    handlePriorityAndGroup: function (rowToMove) {},
+
     handleResizeLeft: function (e) {
       const { layerX, clientX } = e;
-      if (!clientX || !this.dragStarted) return;
+      if (!clientX || !this.dragging) return;
 
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
@@ -337,45 +376,70 @@ export default {
       if (resize == 0) return;
 
       // We don't want to make it too small that you cannot grab it.
-      if (this.endPosition - resize - 0.1 < this.initPosition) {
+      if (this.endPosition - resize < this.initPosition) {
         console.log(" End cannot be bigger than Start");
         return;
       }
 
-      // We keep our drag in the center, otherwise we will lose the event
-      if (!this.isPositionValid()) {
+      // We find a task that has a conflict with this one and we adjust the start to be 1 second before it ends.
+      // We adjust our current position so we don't wait until next frame to hit the task
+      let old_pos = this.initPosition;
+      this.initPosition += resize;
+
+      let conflict = this.calculateConflictTask();
+      if (conflict) {
+        const s = this.getConfig("TASK_MIN_SEPARATION_S", 1);
+        this.newStartDate = conflict.end + s;
+
+        // We cancel the invalidation of the task, otherwise it will go back to the original position
         this.isValidDrop = true;
-        resize = 0.1;
+        this.initPosition = old_pos; // Reset the position to before the conflict
+      } else {
+        // We don't have a conflict reset any clamp if there is any.
+        this.newStartDate = null;
       }
 
-      this.initPosition += resize;
       this.width = this.endPosition - this.initPosition;
-
       this.updateDataPanel();
     },
+
     handleResizeRight: function (e) {
       const { layerX, clientX } = e;
-      if (!clientX || !this.dragStarted) return;
+      if (!clientX || !this.dragging) return;
 
       let resize = (clientX - this.dragClientX) / this.cellSize;
       this.dragClientX = clientX;
 
       if (resize == 0) return;
 
-      if (!this.isPositionValid()) {
-        //debugger;
-        this.isValidDrop = true;
-        resize = -0.1;
+      // We don't want to make it too small that you cannot grab it.
+      if (this.endPosition + resize <= this.initPosition) {
+        console.log(" End cannot be bigger than Start");
+        return;
       }
 
-      if (this.width + resize >= 0.1) {
-        this.endPosition += resize;
-        this.width = this.endPosition - this.initPosition;
+      // We find a task that has a conflict with this one and we adjust the end to be 1 second before it starts.
+      let old_pos = this.endPosition;
+      this.endPosition += resize;
+
+      let conflict = this.calculateConflictTask();
+      if (conflict) {
+        const s = this.getConfig("TASK_MIN_SEPARATION_S", 1);
+        this.newEndDate = conflict.start - s;
+
+        // We cancel the invalidation of the task, otherwise it will go back to the original position
+        this.isValidDrop = true;
+        this.endPosition = old_pos; // Restore position, we failed to move
+      } else {
+        this.newEndDate = null;
       }
+
+      this.width = this.endPosition - this.initPosition;
 
       //console.log(this.initPosition + " END " + this.endPosition + " => " + this.width);
       this.updateDataPanel();
     },
+
     convertCellToDate: function (interval) {
       // Converts the number of cells into a position in the calendar
       // We append the position to the start of the first cell of the calendar
@@ -383,19 +447,32 @@ export default {
       let relative = interval * this.cellDays;
       return addDays(this.calendarInit, relative);
     },
+
     getMinDay: function () {
       if (this.cellDays > 1) return 0.5;
 
       return this.cellDays / 5;
     },
-    updateDataPanel: function () {
-      let initDay = this.convertCellToDate(this.initPosition);
-      let endDay = this.convertCellToDate(this.endPosition);
 
-      let d = getDiffDays(initDay, endDay);
-      if (d < this.getMinDay()) {
-        endDay = addDays(endDay, this.getMinDay());
-      }
+    updateDataPanel: function () {
+      /*
+        Updates the data panel, we also create the final task so we can send it over to update the timeline.
+        Might not be the best architectural decision on this application.
+
+        Check if we have to adjust either to a date or to an position relative to the cellsize.
+        Giving that our cellsizes might be only be a few pixels for many days, we have to be able to adjust
+        to the previous task.
+
+        Here we check if we have to replace our screen coordinates to a real position in time.
+      */
+
+      let initDay = this.newStartDate
+        ? this.newStartDate
+        : this.convertCellToDate(this.initPosition);
+
+      let endDay = this.newEndDate
+        ? this.newEndDate
+        : this.convertCellToDate(this.endPosition);
 
       if (this.isDebug) {
         console.log(" START " + new Date(initDay * 1000));
@@ -410,10 +487,10 @@ export default {
         row: this.topPosition,
       };
 
-      if (this.dragStarted) eventBus.emit("taskdatapanel", task);
-
+      if (this.dragging) eventBus.emit("taskdatapanel", task);
       return task;
     },
+
     handleUpdateDate: function () {
       this.clearHandlers();
       this.cancelDropCheck();
@@ -428,8 +505,9 @@ export default {
         console.log(" CRASH " + error);
       }
 
-      this.dragStarted = false;
+      this.dragging = false;
     },
+
     invalidate: function () {
       if (this.isDebug) console.log("Invalidate task " + this.task.title);
 
@@ -457,6 +535,27 @@ export default {
 };
 </script>
 
+<style scoped>
+.task__icon {
+  display: flex;
+  position: absolute;
+  right: 0px;
+  width: v-bind(iconWidth);
+  z-index: 4001 !important;
+  padding: 0rem 0.2rem;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  height: 85%;
+  background: rgba(205, 206, 255, 1);
+  color: black;
+  border-radius: 0px v-bind(borderWidth) v-bind(borderWidth) 0px;
+}
+</style>
+
 <style>
 .task {
   position: absolute;
@@ -474,7 +573,6 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
-  align-items: center;
 }
 
 .task__content {
@@ -488,8 +586,8 @@ export default {
   overflow: hidden;
   height: 85%;
   background-color: tomato;
-  border-radius: 2px;
-  width: 100%;
+  border-radius: v-bind(borderWidth) 0px 0px v-bind(borderWidth);
+  width: calc(100% - v-bind(iconWidth));
 }
 
 .task__content::after {
@@ -515,13 +613,14 @@ export default {
   margin: 3px 0;
   top: -4px;
   height: 110%;
-  width: 18px;
+  width: 12px;
   display: flex;
   align-items: center;
   z-index: 10;
   cursor: ew-resize;
   background-color: rgba(160, 160, 160, 0.7);
   border-radius: 1px;
+  z-index: 10001 !important;
 }
 
 .task__resize:hover {
@@ -557,7 +656,6 @@ export default {
 
 .task__state--info {
   background-color: #3c8dbc;
-  z-index: 4000;
 }
 
 .task__state--success {
@@ -585,8 +683,10 @@ export default {
 .task {
   cursor: grab;
 }
+
 .task.dragging {
   user-select: none;
   cursor: grabbing;
+  z-index: 4000 !important;
 }
 </style>

@@ -3,6 +3,11 @@ import App from "./App.vue";
 
 import store from './store/store';
 
+import "./assets/fontawesome/css/all.css"
+
+import "bootstrap/dist/css/bootstrap.min.css"
+import "bootstrap"
+
 const app = createApp(App);
 
 app.config.unwrapInjectedRef = true;
