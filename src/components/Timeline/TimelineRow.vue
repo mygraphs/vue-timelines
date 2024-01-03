@@ -7,22 +7,28 @@
     </div>
 
     <template v-for="(_, index) in new Array(totalCells)" :key="index">
-      <div class="cal__cell"></div>
+      <div class="cal__cell" @dblclick="handleCellClicked"></div>
     </template>
 
     <slot />
     <button class="cal__button" @click="handleAddRow">+</button>
     <button class="cal__button-bottom" @click="handleRemoveRow">-</button>
-
   </div>
 </template>
 
 <script>
+import eventBus from '../eventBus.js';
+
 import { computed } from "vue";
 
 import { mapState, mapMutations, mapGetters } from "vuex";
-
-import { cellHeightInPx, cellHeight, cellSizeInPx } from "@/contexts/CellSizeContext";
+import { addDays, convertToDay } from "@/utils/date";
+import {
+  cellHeightInPx,
+  cellHeight,
+  cellSizeInPx,
+  cellSize,
+} from "@/contexts/CellSizeContext";
 
 export default {
   name: "TimelineRow",
@@ -30,6 +36,7 @@ export default {
     cellHeightInPx,
     cellHeight,
     cellSizeInPx,
+    cellSize,
     increaseRow: { from: "increaseRow" },
     decreaseRow: { from: "decreaseRow" },
   },
@@ -55,9 +62,47 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    handleCellClicked: function (e) {
+      const clickX = e.clientX;
+      const clickY = e.clientY;
+
+      // Get the position of the parent element
+      const parentRect = e.target.parentElement.getBoundingClientRect();
+
+      // Calculate the position relative to the parent
+      const relativeX = clickX - parentRect.left;
+      const relativeY = clickY - parentRect.top;
+
+      // Our days is the current X position divided by the cellSize and the number of days per cell.
+      // We are a real number since we are really time in seconds.
+      const relative_days = (relativeX / this.cellSize) * this.cellDays;
+
+      // Current ROW relative to the group
+      const priority = Math.ceil(e.offsetY / this.cellHeight);
+
+      // We append the start of this calendar to the relative position
+      const clicked_day = addDays(this.calendarInit, relative_days);
+
+      //console.log("CLICKED CELL " + relative_days + "," + priority);
+
+      // The clicked day will become a javascript Date for easier displaying.
+      const myStartDate = convertToDay(clicked_day).toDate();
+      console.log("DAY CLICKED " + myStartDate);
+
+      let new_task = {
+        id: "NEW_TASK",
+        title: "TASK TITLE",
+        is_new: true,
+        group_id: this.group.id,
+        creationDate: clicked_day,
+        dueDate: addDays(clicked_day, this.cellDays),
+        priority: priority,
+        progress: 0,
+      };
+      eventBus.emit("taskdatapanel", new_task);
+    },
     handleRemoveRow: function () {
-      if (this.rows == 1)
-        return;
+      if (this.rows == 1) return;
 
       this.rows -= 1;
       this.setListRowHeight();

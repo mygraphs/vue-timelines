@@ -31,6 +31,10 @@ export const lastDayMonth = (timestamp) => {
     .unix();
 };
 
+export const convertToDay = (timestamp) => {
+  return dayjs(timestamp * 1000)
+};
+
 export const getWeekNumber = (d) => {
   /* For a given date, get the ISO week number
    *
