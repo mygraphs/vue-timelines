@@ -1,55 +1,90 @@
 <template>
   <div v-if="groupName !== null" class="task__panel">
-    <h2 class="task__title">{{ title }}</h2>
+    <TextEdit :edit="isEdit" :defaultText="title" field="title">Test</TextEdit>
     <div>
-      <div>START: <b>{{ creationDate }}</b></div>
-      <div>&nbsp;&nbsp;&nbsp;END: <b>{{ dueDate }}</b></div>
-
+      <div>
+        START: <b>{{ creationDate }}</b>
+      </div>
+      <div>
+        &nbsp;&nbsp;&nbsp;END: <b>{{ dueDate }}</b>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import dayjs from 'dayjs';
-import * as localizedFormat from 'dayjs/plugin/localizedFormat';
+import dayjs from "dayjs";
+import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
-import eventBus from '../eventBus.js';
+import eventBus from "../eventBus.js";
+import { TextEdit } from "../TextEdit/index.js";
 
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
 
 export default {
   name: "TaskDataPanel",
-  inject: {
+  components: {
+    TextEdit,
   },
+  inject: {},
   methods: {
-    handleTask: function (task) {
-      this.groupName = task.groupName;
-      this.title = task.title;
-      this.state = task.state;
-
-      this.creationDate = dayjs(new Date(task.creationDate * 1000)).format('LLL');
-      this.dueDate = dayjs(new Date(task.dueDate * 1000)).format('LLL');
+    handleUpdateText: function (element, text) {
+      console.log(" TEXT CHANGED " + text);
     },
-    invalidate: function() {
-      console.log("Invalidate")
+    handleTaskEditCancel: function (task) {
+      console.log(" CANCEL TASK EDIT ");
+      this.isEdit = false;
+    },
+    handleTaskEdit: function (task) {
+      console.log(" SET EDIT " + task.title);
+      this.handleTask(task);
+      this.isEdit = true;
+    },
+    handleTask: function (task) {
+      this.isEdit = false;
+      this.title = task.title;
+      this.groupName = task.groupName;
+
+      this.creationDate = task.creationDate;
+      this.creationDateText = dayjs(new Date(task.creationDate * 1000)).format("LLL");
+
+      this.dueDate = task.dueDate;
+      this.dueDateText = dayjs(new Date(task.dueDate * 1000)).format("LLL");
+    },
+    invalidate: function () {
+      console.log("Invalidate");
     },
   },
   mounted() {
     this.invalidate();
-    eventBus.on('taskdatapanel', this.handleTask);
+    eventBus.on("taskdatapanel", this.handleTask);
+    eventBus.on("taskdatapanel-edit", this.handleTaskEdit);
+    eventBus.on("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
   },
   beforeUnmount() {
-    document.removeEventListener("click", this.documentEventListener);
-    eventBus.off('taskdatapanel', this.handleTask);
+    eventBus.off("taskdatapanel", this.handleTask);
+    eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
+    eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
+  },
+  provide: function () {
+    return {
+      handleUpdateText: this.handleUpdateText,
+    };
   },
   data() {
     return {
+      isEdit: false,
       title: null,
       groupName: null,
       state: null,
+
       creationDate: null,
       dueDate: null,
+
+      creationDateText: "",
+      dueDateText: "",
+
       progress: null,
     };
   },
@@ -68,5 +103,4 @@ export default {
   font-weight: 500;
   margin: 1rem 0;
 }
-
 </style>

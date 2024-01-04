@@ -2,6 +2,7 @@
   <div
     class="task"
     @click="handleResizeOpen"
+    @dblclick="handleEditOpen"
     @pointerdown.left="handleDragStartTask"
     @pointerup="handleUpdateDate"
     @pointercancel="handleUpdateDate"
@@ -178,8 +179,7 @@ export default {
       this.endPosition = this.convertToRelative(this.task.dueDate);
       this.width = this.convertToRelative(this.task.creationDate, this.task.dueDate);
 
-      if (this.task.icon)
-        this.taskIcon = "fa fa-" + this.task.icon + " fa-xs";
+      if (this.task.icon) this.taskIcon = "fa fa-" + this.task.icon + " fa-xs";
 
       if (this.isDebug) {
         console.log("--- resetTaskPositions ------------------- ");
@@ -200,6 +200,10 @@ export default {
       if (!this.showResizes || this.task.id == task.id) return;
 
       this.handleResizeClose();
+    },
+
+    handleEditOpen: function () {
+      eventBus.emit("taskdatapanel-edit", this.task);
     },
 
     handleResizeOpen: function () {
@@ -227,6 +231,8 @@ export default {
     },
 
     handleResizeClose: function () {
+      eventBus.emit("taskdatapanel-edit-cancel", this.task);
+
       window.removeEventListener("keyup", this.handleKeyUp);
 
       this.cancelDropCheck();

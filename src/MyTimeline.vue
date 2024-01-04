@@ -33,8 +33,8 @@
                 </small>
               </template>
               <template v-slot:taskInfo>
-                <span class='task_icon_font'>
-                   {{ Math.round(task.progress * 100) }}%
+                <span class="task_icon_font">
+                  {{ Math.round(task.progress * 100) }}%
                 </span>
               </template>
             </TimelineItem>
@@ -153,7 +153,16 @@ export default {
       return task;
     },
     updateTask: function (taskData) {
-      this.tasksDict[taskData.id] = this.updateGroup(taskData);
+      console.log(" updateTask ");
+
+      if (taskData.interal_state == "NEW") {
+        taskData.interal_state = "TEMPORAL";
+
+        this.tasksDict[taskData.id] = taskData;
+      } else {
+        this.tasksDict[taskData.id] = this.updateGroup(taskData);
+      }
+
       this.emitBubbleTask(taskData);
       this.buildSearchCache();
     },
@@ -366,7 +375,7 @@ export default {
   align-items: center;
   justify-content: center;
   height: 100%;
-  font-size: 0.6em
+  font-size: 0.6em;
 }
 </style>
 <style>

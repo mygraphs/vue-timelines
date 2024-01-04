@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import eventBus from '../eventBus.js';
+import eventBus from "../eventBus.js";
 
 import { computed } from "vue";
 
@@ -39,6 +39,7 @@ export default {
     cellSize,
     increaseRow: { from: "increaseRow" },
     decreaseRow: { from: "decreaseRow" },
+    updateTask: { from: "updateTask" },
   },
   props: {
     group: {
@@ -87,20 +88,25 @@ export default {
 
       // The clicked day will become a javascript Date for easier displaying.
       const myStartDate = convertToDay(clicked_day).toDate();
-      console.log("DAY CLICKED " + myStartDate);
+      console.log("DAY CLICKED !" + myStartDate);
 
       let new_task = {
-        id: "NEW_TASK",
+        id: "NEW_TASK__" + Math.round(clicked_day),
         title: "TASK TITLE",
-        is_new: true,
+        row: priority + this.group.timeline_row - 1,
         group_id: this.group.id,
         creationDate: clicked_day,
         dueDate: addDays(clicked_day, this.cellDays),
         priority: priority,
         progress: 0,
+        interal_state: "NEW",
+        // The task will follow a path of modification
+        // The user can delete at any point without saving it.
       };
       eventBus.emit("taskdatapanel", new_task);
+      this.updateTask(new_task);
     },
+
     handleRemoveRow: function () {
       if (this.rows == 1) return;
 
