@@ -26,6 +26,16 @@ npm install vue-timelines --save
 </script>
 ```
 
+## 🔧 Requirements
+
+Needed node 18.12 for vue3datepicker
+
+You can update your node version using nvm and make it persistent like this:
+```
+nvm install 18.12
+nvm alias default 18.12
+```
+
 ## 🔧 Usage
 
 ```html

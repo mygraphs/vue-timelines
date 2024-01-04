@@ -18,16 +18,17 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
-    "build:demo": "vue-cli-service build --mode prod && rm mygraphs.github.io/* -rf && cp dist/* mygraphs.github.io -r" ,
+    "build:demo": "vue-cli-service build --mode prod && rm mygraphs.github.io/* -rf && cp dist/* mygraphs.github.io -r",
     "build": "rimraf dist & cross-env NODE_ENV=production & npm run build:unpkg & npm run build:es & npm run build:umd",
     "build:umd": "rollup --config rollup.config.js --format umd --file dist/vue-timelines.umd.js",
     "build:es": "rollup --config rollup.config.js --format es --file dist/vue-timelines.esm.js",
     "build:unpkg": "rollup --config rollup.config.js --format iife --file dist/vue-timelines.min.js"
   },
   "peerDependencies": {
-    "vue": ">= 3.0.0"
+    "vue": ">= 3.3.0"
   },
   "dependencies": {
+    "@vuepic/vue-datepicker": "^5.0.0",
     "bootstrap": "^5.3.2",
     "core-js": "^3.6.5",
     "dayjs": "^1.11.10",
@@ -51,7 +52,7 @@
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-vue": "^6.0.0",
-    "vue": "^3.0.0"
+    "vue": "^3.3.0"
   },
   "keywords": [
     "vuecomponent",
