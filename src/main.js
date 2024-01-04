@@ -6,8 +6,10 @@ import store from './store/store';
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
 
+import { VueDatePicker } from '@vuepic/vue-datepicker';
+
 const app = createApp(App);
 
-app.config.unwrapInjectedRef = true;
 app.use(store);
+app.component('VueDatePicker', VueDatePicker);
 app.mount("#app");
