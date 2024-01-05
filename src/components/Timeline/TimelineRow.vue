@@ -65,14 +65,14 @@ export default {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
     handleCellClicked: function (e) {
       const clickX = e.clientX;
-      const clickY = e.clientY;
+      //const clickY = e.clientY;
 
       // Get the position of the parent element
       const parentRect = e.target.parentElement.getBoundingClientRect();
 
       // Calculate the position relative to the parent
       const relativeX = clickX - parentRect.left;
-      const relativeY = clickY - parentRect.top;
+      //const relativeY = clickY - parentRect.top;
 
       // Our days is the current X position divided by the cellSize and the number of days per cell.
       // We are a real number since we are really time in seconds.

@@ -36,6 +36,13 @@ nvm install 18.12
 nvm alias default 18.12
 ```
 
+Update packages
+```
+npm i -g npm-check-updates
+ncu -u
+npm install
+```
+
 ## 🔧 Usage
 
 ```html
