@@ -11,7 +11,7 @@ const projectRootDir = path.resolve(__dirname);
 
 export default {
   input: "src/index.js",
-  external: ["vue", "dayjs"],
+  external: ["vue", "dayjs", "@vuepic/vue-datepicker"],
   output: {
     name: "MyTimeline",
     exports: "named",

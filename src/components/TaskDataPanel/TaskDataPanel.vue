@@ -4,11 +4,15 @@
       <TextEdit :edit="isEdit" :defaultText="title" field="title">Test</TextEdit>
       <div>
         <div>
-          <VueDatePicker v-model="date" />
-          START: <b>{{ creationDateText }}</b>
+          <b>START:</b>
+          <VueDatePicker
+            :model-value="compStartDate"
+            @update:model-value="setStartDate"
+          />
         </div>
         <div>
-          &nbsp;&nbsp;&nbsp;END: <b>{{ dueDateText }}</b>
+          <b>END:</b>
+          <VueDatePicker :model-value="compEndDate" @update:model-value="setEndtDate" />
         </div>
       </div>
     </div>
@@ -22,7 +26,8 @@ import * as localizedFormat from "dayjs/plugin/localizedFormat";
 import eventBus from "../eventBus.js";
 
 import { TextEdit } from "@/components";
-import { VueDatePicker } from "@vuepic/vue-datepicker";
+
+import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
 dayjs.extend(localizedFormat);
@@ -36,6 +41,12 @@ export default {
   },
   inject: {},
   methods: {
+    setStartDate: function (startDate) {
+      console.log(" START DATE CHANGED " + startDate);
+    },
+    setEndDate: function (endDate) {
+      console.log(" End DATE CHANGED " + endDate);
+    },
     handleUpdateText: function (element, text) {
       console.log(" TEXT CHANGED " + text);
     },
@@ -54,10 +65,7 @@ export default {
       this.groupName = task.groupName;
 
       this.creationDate = task.creationDate;
-      this.creationDateText = dayjs(new Date(task.creationDate * 1000)).format("LLL");
-
       this.dueDate = task.dueDate;
-      this.dueDateText = dayjs(new Date(task.dueDate * 1000)).format("LLL");
     },
     invalidate: function () {
       console.log("Invalidate");
@@ -74,6 +82,20 @@ export default {
     eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
     eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
   },
+  computed: {
+    creationDateText() {
+      return dayjs(new Date(this.creationDate * 1000)).format("LLL");
+    },
+    dueDateText() {
+      return dayjs(new Date(this.dueDate * 1000)).format("LLL");
+    },
+    compStartDate() {
+      return new Date(this.creationDate * 1000);
+    },
+    compEndDate() {
+      return new Date(this.dueDate * 1000);
+    },
+  },
   provide: function () {
     return {
       handleUpdateText: this.handleUpdateText,
@@ -88,10 +110,6 @@ export default {
 
       creationDate: null,
       dueDate: null,
-
-      creationDateText: "",
-      dueDateText: "",
-
       progress: null,
     };
   },
