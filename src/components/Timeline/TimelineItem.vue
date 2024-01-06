@@ -231,8 +231,6 @@ export default {
     },
 
     handleResizeClose: function () {
-      eventBus.emit("taskdatapanel-edit-cancel", this.task);
-
       window.removeEventListener("keyup", this.handleKeyUp);
 
       this.cancelDropCheck();
@@ -522,9 +520,14 @@ export default {
     calendarInit: function () {
       this.invalidate();
     },
-    creationDate: function () {
+    calendarEnd: function () {
       this.invalidate();
     },
+    // We invalidate the view when the task changes
+    // We have to recalculate everything, positions and progress, etc.
+    task: function() {
+      this.invalidate();
+    }
   },
   mounted() {
     this.invalidate();
