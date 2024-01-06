@@ -144,7 +144,7 @@ export default {
     };
   },
   watch: {
-    cellHeight: function() {
+    cellHeight: function () {
       this.setListRowHeight();
     },
   },
@@ -202,6 +202,8 @@ export default {
   right: 0;
   z-index: 10;
   font-size: 0.7rem;
+
+  border-color: #f8f9fc;
 }
 
 .cal__button-bottom {
@@ -210,6 +212,9 @@ export default {
   height: 20px;
   z-index: 10;
   font-size: 0.7rem;
+
+  margin-left: 3px;
+  border-color: #f8f9fc;
 }
 
 .cal__cell {
@@ -220,5 +225,6 @@ export default {
   border-bottom: 1px solid rgba(212, 222, 230, 0.7);
   height: 100%;
   position: relative;
+  background-color: #fff;
 }
 </style>

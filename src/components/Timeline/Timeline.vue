@@ -9,11 +9,16 @@
 </template>
 
 <script>
-import eventBus from '../eventBus.js';
+import eventBus from "../eventBus.js";
 import { mapState, mapMutations, mapGetters } from "vuex";
 
 import { Calendar } from "../Calendar";
-import { minSize, cellSize, setCellSizePx, resetCellSize } from "@/contexts/CellSizeContext";
+import {
+  minSize,
+  cellSize,
+  setCellSizePx,
+  resetCellSize,
+} from "@/contexts/CellSizeContext";
 
 export default {
   name: "Timeline",
@@ -35,33 +40,33 @@ export default {
       // Check if we can meet the minimum size in case of having to downsize
       let MIN_SIZE_PX = this.minSize;
       if (this.totalCells * this.cellSize > width) {
-          if (this.totalCells * MIN_SIZE_PX > width) {
-            // We cannot fit on the size minimum size
-            //console.log('Cannot fit into ', width);
-            this.resetCellSize();
-            return;
-          }
+        if (this.totalCells * MIN_SIZE_PX > width) {
+          // We cannot fit on the size minimum size
+          //console.log('Cannot fit into ', width);
+          this.resetCellSize();
+          return;
+        }
       }
 
       // Round up one so we leave an empty space on the right.
       // We should think about what to do with the empty space.
       let new_size = Math.ceil(width / (this.totalCells + 1)) | 0;
-      console.log('Resize to fit:' + width + " Size " + new_size);
+      console.log("Resize to fit:" + width + " Size " + new_size);
       this.setCellSizePx(new_size);
     },
     triggerResizeManually() {
       const width = this.$refs.timeline.clientWidth;
       this.handleResize(width);
-      eventBus.emit('invalidate-timeline-items');
+      eventBus.emit("invalidate-timeline-items");
     },
     invalidate() {
-        this.triggerResizeManually();
-    }
+      this.triggerResizeManually();
+    },
   },
   mounted() {
     const observedElement = this.$refs.timeline;
 
-    const resizeObserver = new ResizeObserver(entries => {
+    const resizeObserver = new ResizeObserver((entries) => {
       for (let entry of entries) {
         const { width } = entry.contentRect;
         // Call your callback function here with the new width
@@ -75,10 +80,10 @@ export default {
       this.calendarScrollToday();
     });
 
-    eventBus.on('timeline-invalidate', this.triggerResizeManually);
+    eventBus.on("timeline-invalidate", this.triggerResizeManually);
   },
   beforeUnmount() {
-    eventBus.off('timeline-invalidate', this.triggerResizeManually);
+    eventBus.off("timeline-invalidate", this.triggerResizeManually);
   },
   components: {
     Calendar,
@@ -88,6 +93,7 @@ export default {
 
 <style>
 .timeline {
+  background-color: #f8f9fc;
   overflow-x: scroll;
   width: 100%;
   overflow-y: hidden;
