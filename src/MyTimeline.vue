@@ -153,11 +153,9 @@ export default {
       return task;
     },
     updateTask: function (taskData) {
-      console.log(" updateTask ");
-
+      //console.log(" updateTask " + taskData.title);
       if (taskData.interal_state == "NEW") {
         taskData.interal_state = "TEMPORAL";
-
         this.tasksDict[taskData.id] = taskData;
       } else {
         this.tasksDict[taskData.id] = this.updateGroup(taskData);

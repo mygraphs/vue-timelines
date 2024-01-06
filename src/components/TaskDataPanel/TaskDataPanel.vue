@@ -1,14 +1,38 @@
 <template>
-  <div v-if="groupName !== null" class="task__panel">
+  <div v-if="groupId !== null" class="task__panel">
     <div>
-      <TextEdit :edit="isEdit" :defaultText="title" field="title">Test</TextEdit>
+      <TextEdit
+        :edit="isEdit"
+        :defaultText="title"
+        v-model:newValue="title"
+        field="title"
+      >
+        <template v-slot:textFormat>
+          <h2>{{ title }}</h2>
+        </template>
+        <template v-slot:inputFormat> </template>
+      </TextEdit>
       <div>
         <div>
-          <VueDatePicker v-model="date" />
-          START: <b>{{ creationDateText }}</b>
+          <b>START:</b>
+          <div v-if="isEdit">
+            <VueDatePicker
+              :model-value="compStartDate"
+              @update:model-value="setStartDate"
+            />
+          </div>
+          <div v-else>
+            {{ creationDateText }}
+          </div>
         </div>
         <div>
-          &nbsp;&nbsp;&nbsp;END: <b>{{ dueDateText }}</b>
+          <b>END:</b>
+          <div v-if="isEdit">
+            <VueDatePicker :model-value="compEndDate" @update:model-value="setEndDate" />
+          </div>
+          <div v-else>
+            {{ dueDateText }}
+          </div>
         </div>
       </div>
     </div>
@@ -20,9 +44,11 @@ import dayjs from "dayjs";
 import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
+import { nextTick } from "vue";
 
 import { TextEdit } from "@/components";
-import { VueDatePicker } from "@vuepic/vue-datepicker";
+
+import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
 dayjs.extend(localizedFormat);
@@ -34,8 +60,18 @@ export default {
     TextEdit,
     VueDatePicker,
   },
-  inject: {},
+  inject: {
+    updateTask: { from: "updateTask" },
+  },
   methods: {
+    setStartDate: function (startDate) {
+      console.log(" START DATE CHANGED " + startDate);
+      this.creationDate = startDate / 1000;
+    },
+    setEndDate: function (endDate) {
+      console.log(" End DATE CHANGED " + endDate);
+      this.dueDate = endDate / 1000;
+    },
     handleUpdateText: function (element, text) {
       console.log(" TEXT CHANGED " + text);
     },
@@ -45,19 +81,41 @@ export default {
     },
     handleTaskEdit: function (task) {
       console.log(" SET EDIT " + task.title);
+      if (this.isEdit) this.isEdit = false;
+
       this.handleTask(task);
-      this.isEdit = true;
+
+      nextTick(() => {
+        this.isEdit = true;
+      });
     },
     handleTask: function (task) {
-      this.isEdit = false;
+      this.sourceTask = task;
+
       this.title = task.title;
-      this.groupName = task.groupName;
-
+      this.groupId = task.group_id;
       this.creationDate = task.creationDate;
-      this.creationDateText = dayjs(new Date(task.creationDate * 1000)).format("LLL");
-
       this.dueDate = task.dueDate;
-      this.dueDateText = dayjs(new Date(task.dueDate * 1000)).format("LLL");
+      this.progress = task.progress;
+      this.state = task.state;
+    },
+    commitTask: function () {
+      console.log("============ COMMIT TASK " + this.title + "====================");
+      let task = {
+        ...this.sourceTask,
+        title: this.title,
+        creationDate: this.creationDate,
+        dueDate: this.dueDate,
+        progress: this.progress,
+        state: this.state,
+      }
+
+      try {
+        this.updateTask(task);
+      } catch (error) {
+        console.log(" CRASH " + error);
+        debugger;
+      }
     },
     invalidate: function () {
       console.log("Invalidate");
@@ -74,25 +132,52 @@ export default {
     eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
     eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
   },
+  computed: {
+    creationDateText() {
+      return dayjs(new Date(this.creationDate * 1000)).format("LLL");
+    },
+    dueDateText() {
+      return dayjs(new Date(this.dueDate * 1000)).format("LLL");
+    },
+    compStartDate() {
+      return new Date(this.creationDate * 1000);
+    },
+    compEndDate() {
+      return new Date(this.dueDate * 1000);
+    },
+  },
+  watch: {
+    title(newTitle) {
+      console.log(" PROPAGATE TITLE CHANGE TO " + newTitle);
+      if (this.sourceTask.title != newTitle)
+        this.commitTask();
+    },
+    creationDate(newDate) {
+      console.log(" PROPAGATE Start DATE ")
+      if (this.sourceTask.creationDate != newDate)
+        this.commitTask();
+    },
+    dueDate(newDate) {
+      console.log(" PROPAGATE End DATE ");
+      if (this.sourceTask.dueDate != newDate)
+        this.commitTask();
+    },
+  },
   provide: function () {
     return {
-      handleUpdateText: this.handleUpdateText,
     };
   },
   data() {
     return {
       isEdit: false,
       title: null,
-      groupName: null,
+      groupId: null,
       state: null,
 
       creationDate: null,
       dueDate: null,
-
-      creationDateText: "",
-      dueDateText: "",
-
       progress: null,
+      sourceTask: null,
     };
   },
 };

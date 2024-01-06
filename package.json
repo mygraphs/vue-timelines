@@ -73,9 +73,9 @@
       "parser": "babel-eslint"
     },
     "rules": {
-      "no-console": 1,
-      "no-debugger": 1,
-      "no-unused-vars": 1
+      "no-console": "off",
+      "no-debugger": "off",
+      "no-unused-vars": "off"
     }
   },
   "browserslist": [
