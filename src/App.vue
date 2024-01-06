@@ -168,7 +168,7 @@ export default {
       }
 
       this.tasks[task.id] = task;
-      console.log("***** UPDATED TASK " + task.title + " ***** " + task.group_id);
+      console.log("******* UPDATED TASK " + task.title + " *********8*** " + task.group_id);
       //this.listTasks();
     },
   },
@@ -179,7 +179,14 @@ export default {
 </script>
 
 <style>
+/* Overwrite styles here */
+
 * {
   box-sizing: border-box;
 }
+
+.task__content {
+/* background-color: rgba(0, 0, 255, 1); */
+}
+
 </style>

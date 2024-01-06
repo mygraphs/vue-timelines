@@ -1,7 +1,11 @@
 <template>
   <div>
     <!-- Display text or input based on editMode -->
-    <h2 v-if="!editMode" @click="enterEditMode">{{ text }}</h2>
+    <span v-if="!editMode" @click="enterEditMode">
+      <b
+        ><slot name="textFormat">{{ internalText }}</slot></b
+      >
+    </span>
     <input
       ref="editorElement"
       v-else
@@ -32,26 +36,28 @@ export default {
       type: String,
       required: true,
     },
-  },
-  inject: {
-    handleUpdateText: { from: "handleUpdateText" },
+    trimText: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   mounted() {
-    this.text = this.defaultText;
+    this.tempText = this.defaultText;
   },
   data() {
     return {
-      text: "Editable Text", // Initial text
-      tempText: "", // Temporary holder for text while editing
+      tempText: "Init", // Temporary holder for text while editing
       editMode: false, // Whether the text is in edit mode
     };
   },
   watch: {
     defaultText(newVal) {
-      this.text = newVal;
+      console.log("SET DEFAULT TEXT " + newVal);
+      this.tempText = newVal;
     },
     edit(newVal) {
-      console.log("SEND TO EDIT");
+      console.log("SEND TO EDIT " + newVal);
       if (newVal)
         this.enterEditMode();
       else
@@ -60,8 +66,11 @@ export default {
   },
   methods: {
     enterEditMode() {
+      console.log("ENTER EDIT MODE " + this.tempText);
       this.editMode = true;
-      this.tempText = this.text; // Set temporary text to current text when entering edit mode
+
+      // Set temporary text to current text when entering edit mode
+      this.tempText = this.defaultText;
 
       // We have to wait for next tick so the input exists to focus on it.
       nextTick(() => {
@@ -69,12 +78,18 @@ export default {
       });
     },
     saveText() {
-      this.text = this.tempText; // Update the text
+      console.log("SAVE TEXT [" + this.tempText + "]");
+
+      if (this.trimText)
+        this.tempText = this.tempText.trim();
+
+      this.$emit("update:newValue", this.tempText); // Update the text
       this.editMode = false; // Switch back to view mode
-      this.handleUpdateText(this, this.text);
     },
     cancelEdit() {
-      this.tempText = this.text;
+      console.log("CANCEL EDIT " + this.tempText);
+
+      this.tempText = this.defaultText;
       this.editMode = false; // Exit edit mode without saving changes
     },
   },
