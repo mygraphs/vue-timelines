@@ -1,6 +1,11 @@
 <template>
   <div class="parent-container">
     <TimelineHeader @scrollToday="calendarScrollToday" />
+
+    <div class="filler-container">
+      <TaskDataPanel ref="taskdata" />
+    </div>
+
     <div class="main-container" @scroll="handleScroll">
       <slot>
         <template v-if="groups">
@@ -43,10 +48,6 @@
         </template>
       </slot>
     </div>
-    <div class="filler-container">
-      <TaskDataPanel ref="taskdata" />
-    </div>
-
   </div>
 </template>
 
