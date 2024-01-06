@@ -143,6 +143,11 @@ export default {
       setRows: this.setRows,
     };
   },
+  watch: {
+    cellHeight: function() {
+      this.setListRowHeight();
+    },
+  },
   mounted() {
     console.log(this.group.name + " GROUP ROWS " + this.group.rows);
     this.$nextTick(() => {

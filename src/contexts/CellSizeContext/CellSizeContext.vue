@@ -13,7 +13,7 @@ export default {
       cellSize: 25,
       minSize: 20,
       headerHeight: 75,
-      cellHeight: 60,
+      cellHeight: 30,
     };
   },
   methods: {
