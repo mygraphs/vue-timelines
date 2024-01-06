@@ -16,19 +16,27 @@
         <button class="header__button" @click="resetCellSize">Reset</button>
       </div>
 
+      <div class="header__zoom-buttons">
+        <span>Height</span>
+        <button class="header__button" @click="reduceCellHeight">-</button>
+        <button class="header__button" @click="increaseCellHeight">+</button>
+      </div>
+
       <button class="header__button" @click="handleScrollToday">Today</button>
     </div>
   </div>
 </template>
 
 <script>
-import eventBus from '../eventBus.js';
+import eventBus from "../eventBus.js";
 
 import { mapMutations } from "vuex";
 
 import {
   reduceCellSize,
   increaseCellSize,
+  increaseCellHeight,
+  reduceCellHeight,
   resetCellSize,
   cellSize,
   cellSizeInPx,
@@ -39,12 +47,14 @@ export default {
   inject: {
     reduceCellSize,
     increaseCellSize,
+    increaseCellHeight,
+    reduceCellHeight,
+
     resetCellSize,
     cellSize,
     cellSizeInPx,
   },
-  computed: {
-  },
+  computed: {},
   methods: {
     ...mapMutations(["setCellSizeDays"]),
     handleScrollToday: function () {
@@ -52,7 +62,7 @@ export default {
     },
     handleTimeFrame: function () {
       this.setCellSizeDays(this.selectedTimeFrame);
-      eventBus.emit('timeline-invalidate');
+      eventBus.emit("timeline-invalidate");
     },
   },
   mounted() {
@@ -60,16 +70,16 @@ export default {
   },
   data() {
     return {
-      selectedTimeFrame: '1', // This will be updated with the value of the selected option
+      selectedTimeFrame: "1", // This will be updated with the value of the selected option
       options: [
-        { text: '1 hour', value: 0.0416666666667 },
-        { text: '8 hour', value: 0.333333333334 },
-        { text: 'Daily', value: 1 },
-        { text: '5 Days', value: 5 },
-        { text: 'Work Week', value: 7 },
-        { text: 'Two Weeks', value: 14 },
-        { text: 'Month', value: 30 },
-        { text: 'Year', value: 365 },
+        { text: "1 hour", value: 0.0416666666667 },
+        { text: "8 hour", value: 0.333333333334 },
+        { text: "Daily", value: 1 },
+        { text: "5 Days", value: 5 },
+        { text: "Work Week", value: 7 },
+        { text: "Two Weeks", value: 14 },
+        { text: "Month", value: 30 },
+        { text: "Year", value: 365 },
       ],
     };
   },

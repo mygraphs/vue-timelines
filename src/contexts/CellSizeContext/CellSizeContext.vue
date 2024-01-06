@@ -13,7 +13,7 @@ export default {
       cellSize: 25,
       minSize: 20,
       headerHeight: 75,
-      cellHeight: 30,
+      cellHeight: 40,
     };
   },
   methods: {
@@ -31,6 +31,15 @@ export default {
     resetCellSize: function () {
       this.cellSize = this.minSize;
     },
+
+    increaseCellHeight: function () {
+      this.cellHeight += 5;
+    },
+    reduceCellHeight: function () {
+      if (this.cellHeight > 15) {
+        this.cellHeight -= 5;
+      }
+    },
   },
   provide: function () {
     return {
@@ -40,6 +49,10 @@ export default {
       [k.cellSizeInPx]: computed(() => `${this.cellSize}px`),
       [k.cellHeight]: computed(() => this.cellHeight),
       [k.cellHeightInPx]: computed(() => `${this.cellHeight}px`),
+
+      [k.increaseCellHeight]: this.increaseCellHeight,
+      [k.reduceCellHeight]: this.reduceCellHeight,
+
       [k.reduceCellSize]: this.reduceCellSize,
       [k.increaseCellSize]: this.increaseCellSize,
       [k.resetCellSize]: this.resetCellSize,
