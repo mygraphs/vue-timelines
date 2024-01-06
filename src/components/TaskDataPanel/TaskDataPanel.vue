@@ -1,12 +1,17 @@
 <template>
   <div v-if="groupId === null" class="task__panel">
     <div class="task__panel_container">
+      <div style='max-width: 200px'>
+        <h1>HELP</h1>
+
+        Select a task to edit. Double click on an empty space creates a new task
+      </div>
     </div>
   </div>
   <div v-else class="task__panel">
     <div class="task__panel_container">
       <div v-if="!isEdit">
-        <i class="fa fa-edit fa-pull-right" @click="isEdit = true"/>
+        <i class="fa fa-edit fa-pull-right" @click="isEdit = true" />
       </div>
       <TextEdit
         :edit="isEdit"
@@ -248,17 +253,16 @@ export default {
 
 <style>
 .task__panel {
-  padding: 16px;
-  display: grid;
-  place-items: center;
+  /* background-color: #fafafa; */
+  padding: 12px;
   float: right;
-  height: 100%;
-  background-color: #fefefe;
+  max-width: 400px;
 }
 
 .task__panel_container {
   min-width: 300px;
-  min-height: 400px;
+  min-height: 100px;
+  margin-top: auto;
 }
 
 .task__title {

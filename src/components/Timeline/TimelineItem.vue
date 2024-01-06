@@ -51,9 +51,6 @@ import eventBus from "../eventBus.js";
 import dayjs from "dayjs";
 
 import {
-  reduceCellSize,
-  increaseCellSize,
-  resetCellSize,
   cellSize,
   cellSizeInPx,
   headerHeight,
@@ -80,9 +77,6 @@ export default {
     },
   },
   inject: {
-    reduceCellSize,
-    increaseCellSize,
-    resetCellSize,
     cellSize,
     cellSizeInPx,
     headerHeight,

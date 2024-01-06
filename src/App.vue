@@ -180,7 +180,7 @@ export default {
 /* Overwrite styles here */
 
 * {
-  box-sizing: border-box;
+/*  box-sizing: border-box; */
 }
 
 .task__content {
