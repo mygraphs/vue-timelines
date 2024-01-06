@@ -1,5 +1,5 @@
 <template>
-  <div class="parent-container">
+  <div class="parent-container container-fluid">
     <TimelineHeader @scrollToday="calendarScrollToday" />
 
     <div class="filler-container">
@@ -9,8 +9,8 @@
     <div class="main-container" @scroll="handleScroll">
       <slot>
         <template v-if="groups">
-          <List width="200px">
-            <ListHeader>Group Name</ListHeader>
+          <List class="timeline__group">
+            <ListHeader></ListHeader>
             <ListRow v-for="group in groupsToUse" :key="group.id">
               <small>
                 <span style="font-weight: bold">{{ group.name }}</span>
@@ -382,6 +382,11 @@ export default {
 }
 </style>
 <style>
+.timeline__group {
+  min-width: 120px;
+  width: auto;
+}
+
 .parent-container {
  /* background-color: #F00; */
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2 class="header__title">Vue Timelines</h2>
+    <h2 class="header__title">vue-timelines</h2>
 
     <div class="header__actions">
       <select v-model="selectedTimeFrame" @change="handleTimeFrame">

@@ -49,5 +49,6 @@ export default {
 .MyGraph {
   padding: 0;
   margin: 0;
+  background-color: #f8f9fc;
 }
 </style>
