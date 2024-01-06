@@ -1,5 +1,9 @@
 <template>
-  <div v-if="groupId !== null" class="task__panel">
+  <div v-if="groupId === null" class="task__panel">
+    <div class="task__panel_container">
+    </div>
+  </div>
+  <div v-else class="task__panel">
     <div class="task__panel_container">
       <div v-if="!isEdit">
         <i class="fa fa-edit fa-pull-right" @click="isEdit = true"/>
@@ -248,11 +252,13 @@ export default {
   display: grid;
   place-items: center;
   float: right;
-  background-color: #f8f9fc;
+  height: 100%;
+  background-color: #fefefe;
 }
 
 .task__panel_container {
   min-width: 300px;
+  min-height: 400px;
 }
 
 .task__title {
