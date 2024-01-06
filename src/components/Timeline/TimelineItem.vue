@@ -517,6 +517,9 @@ export default {
     },
   },
   watch: {
+    cellHeight: function() {
+      this.invalidate();
+    },
     calendarInit: function () {
       this.invalidate();
     },
