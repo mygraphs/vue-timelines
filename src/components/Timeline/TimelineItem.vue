@@ -619,7 +619,7 @@ export default {
 
 .task__resize {
   position: absolute;
-  margin: 3px 0;
+  margin: 2px 0;
   top: -4px;
   height: 110%;
   width: 12px;

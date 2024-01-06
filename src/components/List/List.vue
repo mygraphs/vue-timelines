@@ -20,7 +20,6 @@ export default {
 .list {
   min-width: v-bind(width);
   color: #606060;
-  margin-bottom: 17px;
   display: flex;
   flex-direction: column;
   height: 100%;

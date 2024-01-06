@@ -1,6 +1,9 @@
 <template>
   <div v-if="groupId !== null" class="task__panel">
-    <div>
+    <div class="task__panel_container">
+      <div v-if="!isEdit">
+        <i class="fa fa-edit fa-pull-right" @click="isEdit = true"/>
+      </div>
       <TextEdit
         :edit="isEdit"
         :defaultText="title"
@@ -37,9 +40,29 @@
 
         <div>
           <b>Progress:</b>
-              <VueSlider v-model="progressPct" style=" --tooltip-color: #FFFFFF; --tooltip-text-color: #000000; --min: 0; --max: 100;--height: 10px" color="#FB278D" track-color="#FEFEFE" />
+          <VueSlider
+            v-model="progressPct"
+            style="
+              --tooltip-color: #ffffff;
+              --tooltip-text-color: #000000;
+              --min: 0;
+              --max: 100;
+              --height: 10px;
+            "
+            color="#FB278D"
+            track-color="#FEFEFE"
+          />
         </div>
 
+        <div v-if="isEdit">
+          <div>
+            <br />
+            <button class="btn btn-success ml-2" @click="handleSubmit">Update</button>
+            <button class="btn btn-warning fa-pull-right" @click="handleCancel">
+              Cancel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -47,7 +70,7 @@
 
 <script>
 import dayjs from "dayjs";
-import slider from "vue3-slider"
+import slider from "vue3-slider";
 
 import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
@@ -67,7 +90,7 @@ export default {
   components: {
     TextEdit,
     VueDatePicker,
-    "VueSlider": slider
+    VueSlider: slider,
   },
   inject: {
     updateTask: { from: "updateTask" },
@@ -99,8 +122,20 @@ export default {
       });
     },
     handleTask: function (task) {
-      this.sourceTask = task;
+      let newTask = false;
 
+      // We detect if we are being provided with a new task.
+      // If we have the editor open, we will remember our tasks to be able to cancel it.
+      if (this.sourceTask == null || task.id != this.sourceTask.id) {
+        newTask = true;
+      }
+
+      // If we are a new task or we are not editing we update our cancel button
+      if (newTask || !this.isEdit) {
+        this.sourceTask = { ...task };
+      }
+
+      this.inEditTask = { ...task };
       this.title = task.title;
       this.groupId = task.group_id;
       this.creationDate = task.creationDate;
@@ -108,16 +143,28 @@ export default {
       this.progressPct = Math.round(task.progress * 100);
       this.state = task.state;
     },
+    handleSubmit: function () {
+      // We update our internal reference to know that this task was OK
+      console.log(" Submit ");
+      this.sourceTask = this.inEditTask;
+      this.isEdit = false;
+    },
+    handleCancel: function () {
+      console.log(" Revert into edited task ");
+      this.handleTask(this.sourceTask);
+      this.commitTask();
+      this.isEdit = false;
+    },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
       let task = {
-        ...this.sourceTask,
+        ...this.inEditTask,
         title: this.title,
         creationDate: this.creationDate,
         dueDate: this.dueDate,
         progress: this.progressPct / 100,
         state: this.state,
-      }
+      };
 
       try {
         this.updateTask(task);
@@ -158,27 +205,23 @@ export default {
   watch: {
     title(newTitle) {
       console.log(" PROPAGATE TITLE CHANGE TO " + newTitle);
-      if (this.sourceTask.title != newTitle)
-        this.commitTask();
+      if (this.inEditTask.title != newTitle) this.commitTask();
     },
     creationDate(newDate) {
-      console.log(" PROPAGATE Start DATE ")
-      if (this.sourceTask.creationDate != newDate)
-        this.commitTask();
+      console.log(" PROPAGATE Start DATE ");
+      if (this.inEditTask.creationDate != newDate) this.commitTask();
     },
     progressPct(newProgress) {
-      console.log(" Progress changed " + newProgress)
+      console.log(" Progress changed " + newProgress);
       this.commitTask();
     },
     dueDate(newDate) {
       console.log(" PROPAGATE End DATE ");
-      if (this.sourceTask.dueDate != newDate)
-        this.commitTask();
+      if (this.inEditTask.dueDate != newDate) this.commitTask();
     },
   },
   provide: function () {
-    return {
-    };
+    return {};
   },
   data() {
     return {
@@ -193,7 +236,7 @@ export default {
       // Converted from progress which is 0..1
       progressPct: 0,
       sourceTask: null,
-
+      inEditTask: null,
     };
   },
 };
@@ -204,7 +247,12 @@ export default {
   padding: 16px;
   display: grid;
   place-items: center;
+  float: right;
   background-color: #f8f9fc;
+}
+
+.task__panel_container {
+  min-width: 300px;
 }
 
 .task__title {

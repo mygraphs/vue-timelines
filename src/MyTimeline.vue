@@ -1,49 +1,53 @@
 <template>
-  <TimelineHeader @scrollToday="calendarScrollToday" />
+  <div class="parent-container">
+    <TimelineHeader @scrollToday="calendarScrollToday" />
+    <div class="main-container" @scroll="handleScroll">
+      <slot>
+        <template v-if="groups">
+          <List width="200px">
+            <ListHeader>Group Name</ListHeader>
+            <ListRow v-for="group in groupsToUse" :key="group.id">
+              <small>
+                <span style="font-weight: bold">{{ group.name }}</span>
+                {{ group.color_name }}
+              </small>
+            </ListRow>
+          </List>
 
-  <div class="main-container" @scroll="handleScroll">
-    <slot>
-      <template v-if="groups">
-        <List width="200px">
-          <ListHeader>Group Name</ListHeader>
-          <ListRow v-for="group in groupsToUse" :key="group.id">
-            <small>
-              <span style="font-weight: bold">{{ group.name }}</span>
-              {{ group.color_name }}
-            </small>
-          </ListRow>
-        </List>
-
-        <Timeline ref="timeline">
-          <template v-for="group in groupsToUse" :key="group.id">
-            <TimelineRow :group="group" :rowid="group.id">
-              <!--
+          <Timeline ref="timeline">
+            <template v-for="group in groupsToUse" :key="group.id">
+              <TimelineRow :group="group" :rowid="group.id">
+                <!--
               -->
-            </TimelineRow>
-          </template>
-          <template v-for="task in tasksArray" :key="task.id">
-            <TimelineItem
-              v-bind:task="task"
-              :row="task.row"
-              :ref="getRef(task.group_id, task.id)"
-            >
-              <template v-slot:task_text>
-                <small>
-                  {{ task.title }}
-                </small>
-              </template>
-              <template v-slot:taskInfo>
-                <span class="task_icon_font">
-                  {{ Math.round(task.progress * 100) }}%
-                </span>
-              </template>
-            </TimelineItem>
-          </template>
-        </Timeline>
-      </template>
-    </slot>
+              </TimelineRow>
+            </template>
+            <template v-for="task in tasksArray" :key="task.id">
+              <TimelineItem
+                v-bind:task="task"
+                :row="task.row"
+                :ref="getRef(task.group_id, task.id)"
+              >
+                <template v-slot:task_text>
+                  <small>
+                    {{ task.title }}
+                  </small>
+                </template>
+                <template v-slot:taskInfo>
+                  <span class="task_icon_font">
+                    {{ Math.round(task.progress * 100) }}%
+                  </span>
+                </template>
+              </TimelineItem>
+            </template>
+          </Timeline>
+        </template>
+      </slot>
+    </div>
+    <div class="filler-container">
+      <TaskDataPanel ref="taskdata" />
+    </div>
+
   </div>
-  <TaskDataPanel ref="taskdata" />
 </template>
 
 <script>
@@ -94,7 +98,7 @@ export default {
     },
     height: {
       type: String,
-      default: "85vh",
+      default: "100vh",
     },
   },
   data: function () {
@@ -377,6 +381,14 @@ export default {
 }
 </style>
 <style>
+.parent-container {
+  /* background-color: #F00; */
+}
+
+.filler-container {
+  /* background-color: #000; */
+}
+
 .main-container {
   display: flex;
   max-height: v-bind(height);
