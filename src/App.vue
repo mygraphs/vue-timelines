@@ -168,7 +168,7 @@ export default {
       }
 
       this.tasks[task.id] = task;
-      console.log("******* UPDATED TASK " + task.title + " *********8*** " + task.group_id);
+      console.log("******* UPDATED TASK " + task.title + " ********** " + task.group_id);
       //this.listTasks();
     },
   },
