@@ -34,6 +34,12 @@
             {{ dueDateText }}
           </div>
         </div>
+
+        <div>
+          <b>Progress:</b>
+              <VueSlider v-model="progressPct" style=" --tooltip-color: #FFFFFF; --tooltip-text-color: #000000; --min: 0; --max: 100;--height: 10px" color="#FB278D" track-color="#FEFEFE" />
+        </div>
+
       </div>
     </div>
   </div>
@@ -41,11 +47,13 @@
 
 <script>
 import dayjs from "dayjs";
+import slider from "vue3-slider"
+
 import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
-import { nextTick } from "vue";
 
+import { nextTick } from "vue";
 import { TextEdit } from "@/components";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -59,6 +67,7 @@ export default {
   components: {
     TextEdit,
     VueDatePicker,
+    "VueSlider": slider
   },
   inject: {
     updateTask: { from: "updateTask" },
@@ -96,7 +105,7 @@ export default {
       this.groupId = task.group_id;
       this.creationDate = task.creationDate;
       this.dueDate = task.dueDate;
-      this.progress = task.progress;
+      this.progressPct = Math.round(task.progress * 100);
       this.state = task.state;
     },
     commitTask: function () {
@@ -106,7 +115,7 @@ export default {
         title: this.title,
         creationDate: this.creationDate,
         dueDate: this.dueDate,
-        progress: this.progress,
+        progress: this.progressPct / 100,
         state: this.state,
       }
 
@@ -157,6 +166,10 @@ export default {
       if (this.sourceTask.creationDate != newDate)
         this.commitTask();
     },
+    progressPct(newProgress) {
+      console.log(" Progress changed " + newProgress)
+      this.commitTask();
+    },
     dueDate(newDate) {
       console.log(" PROPAGATE End DATE ");
       if (this.sourceTask.dueDate != newDate)
@@ -176,8 +189,11 @@ export default {
 
       creationDate: null,
       dueDate: null,
-      progress: null,
+
+      // Converted from progress which is 0..1
+      progressPct: 0,
       sourceTask: null,
+
     };
   },
 };
