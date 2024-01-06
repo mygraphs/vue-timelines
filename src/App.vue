@@ -1,7 +1,5 @@
 <template>
-  <div>
     <MyGraphs :groups="groups" :tasks="tasks" @update="handleUpdatedTasks" />
-  </div>
 </template>
 
 <script>

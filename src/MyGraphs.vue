@@ -1,11 +1,13 @@
 <template>
-  <CalendarContext>
-    <CellSizeContext>
-      <MyTimeline :groups="groups" :tasks="tasks">
-        <slot />
-      </MyTimeline>
-    </CellSizeContext>
-  </CalendarContext>
+  <div class="MyGraph">
+    <CalendarContext>
+      <CellSizeContext>
+        <MyTimeline :groups="groups" :tasks="tasks" height="100%">
+          <slot />
+        </MyTimeline>
+      </CellSizeContext>
+    </CalendarContext>
+  </div>
 </template>
 
 <script>
@@ -42,3 +44,11 @@ export default {
   },
 };
 </script>
+
+<style>
+.MyGraph {
+  padding: 0;
+  margin: 0;
+  /* background-color: #00F; */
+}
+</style>

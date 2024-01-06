@@ -96,6 +96,18 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 /* Add styles if needed */
+
+input[type=text] {
+	appearance: none;
+	border: none;
+	outline: none;
+  width: 100%;
+
+	border-bottom: .2em solid #E91E63;
+	border-radius: .2em .2em 0 0;
+	padding: .4em;
+	color: #E91E63;
+}
 </style>
