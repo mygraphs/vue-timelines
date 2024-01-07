@@ -183,14 +183,16 @@ export default {
     },
     decreaseRow: function (group) {
       console.log(" decreaseRow ");
+      this.setRowBoundaries({ minRow: 0, maxRow: this.timelineMaxRow - 1 });
     },
     increaseRow: function (group) {
       const groupIdx = this.groupsToUse.findIndex((g) => {
         return g.id === group.id;
       });
 
+      console.log(" Append to group " + groupIdx);
       for (let g of this.groupsToUse.values()) {
-        if (g.timeline_row <= group.timeline_row) continue;
+        if (g.timeline_row < group.timeline_row) continue;
 
         g.timeline_row += 1;
         const t = g.timeline_row + g.rows;
@@ -205,7 +207,7 @@ export default {
         let task = this.tasksDict[idx];
 
         // Append at the end of the group
-        if (task.row <= group.timeline_row + group.rows) {
+        if (task.row < group.timeline_row + group.rows - 1) {
           continue;
         }
 
