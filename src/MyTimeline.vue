@@ -1,9 +1,8 @@
 <template>
   <div class="parent-container container-fluid">
-    <TimelineHeader @scrollToday="calendarScrollToday" />
-
-    <div class="filler-container">
+    <div>
       <TaskDataPanel ref="taskdata" />
+      <TimelineHeader @scrollToday="calendarScrollToday" />
     </div>
 
     <div class="main-container" @scroll="handleScroll">
