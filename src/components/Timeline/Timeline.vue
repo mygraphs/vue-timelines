@@ -79,8 +79,8 @@ export default {
 
       let scrollBarSize = ob.offsetHeight - ob.clientHeight;
 
-      console.log(" TOP " + ob.offsetTop + " HEIGHT " + ob.offsetHeight);
-      console.log(" HEIGHT " + ob.clientHeight + " scrollBarSize " + scrollBarSize);
+      //console.log(" TOP " + ob.offsetTop + " HEIGHT " + ob.offsetHeight);
+      //console.log(" HEIGHT " + ob.clientHeight + " scrollBarSize " + scrollBarSize);
       this.setTimelineDimensions(ob.offsetHeight, scrollBarSize);
     });
 

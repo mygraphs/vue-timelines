@@ -32,7 +32,7 @@ export default {
   },
   methods: {
     setTimelineDimensions: function (height, scrollBarSize) {
-      console.log(" DIMENSIONS " + height);
+      //console.log(" DIMENSIONS " + height);
       if (this.elementHeight == 0) {
         console.log(" Cannot calculate size ");
         return;
@@ -76,8 +76,8 @@ export default {
       // Clamp to minimum size
       if (this.cellHeight < this.minSize) this.cellHeight = this.minSize;
 
-      console.log(" NEW CELL SIZE " + this.cellHeight);
-      console.log(" HEIGHT DESIRED " + this.height + " CURRENT " + this.elementHeight);
+      //console.log(" NEW CELL SIZE " + this.cellHeight);
+      //console.log(" HEIGHT DESIRED " + this.height + " CURRENT " + this.elementHeight);
     },
   },
   watch: {
