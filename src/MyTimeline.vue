@@ -180,7 +180,6 @@ export default {
         if (g.timeline_row <= group.timeline_row) continue;
 
         g.timeline_row += 1;
-        g.name = " " + g.timeline_row;
         const t = g.timeline_row + g.rows;
       }
 
@@ -290,7 +289,7 @@ export default {
         this.groupsDict[group.id] = group;
         this.groupsToUse.push(group);
 
-        group.order = this.groupsToUse.length;
+        //group.order = this.groupsToUse.length;
       }
 
       // First pass to calculate how many rows do we have in each group
