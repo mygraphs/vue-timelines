@@ -24,18 +24,14 @@ import { computed } from "vue";
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { addDays, convertToDay } from "@/utils/date";
 import {
-  cellHeightInPx,
   cellHeight,
-  cellSizeInPx,
   cellSize,
 } from "@/contexts/CellSizeContext";
 
 export default {
   name: "TimelineRow",
   inject: {
-    cellHeightInPx,
     cellHeight,
-    cellSizeInPx,
     cellSize,
     increaseRow: { from: "increaseRow" },
     decreaseRow: { from: "decreaseRow" },
@@ -149,7 +145,7 @@ export default {
     },
   },
   mounted() {
-    console.log(this.group.name + " GROUP ROWS " + this.group.rows);
+    //console.log(this.group.name + " GROUP ROWS " + this.group.rows);
     this.$nextTick(() => {
       this.rows = this.group.rows;
       this.setListRowHeight();
@@ -160,7 +156,7 @@ export default {
 
 <style>
 .cal__row {
-  height: calc(v-bind(cellHeightInPx) * v-bind(rows));
+  height: calc(v-bind('cellHeight + "px"') * v-bind(rows));
   display: flex;
   position: relative;
 }
@@ -176,7 +172,7 @@ export default {
   width: 1px;
   top: -3px;
   background-color: rgba(255, 0, 0, 0.6);
-  left: calc(v-bind(cellSizeInPx) * v-bind(todayCell));
+  left: calc(v-bind('cellSize + "px"') * v-bind(todayCell));
 }
 
 .cal__inner-row-container {
@@ -184,7 +180,7 @@ export default {
   width: 100%;
   position: fixed;
   z-index: 5;
-  height: calc(v-bind(cellHeightInPx) * v-bind(rows));
+  height: calc(v-bind('cellHeight + "px"') * v-bind(rows));
   pointer-events: none;
 }
 
@@ -193,7 +189,7 @@ export default {
 }
 
 .cal__inner-row {
-  height: v-bind(cellHeightInPx);
+  height: v-bind('cellHeight + "px"');
 }
 
 .cal__button {
@@ -218,9 +214,9 @@ export default {
 }
 
 .cal__cell {
-  max-width: v-bind(cellSizeInPx);
-  min-width: v-bind(cellSizeInPx);
-  width: v-bind(cellSizeInPx);
+  max-width: v-bind('cellSize + "px"');
+  min-width: v-bind('cellSize + "px"');
+  width: v-bind('cellSize + "px"');
   border-right: 1px solid rgba(212, 222, 230, 0.4);
   border-bottom: 1px solid rgba(212, 222, 230, 0.7);
   height: 100%;

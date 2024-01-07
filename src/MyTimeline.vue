@@ -61,7 +61,7 @@ import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
-import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
+import { cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 
@@ -84,7 +84,6 @@ function binarySearch(tasks, startTime) {
 export default {
   name: "VueTimeline",
   inject: {
-    cellSizeInPx,
     cellSize,
     emitBubbleTask: { from: "emitBubbleTask" },
   },
@@ -414,7 +413,7 @@ export default {
 }
 
 .cal__int-container div {
-  width: v-bind(cellSizeInPx);
+  width: v-bind('cellSize + "px"');
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);
 }
