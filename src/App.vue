@@ -1,6 +1,11 @@
 <template>
-  <div>
-    <MyGraphs :groups="groups" :tasks="tasks" @update="handleUpdatedTasks" />
+  <div class="graph__container" ref="myGraphContainer">
+    <MyGraphs
+      v-model:desiredHeight="height"
+      :groups="groups"
+      :tasks="tasks"
+      @update="handleUpdatedTasks"
+    />
   </div>
 </template>
 
@@ -131,6 +136,7 @@ var test = {
 };
 
 import { mapState } from "vuex";
+import { nextTick } from "vue";
 
 export default {
   name: "App",
@@ -138,6 +144,7 @@ export default {
     return {
       tasks: test.tasks,
       groups: test.groups,
+      height: 0,
     };
   },
   computed: {
@@ -168,9 +175,17 @@ export default {
       }
 
       this.tasks[task.id] = task;
-      console.log("******* UPDATED TASK " + task.title + " *********8*** " + task.group_id);
+      console.log("******* UPDATED TASK " + task.title + " ********** " + task.group_id);
       //this.listTasks();
     },
+  },
+  mounted: function () {
+    const observedElement = this.$refs.myGraphContainer;
+    const resizeObserver = new ResizeObserver((entries) => {
+      this.height = observedElement.clientHeight;
+    });
+
+    resizeObserver.observe(observedElement);
   },
   components: {
     MyGraphs,
@@ -182,11 +197,15 @@ export default {
 /* Overwrite styles here */
 
 * {
-  box-sizing: border-box;
+  /*  box-sizing: border-box; */
+}
+
+.graph__container {
+  height: 100vh;
+  /* height: 1000px; */
 }
 
 .task__content {
-/* background-color: rgba(0, 0, 255, 1); */
+  /* background-color: rgba(0, 0, 255, 1); */
 }
-
 </style>

@@ -1,49 +1,54 @@
 <template>
-  <TimelineHeader @scrollToday="calendarScrollToday" />
+  <div class="parent-container container-fluid">
+    <TimelineHeader @scrollToday="calendarScrollToday" />
 
-  <div class="main-container" @scroll="handleScroll">
-    <slot>
-      <template v-if="groups">
-        <List width="200px">
-          <ListHeader>Group Name</ListHeader>
-          <ListRow v-for="group in groupsToUse" :key="group.id">
-            <small>
-              <span style="font-weight: bold">{{ group.name }}</span>
-              {{ group.color_name }}
-            </small>
-          </ListRow>
-        </List>
+    <div class="filler-container">
+      <TaskDataPanel ref="taskdata" />
+    </div>
 
-        <Timeline ref="timeline">
-          <template v-for="group in groupsToUse" :key="group.id">
-            <TimelineRow :group="group" :rowid="group.id">
-              <!--
+    <div class="main-container" @scroll="handleScroll">
+      <slot>
+        <template v-if="groups">
+          <List class="timeline__group">
+            <ListHeader></ListHeader>
+            <ListRow v-for="group in groupsToUse" :key="group.id">
+              <small>
+                <span style="font-weight: bold">{{ group.name }}</span>
+                {{ group.color_name }}
+              </small>
+            </ListRow>
+          </List>
+
+          <Timeline ref="timeline">
+            <template v-for="group in groupsToUse" :key="group.id">
+              <TimelineRow :group="group" :rowid="group.id">
+                <!--
               -->
-            </TimelineRow>
-          </template>
-          <template v-for="task in tasksArray" :key="task.id">
-            <TimelineItem
-              v-bind:task="task"
-              :row="task.row"
-              :ref="getRef(task.group_id, task.id)"
-            >
-              <template v-slot:task_text>
-                <small>
-                  {{ task.title }}
-                </small>
-              </template>
-              <template v-slot:taskInfo>
-                <span class="task_icon_font">
-                  {{ Math.round(task.progress * 100) }}%
-                </span>
-              </template>
-            </TimelineItem>
-          </template>
-        </Timeline>
-      </template>
-    </slot>
+              </TimelineRow>
+            </template>
+            <template v-for="task in tasksArray" :key="task.id">
+              <TimelineItem
+                v-bind:task="task"
+                :row="task.row"
+                :ref="getRef(task.group_id, task.id)"
+              >
+                <template v-slot:task_text>
+                  <small>
+                    {{ task.title }}
+                  </small>
+                </template>
+                <template v-slot:taskInfo>
+                  <span class="task_icon_font">
+                    {{ Math.round(task.progress * 100) }}%
+                  </span>
+                </template>
+              </TimelineItem>
+            </template>
+          </Timeline>
+        </template>
+      </slot>
+    </div>
   </div>
-  <TaskDataPanel ref="taskdata" />
 </template>
 
 <script>
@@ -56,7 +61,7 @@ import { TaskDataPanel } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
-import { cellSizeInPx, cellSize } from "@/contexts/CellSizeContext";
+import { cellSize } from "@/contexts/CellSizeContext";
 import { orderTasks, setPriorityTasks } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 
@@ -79,7 +84,6 @@ function binarySearch(tasks, startTime) {
 export default {
   name: "VueTimeline",
   inject: {
-    cellSizeInPx,
     cellSize,
     emitBubbleTask: { from: "emitBubbleTask" },
   },
@@ -94,7 +98,7 @@ export default {
     },
     height: {
       type: String,
-      default: "85vh",
+      default: "100vh",
     },
   },
   data: function () {
@@ -377,6 +381,19 @@ export default {
 }
 </style>
 <style>
+.timeline__group {
+  min-width: 120px;
+  width: auto;
+}
+
+.parent-container {
+ /* background-color: #F00; */
+}
+
+.filler-container {
+  /* background-color: #000; */
+}
+
 .main-container {
   display: flex;
   max-height: v-bind(height);
@@ -396,7 +413,7 @@ export default {
 }
 
 .cal__int-container div {
-  width: v-bind(cellSizeInPx);
+  width: v-bind('cellSize + "px"');
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);
 }

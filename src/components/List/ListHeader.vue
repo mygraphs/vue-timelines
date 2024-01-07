@@ -6,20 +6,20 @@
 
 <script>
 import {
-  headerHeightInPx,
+  headerHeight,
 } from "@/contexts/CellSizeContext";
 
 export default {
   name: "ListHeader",
   inject: {
-    headerHeightInPx,
+    headerHeight,
   }
 }
 </script>
 
 <style scoped>
 .calendar_group_header {
-  min-height: v-bind(headerHeightInPx);
+  min-height: v-bind('headerHeight + "px"');
 }
 
 .list__header {

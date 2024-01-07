@@ -1,6 +1,30 @@
 <template>
-  <div v-if="groupId !== null" class="task__panel">
-    <div>
+  <div v-if="groupId === null" class="task__panel">
+    <div class="task__panel_container">
+      <div style="max-width: 300px">
+        <h1>HELP</h1>
+
+        <p>
+          <i class="fa fa-square fa-xs" />
+          Select a task to resize.
+        </p>
+        <p>
+          <i class="fa fa-square fa-xs" />
+          Double click edits the task.
+        </p>
+        <p>
+          <i class="fa fa-square fa-xs" />
+          Double click on an empty space creates a new task.
+        </p>
+      </div>
+    </div>
+  </div>
+  <div v-else class="task__panel">
+    <div class="task__panel_container">
+      <div v-if="!isEdit">
+        <i class="fa fa-edit fa-pull-right" @click="isEdit = true" />
+      </div>
+      <h1 style="visibility: hidden;">TASK</h1>
       <TextEdit
         :edit="isEdit"
         :defaultText="title"
@@ -34,6 +58,32 @@
             {{ dueDateText }}
           </div>
         </div>
+
+        <div>
+          <b>Progress:</b>
+          <VueSlider
+            v-model="progressPct"
+            style="
+              --tooltip-color: #ffffff;
+              --tooltip-text-color: #000000;
+              --min: 0;
+              --max: 100;
+              --height: 10px;
+            "
+            color="#FB278D"
+            track-color="#FEFEFE"
+          />
+        </div>
+
+        <div v-if="isEdit">
+          <div>
+            <br />
+            <button class="btn btn-success ml-2" @click="handleSubmit">Update</button>
+            <button class="btn btn-warning fa-pull-right" @click="handleCancel">
+              Cancel
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -41,11 +91,13 @@
 
 <script>
 import dayjs from "dayjs";
+import slider from "vue3-slider";
+
 import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
-import { nextTick } from "vue";
 
+import { nextTick } from "vue";
 import { TextEdit } from "@/components";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -59,6 +111,7 @@ export default {
   components: {
     TextEdit,
     VueDatePicker,
+    VueSlider: slider,
   },
   inject: {
     updateTask: { from: "updateTask" },
@@ -90,25 +143,49 @@ export default {
       });
     },
     handleTask: function (task) {
-      this.sourceTask = task;
+      let newTask = false;
 
+      // We detect if we are being provided with a new task.
+      // If we have the editor open, we will remember our tasks to be able to cancel it.
+      if (this.sourceTask == null || task.id != this.sourceTask.id) {
+        newTask = true;
+      }
+
+      // If we are a new task or we are not editing we update our cancel button
+      if (newTask || !this.isEdit) {
+        this.sourceTask = { ...task };
+      }
+
+      this.inEditTask = { ...task };
       this.title = task.title;
       this.groupId = task.group_id;
       this.creationDate = task.creationDate;
       this.dueDate = task.dueDate;
-      this.progress = task.progress;
+      this.progressPct = Math.round(task.progress * 100);
       this.state = task.state;
+    },
+    handleSubmit: function () {
+      // We update our internal reference to know that this task was OK
+      console.log(" Submit ");
+      this.sourceTask = this.inEditTask;
+      this.isEdit = false;
+    },
+    handleCancel: function () {
+      console.log(" Revert into edited task ");
+      this.handleTask(this.sourceTask);
+      this.commitTask();
+      this.isEdit = false;
     },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
       let task = {
-        ...this.sourceTask,
+        ...this.inEditTask,
         title: this.title,
         creationDate: this.creationDate,
         dueDate: this.dueDate,
-        progress: this.progress,
+        progress: this.progressPct / 100,
         state: this.state,
-      }
+      };
 
       try {
         this.updateTask(task);
@@ -149,23 +226,23 @@ export default {
   watch: {
     title(newTitle) {
       console.log(" PROPAGATE TITLE CHANGE TO " + newTitle);
-      if (this.sourceTask.title != newTitle)
-        this.commitTask();
+      if (this.inEditTask.title != newTitle) this.commitTask();
     },
     creationDate(newDate) {
-      console.log(" PROPAGATE Start DATE ")
-      if (this.sourceTask.creationDate != newDate)
-        this.commitTask();
+      console.log(" PROPAGATE Start DATE ");
+      if (this.inEditTask.creationDate != newDate) this.commitTask();
+    },
+    progressPct(newProgress) {
+      console.log(" Progress changed " + newProgress);
+      this.commitTask();
     },
     dueDate(newDate) {
       console.log(" PROPAGATE End DATE ");
-      if (this.sourceTask.dueDate != newDate)
-        this.commitTask();
+      if (this.inEditTask.dueDate != newDate) this.commitTask();
     },
   },
   provide: function () {
-    return {
-    };
+    return {};
   },
   data() {
     return {
@@ -176,8 +253,11 @@ export default {
 
       creationDate: null,
       dueDate: null,
-      progress: null,
+
+      // Converted from progress which is 0..1
+      progressPct: 0,
       sourceTask: null,
+      inEditTask: null,
     };
   },
 };
@@ -185,10 +265,16 @@ export default {
 
 <style>
 .task__panel {
-  padding: 16px;
-  display: grid;
-  place-items: center;
-  background-color: #f8f9fc;
+  /* background-color: #fafafa; */
+  padding: 12px;
+  float: right;
+  max-width: 400px;
+}
+
+.task__panel_container {
+  min-width: 300px;
+  min-height: 100px;
+  margin-top: auto;
 }
 
 .task__title {
