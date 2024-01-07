@@ -18,11 +18,12 @@ import {
   cellSize,
   setCellSizePx,
   resetCellSize,
+  setTimelineDimensions,
 } from "@/contexts/CellSizeContext";
 
 export default {
   name: "Timeline",
-  inject: { cellSize, minSize, setCellSizePx, resetCellSize },
+  inject: { cellSize, minSize, setCellSizePx, resetCellSize, setTimelineDimensions },
   computed: {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
     ...mapGetters(["totalCells", "todayCell"]),
@@ -64,17 +65,26 @@ export default {
     },
   },
   mounted() {
-    const observedElement = this.$refs.timeline;
+    const ob = this.$refs.timeline;
 
     const resizeObserver = new ResizeObserver((entries) => {
+      // Still havent render, return until we get a real reading of our current offsets.
+      if (ob.offsetTop == 0) return;
+
       for (let entry of entries) {
-        const { width } = entry.contentRect;
+        const { width, height } = entry.contentRect;
         // Call your callback function here with the new width
         this.handleResize(width);
       }
+
+      let scrollBarSize = ob.offsetHeight - ob.clientHeight;
+
+      console.log(" TOP " + ob.offsetTop + " HEIGHT " + ob.offsetHeight);
+      console.log(" HEIGHT " + ob.clientHeight + " scrollBarSize " + scrollBarSize);
+      this.setTimelineDimensions(ob.offsetHeight, scrollBarSize);
     });
 
-    resizeObserver.observe(observedElement);
+    resizeObserver.observe(ob);
 
     this.$nextTick(() => {
       this.calendarScrollToday();

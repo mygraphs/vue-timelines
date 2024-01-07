@@ -1,8 +1,8 @@
 <template>
   <div class="MyGraph">
     <CalendarContext>
-      <CellSizeContext>
-        <MyTimeline :groups="groups" :tasks="tasks" height="100%">
+      <CellSizeContext :desiredHeight="desiredHeight">
+        <MyTimeline :groups="groups" :tasks="tasks">
           <slot />
         </MyTimeline>
       </CellSizeContext>
@@ -25,6 +25,10 @@ export default {
     tasks: {
       type: Object,
       default: () => {},
+    },
+    desiredHeight: {
+      type: Number,
+      default: 0,
     },
   },
   methods: {

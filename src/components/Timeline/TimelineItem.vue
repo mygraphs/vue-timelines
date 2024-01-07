@@ -52,11 +52,8 @@ import dayjs from "dayjs";
 
 import {
   cellSize,
-  cellSizeInPx,
   headerHeight,
-  headerHeightInPx,
   cellHeight,
-  cellHeightInPx,
 } from "@/contexts/CellSizeContext";
 
 import { mapState, mapMutations, mapGetters } from "vuex";
@@ -78,11 +75,8 @@ export default {
   },
   inject: {
     cellSize,
-    cellSizeInPx,
     headerHeight,
-    headerHeightInPx,
     cellHeight,
-    cellHeightInPx,
     findConflicts: { from: "findConflicts" },
     updateTask: { from: "updateTask" },
   },
@@ -563,7 +557,7 @@ export default {
 .task {
   position: absolute;
   border-radius: 5px;
-  height: v-bind(cellHeightInPx);
+  height: v-bind('cellHeight + "px"');
   top: v-bind(taskTopPosition);
   width: v-bind(taskWidth);
   left: v-bind(taskLeftPosition);

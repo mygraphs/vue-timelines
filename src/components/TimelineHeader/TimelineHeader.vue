@@ -33,18 +33,19 @@ import eventBus from "../eventBus.js";
 import { mapMutations } from "vuex";
 
 import {
+  mainHeaderHeight,
   reduceCellSize,
   increaseCellSize,
   increaseCellHeight,
   reduceCellHeight,
   resetCellSize,
   cellSize,
-  cellSizeInPx,
 } from "@/contexts/CellSizeContext";
 
 export default {
   name: "TimelineHeader",
   inject: {
+    mainHeaderHeight,
     reduceCellSize,
     increaseCellSize,
     increaseCellHeight,
@@ -52,7 +53,6 @@ export default {
 
     resetCellSize,
     cellSize,
-    cellSizeInPx,
   },
   computed: {},
   methods: {
@@ -91,6 +91,7 @@ export default {
   display: flex;
   justify-content: space-between;
   background-color: #f8f9fc;
+  height: v-bind('mainHeaderHeight + "px"');
 }
 
 .header__title {

@@ -51,7 +51,7 @@ import * as isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 dayjs.extend(isSameOrAfter);
 
 import { mapState, mapMutations, mapGetters } from "vuex";
-import { cellSize, resetCellSize, headerHeightInPx } from "@/contexts/CellSizeContext";
+import { cellSize, resetCellSize, headerHeight} from "@/contexts/CellSizeContext";
 
 import { getWeekNumber } from "@/utils/date";
 
@@ -63,11 +63,11 @@ function adjustTextToCells(day, format, number_days, cell_size) {
   let size_px = cell_size * number_days;
 
   if (size_px < 50 && format == "YYYY") {
-      return "";
+    return "";
   }
 
   if (size_px < 30 && format == "MMMM") {
-      return "";
+    return "";
   }
   if (size_px < text.length * LETTER_SIZE_PX) {
     if (format == "MMMM") text = text.substring(0, 3);
@@ -79,7 +79,7 @@ function adjustTextToCells(day, format, number_days, cell_size) {
 
 export default {
   name: "Calendar",
-  inject: { cellSize, resetCellSize, headerHeightInPx },
+  inject: { cellSize, resetCellSize, headerHeight },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
   },
@@ -98,9 +98,6 @@ export default {
       let days = [];
 
       let count = 0;
-      console.log(
-        "================= DIVIDE IN " + this.cellDays + " =================== "
-      );
 
       while (true) {
         let day = { title: "" };
@@ -155,10 +152,6 @@ export default {
         currentDay = newDay;
       }
 
-      console.log(
-        "================= FINISHED UPDATE " + this.cellDays + " =================== "
-      );
-
       if (days.length > 0)
         months.push({
           name: adjustTextToCells(currentDay, "MMMM", days.length, this.cellSize),
@@ -174,7 +167,7 @@ export default {
 
 <style>
 .calendar_group_header {
-  min-height: v-bind(headerHeightInPx);
+  min-height: v-bind('headerHeight + "px"');
 }
 
 .calendar {
