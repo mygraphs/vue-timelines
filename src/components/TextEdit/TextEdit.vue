@@ -84,7 +84,6 @@ export default {
       if (e) {
         e.stopPropagation();
       }
-
       console.log("ENTER EDIT MODE " + this.tempText);
       this.editMode = true;
 
