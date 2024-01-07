@@ -13,7 +13,19 @@
             <ListHeader></ListHeader>
             <ListRow v-for="group in groupsToUse" :key="group.id">
               <small>
-                <span style="font-weight: bold">{{ group.name }}</span>
+                <span style="font-weight: bold">
+                  <TextEdit
+                    :defaultText="group.name"
+                    v-model:newValue="group.name"
+                    field="group_name"
+                    style="max-width: 100px"
+                    :cancelClickOutside="true"
+                    ><template v-slot:textFormat>
+                      {{ group.name }}
+                    </template>
+                    <template v-slot:inputFormat> </template>
+                  </TextEdit>
+                </span>
                 {{ group.color_name }}
               </small>
             </ListRow>
@@ -58,6 +70,7 @@ import { reactive } from "vue";
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
+import { TextEdit } from "@/components";
 import { List, ListHeader, ListRow } from "@/components";
 
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
@@ -170,14 +183,16 @@ export default {
     },
     decreaseRow: function (group) {
       console.log(" decreaseRow ");
+      this.setRowBoundaries({ minRow: 0, maxRow: this.timelineMaxRow - 1 });
     },
     increaseRow: function (group) {
       const groupIdx = this.groupsToUse.findIndex((g) => {
         return g.id === group.id;
       });
 
+      console.log(" Append to group " + groupIdx);
       for (let g of this.groupsToUse.values()) {
-        if (g.timeline_row <= group.timeline_row) continue;
+        if (g.timeline_row < group.timeline_row) continue;
 
         g.timeline_row += 1;
         const t = g.timeline_row + g.rows;
@@ -192,7 +207,7 @@ export default {
         let task = this.tasksDict[idx];
 
         // Append at the end of the group
-        if (task.row <= group.timeline_row + group.rows) {
+        if (task.row < group.timeline_row + group.rows - 1) {
           continue;
         }
 
@@ -357,6 +372,7 @@ export default {
     };
   },
   components: {
+    TextEdit,
     TimelineHeader,
     TaskDataPanel,
     List,
@@ -386,7 +402,7 @@ export default {
 }
 
 .parent-container {
- /* background-color: #F00; */
+  /* background-color: #F00; */
 }
 
 .filler-container {
