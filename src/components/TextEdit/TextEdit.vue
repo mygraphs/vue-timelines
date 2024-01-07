@@ -1,32 +1,34 @@
 <template>
   <div>
     <!-- Display text or input based on editMode -->
-    <span v-if="!editMode" @click="enterEditMode">
+    <span v-if="!editMode" @click.prevent="enterEditMode">
       <b
         ><slot name="textFormat">{{ internalText }}</slot></b
       >
     </span>
-    <input
-      ref="editorElement"
-      v-else
-      type="text"
-      v-model="tempText"
-      @blur="saveText"
-      @keyup.enter="saveText"
-      @keyup.esc="cancelEdit"
-    />
+    <span v-else>
+      <input
+        ref="editorElement"
+        type="text"
+        v-model="tempText"
+        @blur="saveText"
+        @keyup.enter="saveText"
+        @keyup.esc="cancelEdit"
+      />
+    </span>
   </div>
 </template>
 
 <script>
-import { nextTick } from 'vue';
+import { nextTick } from "vue";
+import { clickOutside } from "@/utils/listener";
 
 export default {
   name: "TextEdit",
   props: {
     edit: {
       type: Boolean,
-      required: true,
+      required: false,
     },
     field: {
       type: String,
@@ -41,6 +43,16 @@ export default {
       required: false,
       default: true,
     },
+    cancelClickOutside: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    autoFocusOnEdit: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   mounted() {
     this.tempText = this.defaultText;
@@ -49,6 +61,7 @@ export default {
     return {
       tempText: "Init", // Temporary holder for text while editing
       editMode: false, // Whether the text is in edit mode
+      documentEventListener: null,
     };
   },
   watch: {
@@ -58,14 +71,20 @@ export default {
     },
     edit(newVal) {
       console.log("SEND TO EDIT " + newVal);
-      if (newVal)
-        this.enterEditMode();
-      else
-        this.cancelEdit();
+      if (newVal) this.enterEditMode();
+      else this.cancelEdit();
     },
   },
+  beforeUnmount() {
+    if (this.documentEventListener)
+      document.removeEventListener("click", this.documentEventListener);
+  },
   methods: {
-    enterEditMode() {
+    enterEditMode(e) {
+      if (e) {
+        e.stopPropagation();
+      }
+
       console.log("ENTER EDIT MODE " + this.tempText);
       this.editMode = true;
 
@@ -74,14 +93,22 @@ export default {
 
       // We have to wait for next tick so the input exists to focus on it.
       nextTick(() => {
-        this.$refs.editorElement.focus();
+        let el = this.$refs.editorElement;
+        if (this.autoFocusOnEdit)
+          el.focus();
+
+        console.log(" Register click ");
+        if (this.cancelClickOutside)
+          this.documentEventListener = clickOutside(el, () => {
+            console.log(" Cancel click ");
+            this.cancelEdit();
+          });
       });
     },
     saveText() {
       console.log("SAVE TEXT [" + this.tempText + "]");
 
-      if (this.trimText)
-        this.tempText = this.tempText.trim();
+      if (this.trimText) this.tempText = this.tempText.trim();
 
       this.$emit("update:newValue", this.tempText); // Update the text
       this.editMode = false; // Switch back to view mode
@@ -99,15 +126,15 @@ export default {
 <style scoped>
 /* Add styles if needed */
 
-input[type=text] {
-	appearance: none;
-	border: none;
-	outline: none;
+input[type="text"] {
+  appearance: none;
+  border: none;
+  outline: none;
   width: 100%;
 
-	border-bottom: .2em solid #E91E63;
-	border-radius: .2em .2em 0 0;
-	padding: .4em;
-	color: #E91E63;
+  border-bottom: 0.2em solid #e91e63;
+  border-radius: 0.2em 0.2em 0 0;
+  padding: 0.4em;
+  color: #e91e63;
 }
 </style>
