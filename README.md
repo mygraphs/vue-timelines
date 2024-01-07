@@ -26,6 +26,40 @@ npm install vue-timelines --save
 </script>
 ```
 
+## Description
+
+#### Timeline and Calendar Grid
+
+The top of the interface features a timeline, marked with dates and days, that spans across several months. The calendar's grid allows for a visual representation of time, with vertical lines indicating days and thicker lines denoting the start of a new week.
+
+#### Task Bars
+Tasks are represented by horizontal bars that span the width of the timeline correlating to the task's duration. Each task bar is color-coded, possibly to represent different project stages or priorities.
+
+#### Grouping
+The tasks are organized into groups, as indicated by the headers on the left side (e.g., "group 01," "group 02"). This could represent different teams, project categories, or other organizational divisions.
+
+#### Progress Indicators
+Some tasks have a percentage completion indicator on the bar, such as "50%" or "80%," showing how much of the task has been completed.
+
+#### Task Interaction
+There are circular handles on either end of the task bars, suggesting that users can click and drag to adjust the start and end dates of each task. Additionally, hovering over a task bar reveals a tooltip with more details and further interaction options, such as editing task properties or progress.
+
+#### Control Panel
+On the top right, there is a control panel with various buttons, including "Daily," "Zoom -/+," "Reset," "Height -/+," and "Today," which provide different ways to view and navigate the timeline.
+
+#### Task Details Sidebar
+To the right, there's a sidebar with details about a selected task. This sidebar includes fields for the task name, start and end times, and a progress bar. There are "Update" and "Cancel" buttons, presumably to confirm or discard changes made to the task details.
+
+#### Design Aesthetics
+The interface has a simple and clean design, using a contrasting color palette where the tasks stand out against the lighter background of the calendar.
+
+#### Application Branding
+The top left corner features the application name "vue-timelines," suggesting that this interface may be built using the Vue.js framework.
+
+Overall, the interface appears to be a web-based tool designed for tracking project timelines and tasks, providing users with an intuitive and interactive way to manage work over a period.
+
+(according to chatGPT by uploading a picture to it)
+
 ## 🔧 Requirements
 
 Needed node 18.12 for vue3datepicker
