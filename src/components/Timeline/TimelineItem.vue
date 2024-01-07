@@ -50,11 +50,7 @@ import eventBus from "../eventBus.js";
 
 import dayjs from "dayjs";
 
-import {
-  cellSize,
-  headerHeight,
-  cellHeight,
-} from "@/contexts/CellSizeContext";
+import { cellSize, headerHeight, cellHeight } from "@/contexts/CellSizeContext";
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 
@@ -117,7 +113,16 @@ export default {
       }
       return true;
     },
-
+    selectorMargin: function () {
+      let w = Math.round(this.cellHeight / 2);
+      if (w < 14) w = 14;
+      return -w + "px";
+    },
+    selectorWidth: function () {
+      let w = Math.round(this.cellHeight / 2);
+      if (w < 12) w = 12;
+      return w + "px";
+    },
     borderWidth: function () {
       // We don't display the border if the icon is not visible so we can see it well.
       if (!this.iconVisible) return "0px";
@@ -505,7 +510,7 @@ export default {
     },
   },
   watch: {
-    cellHeight: function() {
+    cellHeight: function () {
       this.invalidate();
     },
     calendarInit: function () {
@@ -516,9 +521,9 @@ export default {
     },
     // We invalidate the view when the task changes
     // We have to recalculate everything, positions and progress, etc.
-    task: function() {
+    task: function () {
       this.invalidate();
-    }
+    },
   },
   mounted() {
     this.invalidate();
@@ -610,13 +615,13 @@ export default {
   margin: 2px 0;
   top: -4px;
   height: 110%;
-  width: 12px;
+  width: v-bind(selectorWidth);
   display: flex;
   align-items: center;
   z-index: 10;
   cursor: ew-resize;
   background-color: rgba(160, 160, 160, 0.7);
-  border-radius: 1px;
+  border-radius: 2px;
   z-index: 10001 !important;
 }
 
@@ -644,11 +649,11 @@ export default {
 }
 
 .task_resize--left {
-  left: -16px;
+  left: v-bind(selectorMargin);
 }
 
 .task_resize--right {
-  right: -16px;
+  right: v-bind(selectorMargin);
 }
 
 .task__state--info {

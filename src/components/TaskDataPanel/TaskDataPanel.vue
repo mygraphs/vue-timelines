@@ -24,7 +24,9 @@
       <div v-if="!isEdit">
         <i class="fa fa-edit fa-pull-right" @click="isEdit = true" />
       </div>
-      <h1 style="visibility: hidden;">TASK</h1>
+      <div v-else>
+        <i class="fa fa-close fa-pull-right" @click="isEdit = false" />
+      </div>
       <TextEdit
         :edit="isEdit"
         :defaultText="title"
@@ -37,21 +39,24 @@
         <template v-slot:inputFormat> </template>
       </TextEdit>
       <div>
-        <div>
-          <b>START:</b>
-          <div v-if="isEdit">
+        <div class="flex-grid">
+          <div class="coll">
+            <b> START </b>
+          </div>
+          <div v-if="isEdit" class="colr">
             <VueDatePicker
               :model-value="compStartDate"
               @update:model-value="setStartDate"
             />
           </div>
+
           <div v-else>
             {{ creationDateText }}
           </div>
         </div>
-        <div>
-          <b>END:</b>
-          <div v-if="isEdit">
+        <div class="flex-grid">
+          <div class="coll"><b>END: </b></div>
+          <div v-if="isEdit" class="colr">
             <VueDatePicker :model-value="compEndDate" @update:model-value="setEndDate" />
           </div>
           <div v-else>
@@ -59,30 +64,31 @@
           </div>
         </div>
 
-        <div>
-          <b>Progress:</b>
-          <VueSlider
-            v-model="progressPct"
-            style="
-              --tooltip-color: #ffffff;
-              --tooltip-text-color: #000000;
-              --min: 0;
-              --max: 100;
-              --height: 10px;
-            "
-            color="#FB278D"
-            track-color="#FEFEFE"
-          />
+        <div class="flex-grid">
+          <div class="coll">
+            <b>Progress:</b>
+          </div>
+          <div class="colr">
+            <VueSlider
+              v-model="progressPct"
+              style="
+                --tooltip-color: #ffffff;
+                --tooltip-text-color: #000000;
+                --min: 0;
+                --max: 100;
+                --height: 10px;
+              "
+              color="#FB278D"
+              track-color="#FEFEFE"
+            />
+          </div>
         </div>
 
         <div v-if="isEdit">
-          <div>
-            <br />
-            <button class="btn btn-success ml-2" @click="handleSubmit">Update</button>
-            <button class="btn btn-warning fa-pull-right" @click="handleCancel">
-              Cancel
-            </button>
-          </div>
+          <button class="btn btn-success small" @click="handleSubmit">Save</button>
+          <button class="btn btn-warning small fa-pull-right" @click="handleCancel">
+            Cancel
+          </button>
         </div>
       </div>
     </div>
@@ -103,6 +109,8 @@ import { TextEdit } from "@/components";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
+import { mainHeaderHeight } from "@/contexts/CellSizeContext";
+
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
 
@@ -114,6 +122,7 @@ export default {
     VueSlider: slider,
   },
   inject: {
+    mainHeaderHeight,
     updateTask: { from: "updateTask" },
   },
   methods: {
@@ -265,14 +274,22 @@ export default {
 
 <style>
 .task__panel {
+  margin-left: 12px;
+  margin-right: 12px;
+  border-radius: 10px;
+  background: #e0e0e0;
+  padding: 12px;
+
   /* background-color: #fafafa; */
   padding: 12px;
   float: right;
-  max-width: 400px;
+
+  height: v-bind('mainHeaderHeight + "px"');
+  width: 400px;
 }
 
 .task__panel_container {
-  min-width: 300px;
+  min-width: 150px;
   min-height: 100px;
   margin-top: auto;
 }
@@ -280,5 +297,23 @@ export default {
 .task__title {
   font-weight: 500;
   margin: 1rem 0;
+}
+</style>
+
+<style scoped>
+.small {
+  padding: 2px;
+}
+
+.flex-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-grid .coll {
+  width: 20%;
+}
+.flex-grid .colr {
+  width: 80%;
 }
 </style>

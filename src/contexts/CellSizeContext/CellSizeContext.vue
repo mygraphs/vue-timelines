@@ -21,7 +21,7 @@ export default {
     return {
       cellSize: 25,
       minSize: 20,
-      mainHeaderHeight : 100,
+      mainHeaderHeight : 200,
       headerHeight: 75,
       cellHeight: 40,
       height: 0,
