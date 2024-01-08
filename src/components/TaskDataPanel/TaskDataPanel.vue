@@ -205,12 +205,14 @@ export default {
       console.log(" Submit ");
       this.sourceTask = this.inEditTask;
       this.isEdit = false;
+      this.closeParent();
     },
     handleCancel: function () {
       console.log(" Revert into edited task ");
       this.handleTask(this.sourceTask);
       this.commitTask();
       this.isEdit = false;
+      this.closeParent();
     },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
