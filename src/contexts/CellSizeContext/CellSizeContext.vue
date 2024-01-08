@@ -21,9 +21,11 @@ export default {
     return {
       cellSize: 25,
       minSize: 20,
-      mainHeaderHeight : 200,
+      mainHeaderHeight : 70,
       headerHeight: 75,
       cellHeight: 40,
+      minCellHeight: 30,
+      maxCellHeight: 55,
       height: 0,
     };
   },
@@ -74,7 +76,8 @@ export default {
       this.cellHeight = (this.height - this.headerHeight - this.mainHeaderHeight - 17) / this.timelineMaxRow;
 
       // Clamp to minimum size
-      if (this.cellHeight < this.minSize) this.cellHeight = this.minSize;
+      this.cellHeight = Math.max(this.minCellHeight, this.cellHeight);
+      this.cellHeight = Math.min(this.maxCellHeight, this.cellHeight);
 
       //console.log(" NEW CELL SIZE " + this.cellHeight);
       //console.log(" HEIGHT DESIRED " + this.height + " CURRENT " + this.elementHeight);
