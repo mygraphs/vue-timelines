@@ -1,5 +1,27 @@
 <template>
   <div class="parent-container container-fluid">
+      <VueFinalModal
+        v-model="showModal"
+        :drag="true"
+        :fit-parent="false"
+        :click-to-close="false"
+        :fitParent="false"
+        :hide-overlay="true"
+        :focus-retain="false"
+        :focus-trap="false"
+        :esc-to-close="true"
+        :lock-scroll="false"
+        :preventClick="false"
+        attach="body"
+      >
+        <TaskDataPanel
+          ref="taskdata"
+          class="data__panel"
+          @openParent="showModal = true"
+          @closeParent="showModal = false"
+        />
+      </VueFinalModal>
+
     <div>
       <div>
         <TimelineHeader @scrollToday="calendarScrollToday" />
@@ -60,14 +82,13 @@
         </slot>
       </div>
     </div>
-
-    <div class="">
-      <TaskDataPanel ref="taskdata" class="data__panel" />
-    </div>
   </div>
 </template>
 
 <script>
+/* https://v3.vue-final-modal.org/guide/properties */
+import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
+
 /* eslint-disable vue/no-unused-components */
 
 import { reactive } from "vue";
@@ -121,6 +142,7 @@ export default {
   data: function () {
     return {
       initialized: false,
+      showModal: false,
       tasksDict: {}, // Fast search tasks
       groupsDict: {}, // Groups dictionary
       groupsToUse: [], // Display group
@@ -376,6 +398,8 @@ export default {
     };
   },
   components: {
+    VueFinalModal,
+    ModalsContainer,
     TextEdit,
     TimelineHeader,
     TaskDataPanel,
@@ -436,8 +460,51 @@ export default {
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);
 }
+
+/*
+    Hack to make preventClick work on the modal :(
+*/
+.vfm--inset {
+  pointer-events: none;
+}
+
+.vfm__content {
+  pointer-events: auto;
+}
+
 </style>
 
 <style scoped>
+.confirm-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.confirm-modal-content {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 0.5rem;
+}
+.confirm-modal-content > * + * {
+  margin: 0.5rem 0;
+}
+.confirm-modal-content h1 {
+  font-size: 1.375rem;
+}
+.confirm-modal-content button {
+  margin: 0.25rem 0 0 auto;
+  padding: 0 8px;
+  border: 1px solid;
+  border-radius: 0.5rem;
+}
+.dark .confirm-modal-content {
+  background: #000;
+}
+
+.overlay_disabled {
+  visibility: none;
+}
 
 </style>
