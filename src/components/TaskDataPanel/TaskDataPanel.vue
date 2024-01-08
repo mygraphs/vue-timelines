@@ -21,11 +21,12 @@
   </div>
   <div v-else class="task__panel">
     <div class="task__panel_container">
+      <i class="fa fa-close fa-pull-right ml-2" @click="closeParent" />
+
       <div v-if="!isEdit">
         <i class="fa fa-edit fa-pull-right" @click="isEdit = true" />
       </div>
       <div v-else>
-        <i class="fa fa-close fa-pull-right" @click="isEdit = false" />
       </div>
       <TextEdit
         :edit="isEdit"
@@ -126,6 +127,12 @@ export default {
     updateTask: { from: "updateTask" },
   },
   methods: {
+    openParent: function() {
+      this.$emit('OpenParent')
+    },
+    closeParent: function() {
+      this.$emit('CloseParent')
+    },
     setStartDate: function (startDate) {
       console.log(" START DATE CHANGED " + startDate);
       this.creationDate = startDate / 1000;
@@ -152,6 +159,8 @@ export default {
       });
     },
     handleTask: function (task) {
+      this.openParent();
+
       let newTask = false;
 
       // We detect if we are being provided with a new task.
