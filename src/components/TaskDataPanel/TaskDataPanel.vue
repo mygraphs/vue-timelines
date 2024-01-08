@@ -49,6 +49,7 @@
         </template>
         <template v-slot:inputFormat> </template>
       </TextEdit>
+      <br>
       <div>
         <div class="flex-grid">
           <div class="coll">
@@ -325,7 +326,7 @@ export default {
   padding: 12px;
   float: right;
 
-  height: 300px;
+  height: 320px;
   width: 400px;
 
   position: absolute;
@@ -350,6 +351,8 @@ export default {
 <style scoped>
 .small {
   padding: 2px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .flex-grid {
