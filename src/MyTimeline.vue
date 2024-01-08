@@ -1,63 +1,68 @@
 <template>
   <div class="parent-container container-fluid">
     <div>
-      <TaskDataPanel ref="taskdata" />
-      <TimelineHeader @scrollToday="calendarScrollToday" />
+      <div>
+        <TimelineHeader @scrollToday="calendarScrollToday" />
+      </div>
+
+      <div class="main-container" @scroll="handleScroll">
+        <slot>
+          <template v-if="groups">
+            <List class="timeline__group">
+              <ListHeader></ListHeader>
+              <ListRow v-for="group in groupsToUse" :key="group.id">
+                <small>
+                  <span style="font-weight: bold">
+                    <TextEdit
+                      :defaultText="group.name"
+                      v-model:newValue="group.name"
+                      field="group_name"
+                      style="max-width: 100px"
+                      :cancelClickOutside="true"
+                      ><template v-slot:textFormat>
+                        {{ group.name }}
+                      </template>
+                      <template v-slot:inputFormat> </template>
+                    </TextEdit>
+                  </span>
+                  {{ group.color_name }}
+                </small>
+              </ListRow>
+            </List>
+
+            <Timeline ref="timeline">
+              <template v-for="group in groupsToUse" :key="group.id">
+                <TimelineRow :group="group" :rowid="group.id">
+                  <!--
+              -->
+                </TimelineRow>
+              </template>
+              <template v-for="task in tasksArray" :key="task.id">
+                <TimelineItem
+                  v-bind:task="task"
+                  :row="task.row"
+                  :ref="getRef(task.group_id, task.id)"
+                >
+                  <template v-slot:task_text>
+                    <small>
+                      {{ task.title }}
+                    </small>
+                  </template>
+                  <template v-slot:taskInfo>
+                    <span class="task_icon_font">
+                      {{ Math.round(task.progress * 100) }}%
+                    </span>
+                  </template>
+                </TimelineItem>
+              </template>
+            </Timeline>
+          </template>
+        </slot>
+      </div>
     </div>
 
-    <div class="main-container" @scroll="handleScroll">
-      <slot>
-        <template v-if="groups">
-          <List class="timeline__group">
-            <ListHeader></ListHeader>
-            <ListRow v-for="group in groupsToUse" :key="group.id">
-              <small>
-                <span style="font-weight: bold">
-                  <TextEdit
-                    :defaultText="group.name"
-                    v-model:newValue="group.name"
-                    field="group_name"
-                    style="max-width: 100px"
-                    :cancelClickOutside="true"
-                    ><template v-slot:textFormat>
-                      {{ group.name }}
-                    </template>
-                    <template v-slot:inputFormat> </template>
-                  </TextEdit>
-                </span>
-                {{ group.color_name }}
-              </small>
-            </ListRow>
-          </List>
-
-          <Timeline ref="timeline">
-            <template v-for="group in groupsToUse" :key="group.id">
-              <TimelineRow :group="group" :rowid="group.id">
-                <!--
-              -->
-              </TimelineRow>
-            </template>
-            <template v-for="task in tasksArray" :key="task.id">
-              <TimelineItem
-                v-bind:task="task"
-                :row="task.row"
-                :ref="getRef(task.group_id, task.id)"
-              >
-                <template v-slot:task_text>
-                  <small>
-                    {{ task.title }}
-                  </small>
-                </template>
-                <template v-slot:taskInfo>
-                  <span class="task_icon_font">
-                    {{ Math.round(task.progress * 100) }}%
-                  </span>
-                </template>
-              </TimelineItem>
-            </template>
-          </Timeline>
-        </template>
-      </slot>
+    <div class="">
+      <TaskDataPanel ref="taskdata" class="data__panel" />
     </div>
   </div>
 </template>
@@ -431,4 +436,8 @@ export default {
   border-right: 1px solid rgba(177, 184, 189, 0.45);
   border-bottom: 1px solid rgb(226, 226, 226);
 }
+</style>
+
+<style scoped>
+
 </style>

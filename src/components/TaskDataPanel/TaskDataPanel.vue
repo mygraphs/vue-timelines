@@ -284,8 +284,12 @@ export default {
   padding: 12px;
   float: right;
 
-  height: v-bind('mainHeaderHeight + "px"');
+  height: 300px;
   width: 400px;
+
+  position: absolute;
+  top: 100px;
+  left: 50px;
 }
 
 .task__panel_container {
