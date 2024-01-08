@@ -21,13 +21,23 @@
   </div>
   <div v-else class="task__panel">
     <div class="task__panel_container">
-      <i class="fa fa-close fa-pull-right ml-2" @click="closeParent" />
+      <div class="task__panel_header">
+        <i
+          class="fa fa-close fa-pull-right ml-2"
+          @click.stop.prevent="closeParent"
+          style="cursor: pointer; padding: 5px"
+        />
 
-      <div v-if="!isEdit">
-        <i class="fa fa-edit fa-pull-right" @click="isEdit = true" />
+        <div v-if="!isEdit">
+          <i
+            class="fa fa-edit fa-pull-right"
+            @click.stop.prevent="isEdit = true"
+            style="cursor: pointer; padding: 5px"
+          />
+        </div>
+        <div v-else></div>
       </div>
-      <div v-else>
-      </div>
+      <br />
       <TextEdit
         :edit="isEdit"
         :defaultText="title"
@@ -64,6 +74,7 @@
             {{ dueDateText }}
           </div>
         </div>
+        <br />
 
         <div class="flex-grid">
           <div class="coll">
@@ -79,11 +90,18 @@
                 --max: 100;
                 --height: 10px;
               "
+              :alwaysShowHandle="true"
               color="#FB278D"
               track-color="#FEFEFE"
+              @touchstart.stop="console.log('touch')"
+              @mousedown.stop="console.log('mousedown')"
+              @mouseenter.stop="console.log('mouseenter')"
+              @mouseleave.stop="console.log('mouseleave')"
             />
           </div>
         </div>
+
+        <br />
 
         <div v-if="isEdit">
           <button class="btn btn-success small" @click="handleSubmit">Save</button>
@@ -127,11 +145,11 @@ export default {
     updateTask: { from: "updateTask" },
   },
   methods: {
-    openParent: function() {
-      this.$emit('OpenParent')
+    openParent: function () {
+      this.$emit("OpenParent");
     },
-    closeParent: function() {
-      this.$emit('CloseParent')
+    closeParent: function () {
+      this.$emit("CloseParent");
     },
     setStartDate: function (startDate) {
       console.log(" START DATE CHANGED " + startDate);
@@ -282,14 +300,26 @@ export default {
 </script>
 
 <style>
+.task__panel_header {
+  height: 10px;
+  z-index: 100;
+}
+
+.task__panel:before {
+}
+
 .task__panel {
   margin-left: 12px;
   margin-right: 12px;
   border-radius: 10px;
-  background: #e0e0e0;
   padding: 12px;
 
-  /* background-color: #fafafa; */
+  border: 1px;
+  border-color: #000;
+  border-style: solid;
+
+  background-color: #fafafa;
+
   padding: 12px;
   float: right;
 
@@ -299,6 +329,8 @@ export default {
   position: absolute;
   top: 100px;
   left: 50px;
+
+  border: 1px solid black;
 }
 
 .task__panel_container {
