@@ -61,16 +61,16 @@
             />
           </div>
 
-          <div v-else>
+          <div v-else  class="colr">
             {{ creationDateText }}
           </div>
         </div>
         <div class="flex-grid">
-          <div class="coll"><b>END: </b></div>
+          <div class="coll"><b>END </b></div>
           <div v-if="isEdit" class="colr">
             <VueDatePicker :model-value="compEndDate" @update:model-value="setEndDate" />
           </div>
-          <div v-else>
+          <div v-else class="colr">
             {{ dueDateText }}
           </div>
         </div>
