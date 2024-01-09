@@ -1,114 +1,119 @@
 <template>
-  <div v-if="groupId === null" class="task__panel">
-    <div class="task__panel_container">
-      <div style="max-width: 300px">
-        <h1>HELP</h1>
+  <div ref="ref_task_panel">
+    <div v-if="groupId === null" class="task__panel">
+      <div class="task__panel_container">
+        <div style="max-width: 300px">
+          <h1>HELP</h1>
 
-        <p>
-          <i class="fa fa-square fa-xs" />
-          Select a task to resize.
-        </p>
-        <p>
-          <i class="fa fa-square fa-xs" />
-          Double click edits the task.
-        </p>
-        <p>
-          <i class="fa fa-square fa-xs" />
-          Double click on an empty space creates a new task.
-        </p>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Select a task to resize.
+          </p>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Double click edits the task.
+          </p>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Double click on an empty space creates a new task.
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-  <div v-else class="task__panel">
-    <div class="task__panel_container">
-      <div class="task__panel_header">
-        <i
-          class="fa fa-close fa-pull-right ml-2"
-          @click.stop.prevent="closeParent"
-          style="cursor: pointer; padding: 5px"
-        />
-
-        <div v-if="!isEdit">
+    <div v-else class="task__panel">
+      <div class="task__panel_container">
+        <div class="task__panel_header">
           <i
-            class="fa fa-edit fa-pull-right"
-            @click.stop.prevent="isEdit = true"
+            class="fa fa-close fa-pull-right ml-2"
+            @click.stop.prevent="closeParent"
             style="cursor: pointer; padding: 5px"
           />
-        </div>
-        <div v-else></div>
-      </div>
-      <br />
-      <TextEdit
-        :edit="isEdit"
-        :defaultText="title"
-        v-model:newValue="title"
-        field="title"
-      >
-        <template v-slot:textFormat>
-          <h2>{{ title }}</h2>
-        </template>
-        <template v-slot:inputFormat> </template>
-      </TextEdit>
-      <br>
-      <div>
-        <div class="flex-grid">
-          <div class="coll">
-            <b> START </b>
-          </div>
-          <div v-if="isEdit" class="colr">
-            <VueDatePicker
-              :model-value="compStartDate"
-              @update:model-value="setStartDate"
+
+          <div v-if="!isEdit">
+            <i
+              class="fa fa-edit fa-pull-right"
+              @click.stop.prevent="isEdit = true"
+              style="cursor: pointer; padding: 5px"
             />
           </div>
-
-          <div v-else  class="colr">
-            {{ creationDateText }}
-          </div>
-        </div>
-        <div class="flex-grid">
-          <div class="coll"><b>END </b></div>
-          <div v-if="isEdit" class="colr">
-            <VueDatePicker :model-value="compEndDate" @update:model-value="setEndDate" />
-          </div>
-          <div v-else class="colr">
-            {{ dueDateText }}
-          </div>
+          <div v-else></div>
         </div>
         <br />
-
-        <div class="flex-grid">
-          <div class="coll">
-            <b>Progress:</b>
-          </div>
-          <div class="colr">
-            <VueSlider
-              v-model="progressPct"
-              style="
-                --tooltip-color: #ffffff;
-                --tooltip-text-color: #000000;
-                --min: 0;
-                --max: 100;
-                --height: 10px;
-              "
-              :alwaysShowHandle="true"
-              color="#FB278D"
-              track-color="#FEFEFE"
-              @touchstart.stop="console.log('touch')"
-              @mousedown.stop="console.log('mousedown')"
-              @mouseenter.stop="console.log('mouseenter')"
-              @mouseleave.stop="console.log('mouseleave')"
-            />
-          </div>
-        </div>
-
+        <TextEdit
+          :edit="isEdit"
+          :defaultText="title"
+          v-model:newValue="title"
+          field="title"
+        >
+          <template v-slot:textFormat>
+            <h2>{{ title }}</h2>
+          </template>
+          <template v-slot:inputFormat> </template>
+        </TextEdit>
         <br />
+        <div>
+          <div class="flex-grid">
+            <div class="coll">
+              <b> START </b>
+            </div>
+            <div v-if="isEdit" class="colr">
+              <VueDatePicker
+                :model-value="compStartDate"
+                @update:model-value="setStartDate"
+              />
+            </div>
 
-        <div v-if="isEdit">
-          <button class="btn btn-success small" @click="handleSubmit">Save</button>
-          <button class="btn btn-warning small fa-pull-right" @click="handleCancel">
-            Cancel
-          </button>
+            <div v-else class="colr">
+              {{ creationDateText }}
+            </div>
+          </div>
+          <div class="flex-grid">
+            <div class="coll"><b>END </b></div>
+            <div v-if="isEdit" class="colr">
+              <VueDatePicker
+                :model-value="compEndDate"
+                @update:model-value="setEndDate"
+              />
+            </div>
+            <div v-else class="colr">
+              {{ dueDateText }}
+            </div>
+          </div>
+          <br />
+
+          <div class="flex-grid">
+            <div class="coll">
+              <b>Progress:</b>
+            </div>
+            <div class="colr">
+              <VueSlider
+                v-model="progressPct"
+                style="
+                  --tooltip-color: #ffffff;
+                  --tooltip-text-color: #000000;
+                  --min: 0;
+                  --max: 100;
+                  --height: 10px;
+                "
+                :alwaysShowHandle="true"
+                color="#FB278D"
+                track-color="#FEFEFE"
+                @touchstart.stop="console.log('touch')"
+                @mousedown.stop="console.log('mousedown')"
+                @mouseenter.stop="console.log('mouseenter')"
+                @mouseleave.stop="console.log('mouseleave')"
+              />
+            </div>
+          </div>
+
+          <br />
+
+          <div v-if="isEdit">
+            <button class="btn btn-success small" @click="handleSubmit">Save</button>
+            <button class="btn btn-warning small fa-pull-right" @click="handleCancel">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -129,7 +134,7 @@ import { TextEdit } from "@/components";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
-import { mainHeaderHeight } from "@/contexts/CellSizeContext";
+import { mainHeaderHeight, cellHeight, cellSize } from "@/contexts/CellSizeContext";
 
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
@@ -143,6 +148,8 @@ export default {
   },
   inject: {
     mainHeaderHeight,
+    cellHeight,
+    cellSize,
     updateTask: { from: "updateTask" },
   },
   methods: {
@@ -166,6 +173,7 @@ export default {
     handleTaskEditCancel: function (task) {
       console.log(" CANCEL TASK EDIT ");
       this.isEdit = false;
+      this.closeParent();
     },
     handleTaskEdit: function (task) {
       console.log(" SET EDIT " + task.title);
@@ -215,6 +223,18 @@ export default {
       this.isEdit = false;
       this.closeParent();
     },
+    handleTaskPosition: function (e) {
+      // When the task is created we position it where the mouse is.
+      let me = this.$refs.ref_task_panel;
+      let rect = me.getBoundingClientRect();
+
+      // Readjust to screen coordinates
+      var screenX = rect.left + window.scrollX;
+      var screenY = rect.top + window.scrollY;
+
+      this.pos_x = e.clientX - screenX //- this.cellSize / 4;
+      this.pos_y = e.clientY - screenY + this.cellHeight / 2;
+    },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
       let task = {
@@ -242,11 +262,13 @@ export default {
     eventBus.on("taskdatapanel", this.handleTask);
     eventBus.on("taskdatapanel-edit", this.handleTaskEdit);
     eventBus.on("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
+    eventBus.on("taskdatapanel-position", this.handleTaskPosition);
   },
   beforeUnmount() {
     eventBus.off("taskdatapanel", this.handleTask);
     eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
     eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
+    eventBus.off("taskdatapanel-position", this.handleTaskPosition);
   },
   computed: {
     creationDateText() {
@@ -293,6 +315,9 @@ export default {
       creationDate: null,
       dueDate: null,
 
+      pos_x: 0,
+      pos_y: 0,
+
       // Converted from progress which is 0..1
       progressPct: 0,
       sourceTask: null,
@@ -330,8 +355,9 @@ export default {
   width: 400px;
 
   position: absolute;
-  top: 100px;
-  left: 50px;
+
+  left: v-bind('pos_x + "px"');
+  top: v-bind('pos_y + "px"');
 
   border: 1px solid black;
 }
