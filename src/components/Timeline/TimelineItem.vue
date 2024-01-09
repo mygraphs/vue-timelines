@@ -199,7 +199,7 @@ export default {
       eventBus.emit("taskdatapanel-edit", this.task);
     },
 
-    handleResizeOpen: function () {
+    handleResizeOpen: function (e) {
       this.showResizes = true;
       this.dragging = true;
       this.state = "info";
@@ -220,6 +220,8 @@ export default {
       });
 
       eventBus.emit("selected-timeline-item", this.task);
+      eventBus.emit("taskdatapanel-position", e);
+
       eventBus.emit("taskdatapanel", this.task);
     },
 
@@ -305,6 +307,8 @@ export default {
         console.log(" PRESSED ESC KEY ");
         this.isValidDrop = false;
         this.handleResizeClose();
+
+        eventBus.emit("taskdatapanel-edit-cancel", null);
       }
     },
 
