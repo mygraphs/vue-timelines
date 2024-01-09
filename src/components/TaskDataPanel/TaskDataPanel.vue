@@ -35,6 +35,13 @@
               @click.stop.prevent="isEdit = true"
               style="cursor: pointer; padding: 5px"
             />
+<!--
+            <i
+              class="fa fa-thumbtack ml-2"
+              @click.stop.prevent="closeParent"
+              style="cursor: pointer; padding: 5px"
+            />
+-->
           </div>
           <div v-else></div>
         </div>
@@ -232,7 +239,7 @@ export default {
       var screenX = rect.left + window.scrollX;
       var screenY = rect.top + window.scrollY;
 
-      this.pos_x = e.clientX - screenX //- this.cellSize / 4;
+      this.pos_x = e.clientX - screenX; //- this.cellSize / 4;
       this.pos_y = e.clientY - screenY + this.cellHeight / 2;
     },
     commitTask: function () {
