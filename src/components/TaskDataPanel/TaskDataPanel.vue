@@ -129,14 +129,14 @@
 
 <script>
 import dayjs from "dayjs";
-import slider from "vue3-slider";
+import vue3slider from "vue3-slider";
 
 import * as localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
 
 import { nextTick } from "vue";
-import { TextEdit } from "@/components";
+import { TextEdit } from "@/components/TextEdit/";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
@@ -151,7 +151,7 @@ export default {
   components: {
     TextEdit,
     VueDatePicker,
-    VueSlider: slider,
+    VueSlider: vue3slider,
   },
   inject: {
     mainHeaderHeight,

@@ -1,8 +1,12 @@
 // store.js
 import { createStore } from 'vuex';
+
+import api from './modules/api.js'
+import foo from './modules/foo.js'
+
 import * as date from "@/utils/date";
 
-export default createStore({
+const root = {
   state() {
     return {
       calendarInit: 0,
@@ -75,5 +79,13 @@ export default createStore({
 
       return Math.floor(date.getDiffDays(state.calendarInit, now) / state.cellDays);
     },
+  },
+
+  modules: {
+    api: api,
+    foo: foo,
   }
-});
+};
+
+export default createStore(root);
+

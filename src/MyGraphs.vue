@@ -1,5 +1,5 @@
 <template>
-  <div class="MyGraph">
+<div class="MyGraph">
     <CalendarContext>
       <CellSizeContext :desiredHeight="desiredHeight">
         <MyTimeline :groups="groups" :tasks="tasks">

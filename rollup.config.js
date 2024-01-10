@@ -4,6 +4,7 @@ import alias from "@rollup/plugin-alias";
 import buble from "@rollup/plugin-buble";
 import postcss from "rollup-plugin-postcss";
 import replace from "@rollup/plugin-replace";
+import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import { terser } from "rollup-plugin-terser";
 
@@ -18,6 +19,7 @@ export default {
     globals: {
       vue: "Vue",
       dayjs: "dayjs",
+      vue3slider: "vue3-slider",
     },
   },
   plugins: [
@@ -49,10 +51,11 @@ export default {
         isProduction: true,
       },
     }),
+    commonjs(),
     postcss({}),
     buble({
       objectAssign: "Object.assign",
-      transforms: { forOf: false, asyncAwait: false  },
+      transforms: {  generator: false, forOf: false, asyncAwait: false  },
     }),
     terser({ output: { ecma: 5 } }),
   ],

@@ -3,7 +3,7 @@
   "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.1.21",
+  "version": "0.2.01",
   "private": false,
   "main": "dist/vue-timelines.umb.js",
   "module": "dist/vue-timelines.esm.js",
@@ -39,6 +39,7 @@
   "devDependencies": {
     "@rollup/plugin-alias": "^3.1.9",
     "@rollup/plugin-buble": "^0.21.3",
+    "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-node-resolve": "^13.3.0",
     "@rollup/plugin-replace": "^4.0.0",
     "@vue/cli-plugin-babel": "~4.5.13",

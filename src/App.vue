@@ -148,7 +148,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["isDebug"]),
+    ...mapState(["isDebug", "api"]),
   },
   methods: {
     listTasks: function () {
@@ -186,6 +186,9 @@ export default {
     });
 
     resizeObserver.observe(observedElement);
+
+    this.$store.dispatch("api/test");
+    //this.$store.dispatch("api/test");
   },
   components: {
     MyGraphs,
