@@ -89,75 +89,78 @@ npm install
 </template>
 
 <script>
-import MyGraphs from "./MyGraphs";
+import vue-timelines from "./vue-timelines";
 
 export default {
   name: "App",
   data() {
-    return {
+    return  {
+      tasks: [
+        {
+          id: "01",
+          group_id: "1",
+          title: "Test task 01",
+          creationDate: 1641437099,
+          dueDate: 1651805099,
+          progress: 0.8,
+          priority: 0,
+        },
+        {
+          id: "02",
+          group_id: "1",
+          title: "Test task 02",
+          creationDate: 1643856299,
+          dueDate: 1649126699,
+          progress: 0.5,
+          priority: 1,
+        },
+        {
+          id: "03",
+          group_id: "2",
+          title: "Test task 03",
+          creationDate: 1649041200,
+          dueDate: 1650510000,
+          progress: 0.8,
+          priority: 0,
+        },
+        {
+          id: "07",
+          group_id: "3",
+          title: "Test task 07",
+          creationDate: 1642737099,
+          dueDate: 1651805099,
+          progress: 1.0,
+          priority: 0,
+        },
+        {
+          id: "09",
+          group_id: "4",
+          title: "Test task 09",
+          creationDate: 1649031200,
+          dueDate: 1649410000,
+          progress: 0.8,
+          priority: 1,
+        },
+      ],
       groups: [
         {
           name: "group 01",
           id: "1",
-          tasks: [
-            {
-              id: "01",
-              title: "Test task 01",
-              creationDate: 1641437099,
-              dueDate: 1651805099,
-              progress: 0.8,
-              priority: 1,
-            },
-            {
-              id: "02",
-              title: "Test task 02",
-              creationDate: 1643856299,
-              dueDate: 1649126699,
-              progress: 0.5,
-              priority: 2,
-            },
-          ],
         },
         {
           name: "group 02",
           id: "2",
-          tasks: [
-            {
-              id: "03",
-              title: "Test task 03",
-              creationDate: 1649041200,
-              dueDate: 1650510000,
-              progress: 0.8,
-              priority: 1,
-            },
-            {
-              id: "04",
-              title: "Test task 04",
-              creationDate: 1650596400,
-              dueDate: 1651374000,
-              progress: 0.5,
-              priority: 2,
-            },
-            {
-              id: "05",
-              title: "Test task 05",
-              creationDate: 1651719600,
-              dueDate: 1651892400,
-              progress: 0.5,
-              priority: 2,
-            },
-            {
-              id: "06",
-              title: "Test task 06",
-              creationDate: 1652151600,
-              dueDate: 1652324400,
-              progress: 0.5,
-              priority: 1,
-            },
-          ],
+        },
+        {
+          name: "group 03",
+          id: "3",
+        },
+        {
+          name: "group 04",
+          id: "4",
         },
       ],
-    };
+    },
   },
   methods: {
     handleUpdatedTasks: function ({ tasksUpdated, tasks }) {

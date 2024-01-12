@@ -3,7 +3,7 @@
   "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.2.01",
+  "version": "0.2.1",
   "private": false,
   "main": "dist/vue-timelines.umb.js",
   "module": "dist/vue-timelines.esm.js",
@@ -85,5 +85,13 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mygraphs/vue-timelines.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mygraphs/vue-timelines/issues"
+  },
+  "homepage": "https://github.com/mygraphs/vue-timelines#readme"
 }

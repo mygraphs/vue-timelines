@@ -1,13 +1,20 @@
 export default {
     namespaced: true,
-    state: {
-        firstName: 'John',
-        lastName: 'Doe'
+    state() {
+        return {
+            groups: [],
+            tasksDict: {},
+        };
     },
     getters: {
-        fullName: function(state) {
-            return `${state.firstName} ${state.lastName}`
-        }
+        groups: function(state) {
+            debugger;
+            return this.groups;
+        },
+        tasks: function(state) {
+            debugger;
+            return this.tasksDict;
+        }        
     },
     actions: {
         test() {
@@ -20,12 +27,7 @@ console.log("EXPORT API");
 /*
 export const apiService = {
     namespace: true,
-    state() {
-        return {
-            groups: [],
-            tasksDict: {},
-        };
-    },
+
 
     actions: {
         test() {
