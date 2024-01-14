@@ -1,7 +1,7 @@
 <template>
-<div class="MyGraph">
+<div class="MyGraph" style="height: 100%">
     <CalendarContext>
-      <CellSizeContext :desiredHeight="desiredHeight">
+      <CellSizeContext :desiredHeight="desiredHeight" style="height: 100%">
         <MyTimeline :groups="groups" :tasks="tasks">
           <slot />
         </MyTimeline>
@@ -54,5 +54,6 @@ export default {
   padding: 0;
   margin: 0;
   background-color: #f8f9fc;
+  height: 100vh;
 }
 </style>

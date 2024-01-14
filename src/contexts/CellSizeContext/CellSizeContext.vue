@@ -25,7 +25,7 @@ export default {
       headerHeight: 75,
       cellHeight: 40,
       minCellHeight: 30,
-      maxCellHeight: 55,
+      maxCellHeight: 75,
       height: 0,
     };
   },
@@ -78,6 +78,9 @@ export default {
       // Clamp to minimum size
       this.cellHeight = Math.max(this.minCellHeight, this.cellHeight);
       this.cellHeight = Math.min(this.maxCellHeight, this.cellHeight);
+
+      if (this.cellHeight == this.maxCellHeight)
+        console.log(" MAX REACHED ");
 
       //console.log(" NEW CELL SIZE " + this.cellHeight);
       //console.log(" HEIGHT DESIRED " + this.height + " CURRENT " + this.elementHeight);

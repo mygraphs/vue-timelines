@@ -4,7 +4,7 @@
       ref="createTimeline"
       class="form__create__panel"
       @openParent="showModal = true"
-      @createNewTimeline="createNewTimeline"
+      @callbackSubmit="createNewTimeline"
       @closeParent="showModal = false"
     />
   </div>
@@ -175,6 +175,10 @@ export default {
   methods: {
     createNewTimeline: function (timeline) {
       console.log("NEW TIMELINE");
+      this.tasks = test.tasks;
+      this.groups = test.groups;
+      this.hasTimeline = true;
+      this.configureHeightResize();
     },
     listTasks: function () {
       for (const key in this.tasks) {
@@ -203,21 +207,25 @@ export default {
       console.log("******* UPDATED TASK " + task.title + " ********** " + task.group_id);
       //this.listTasks();
     },
+    configureHeightResize() {
+      nextTick(() => {
+        const observedElement = this.$refs.myGraphContainer;
+        if (observedElement) {
+          const resizeObserver = new ResizeObserver((entries) => {
+            this.height = observedElement.clientHeight;
+            console.log(" CLIENT HEIGHT " + this.height);
+          });
+
+          resizeObserver.observe(observedElement);
+        }
+      });
+    },
   },
   mounted: function () {
-    const observedElement = this.$refs.myGraphContainer;
-    if (observedElement) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        this.height = observedElement.clientHeight;
-      });
-
-      resizeObserver.observe(observedElement);
-    }
+    //    debugger;
 
     this.$store.dispatch("api/test");
-    this.tasks = test.tasks;
-    this.groups = test.groups;
-    this.hasTimeline = true;
+    if (this.hasTimeline) this.configureHeightResize();
   },
   components: {
     MyGraphs,

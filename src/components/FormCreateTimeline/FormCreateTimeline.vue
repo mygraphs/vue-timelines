@@ -3,8 +3,7 @@
     <div class="create__timeline_panel">
       <div class="create__timeline_panel_container">
         <h2>CREATE NEW TIMELINE</h2>
-        <div class="create__timeline_panel_header">
-        </div>
+        <div class="create__timeline_panel_header"></div>
         <TextEdit
           :edit="true"
           :defaultText="title"
@@ -98,6 +97,7 @@ export default {
     },
     handleSubmit: function () {
       console.log(" Submit to API new timeline ");
+      this.commitTask();
       this.closeParent();
     },
     handleCancel: function () {
@@ -112,17 +112,16 @@ export default {
         dueDate: this.dueDate,
         state: this.state,
       };
+      this.$emit("callbackSubmit", timeline);
     },
     invalidate: function () {
       console.log("Invalidate");
     },
   },
   mounted() {
-    if (!this.creationDate)
-      this.creationDate = new Date() / 1000;
+    if (!this.creationDate) this.creationDate = new Date() / 1000;
 
-    if (!this.dueDate)
-      this.dueDate = new Date() / 1000;
+    if (!this.dueDate) this.dueDate = new Date() / 1000;
 
     this.invalidate();
   },

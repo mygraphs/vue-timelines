@@ -431,6 +431,7 @@ export default {
 }
 
 .parent-container {
+  height: 100%;
   /* background-color: #F00; */
 }
 
