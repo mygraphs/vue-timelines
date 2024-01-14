@@ -37,6 +37,7 @@
                   <span style="font-weight: bold">
                     <TextEdit
                       :defaultText="group.name"
+                      :edit="false"
                       v-model:newValue="group.name"
                       field="group_name"
                       style="max-width: 100px"

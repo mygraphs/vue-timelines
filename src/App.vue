@@ -4,6 +4,7 @@
       ref="createTimeline"
       class="form__create__panel"
       @openParent="showModal = true"
+      @createNewTimeline="createNewTimeline"
       @closeParent="showModal = false"
     />
   </div>
@@ -15,9 +16,11 @@
       :tasks="tasks"
       @update="handleUpdatedTasks"
     />
+    <!--
     <button class="btn btn-success small" @click="hasTimeline = true">
       Create new Timeline
     </button>
+    -->
   </div>
 </template>
 
@@ -170,6 +173,9 @@ export default {
     ...mapState(["isDebug", "api"]),
   },
   methods: {
+    createNewTimeline: function (timeline) {
+      console.log("NEW TIMELINE");
+    },
     listTasks: function () {
       for (const key in this.tasks) {
         const t = this.tasks[key];
@@ -212,7 +218,6 @@ export default {
     this.tasks = test.tasks;
     this.groups = test.groups;
     this.hasTimeline = true;
-
   },
   components: {
     MyGraphs,

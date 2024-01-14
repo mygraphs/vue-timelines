@@ -127,6 +127,9 @@ export default {
       }
     },
     saveText() {
+      if (this.tempText == this.defaultText)
+        return;
+
       console.log("SAVE TEXT [" + this.tempText + "]");
       if (this.tempText == "") {
         // Canceled ? We don't support to leave text empty.
