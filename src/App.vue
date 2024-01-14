@@ -1,16 +1,29 @@
 <template>
-  <div class="graph__container" ref="myGraphContainer">
+  <div v-if="!hasTimeline">
+    <FormCreateTimeline
+      ref="createTimeline"
+      class="form__create__panel"
+      @openParent="showModal = true"
+      @closeParent="showModal = false"
+    />
+  </div>
+
+  <div v-else class="graph__container" ref="myGraphContainer">
     <MyGraphs
       v-model:desiredHeight="height"
       :groups="groups"
       :tasks="tasks"
       @update="handleUpdatedTasks"
     />
+    <button class="btn btn-success small" @click="hasTimeline = true">
+      Create new Timeline
+    </button>
   </div>
 </template>
 
 <script>
 import MyGraphs from "./MyGraphs";
+import { FormCreateTimeline } from "@/components";
 
 var test = {
   tasks: [
@@ -138,13 +151,19 @@ var test = {
 import { mapState } from "vuex";
 import { nextTick } from "vue";
 
+/* https://v3.vue-final-modal.org/guide/properties */
+import { $vfm, VueFinalModal } from "vue-final-modal";
+
 export default {
   name: "App",
   data() {
     return {
-      tasks: test.tasks,
-      groups: test.groups,
+      tasks: null,
+      groups: null,
+      start: null,
+      end: null,
       height: 0,
+      hasTimeline: false,
     };
   },
   computed: {
@@ -181,17 +200,19 @@ export default {
   },
   mounted: function () {
     const observedElement = this.$refs.myGraphContainer;
-    const resizeObserver = new ResizeObserver((entries) => {
-      this.height = observedElement.clientHeight;
-    });
+    if (observedElement) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        this.height = observedElement.clientHeight;
+      });
 
-    resizeObserver.observe(observedElement);
+      resizeObserver.observe(observedElement);
+    }
 
     this.$store.dispatch("api/test");
-    //this.$store.dispatch("api/test");
   },
   components: {
     MyGraphs,
+    FormCreateTimeline,
   },
 };
 </script>
@@ -210,5 +231,10 @@ export default {
 
 .task__content {
   /* background-color: rgba(0, 0, 255, 1); */
+}
+
+.form__create__panel {
+  display: flex;
+  justify-content: center;
 }
 </style>

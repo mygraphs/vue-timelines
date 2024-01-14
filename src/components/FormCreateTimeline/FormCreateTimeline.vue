@@ -1,45 +1,12 @@
 <template>
   <div ref="ref_create_timeline_panel">
-    <div v-if="groupId === null" class="create__timeline_panel">
+    <div class="create__timeline_panel">
       <div class="create__timeline_panel_container">
-        <div style="max-width: 300px">
-          <h1>HELP</h1>
-
-          <p>
-            <i class="fa fa-square fa-xs" />
-            Create a new timeline that will contain all the information
-          </p>
-        </div>
-      </div>
-    </div>
-    <div v-else class="create__timeline_panel">
-      <div class="create__timeline_panel_container">
+        <h2><center>CREATE NEW TIMELINE</center></h2>
         <div class="create__timeline_panel_header">
-          <i
-            class="fa fa-close fa-pull-right ml-2"
-            @click.stop.prevent="closeParent"
-            style="cursor: pointer; padding: 5px"
-          />
-
-          <div v-if="!isEdit">
-            <i
-              class="fa fa-edit fa-pull-right"
-              @click.stop.prevent="isEdit = true"
-              style="cursor: pointer; padding: 5px"
-            />
-<!--
-            <i
-              class="fa fa-thumbtack ml-2"
-              @click.stop.prevent="closeParent"
-              style="cursor: pointer; padding: 5px"
-            />
--->
-          </div>
-          <div v-else></div>
         </div>
-        <br />
         <TextEdit
-          :edit="isEdit"
+          edit="true"
           :defaultText="title"
           v-model:newValue="title"
           field="title"
@@ -55,56 +22,22 @@
             <div class="coll">
               <b> START </b>
             </div>
-            <div v-if="isEdit" class="colr">
+            <div class="colr">
               <VueDatePicker
                 :model-value="compStartDate"
                 @update:model-value="setStartDate"
               />
             </div>
-
-            <div v-else class="colr">
-              {{ creationDateText }}
-            </div>
           </div>
           <div class="flex-grid">
             <div class="coll"><b>END </b></div>
-            <div v-if="isEdit" class="colr">
+            <div class="colr">
               <VueDatePicker
                 :model-value="compEndDate"
                 @update:model-value="setEndDate"
               />
             </div>
-            <div v-else class="colr">
-              {{ dueDateText }}
-            </div>
           </div>
-          <br />
-
-          <div class="flex-grid">
-            <div class="coll">
-              <b>Progress:</b>
-            </div>
-            <div class="colr">
-              <VueSlider
-                v-model="progressPct"
-                style="
-                  --tooltip-color: #ffffff;
-                  --tooltip-text-color: #000000;
-                  --min: 0;
-                  --max: 100;
-                  --height: 10px;
-                "
-                :alwaysShowHandle="true"
-                color="#FB278D"
-                track-color="#FEFEFE"
-                @touchstart.stop="console.log('touch')"
-                @mousedown.stop="console.log('mousedown')"
-                @mouseenter.stop="console.log('mouseenter')"
-                @mouseleave.stop="console.log('mouseleave')"
-              />
-            </div>
-          </div>
-
           <br />
 
           <div v-if="isEdit">
@@ -136,14 +69,12 @@ dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
 
 export default {
-  name: "TaskDataPanel",
+  name: "FormCreateTimeline",
   components: {
     TextEdit,
     VueDatePicker,
   },
-  inject: {
-
-  },
+  inject: {},
   methods: {
     openParent: function () {
       this.$emit("OpenParent");
@@ -241,8 +172,7 @@ export default {
   mounted() {
     this.invalidate();
   },
-  beforeUnmount() {
-  },
+  beforeUnmount() {},
   computed: {
     creationDateText() {
       return dayjs(new Date(this.creationDate * 1000)).format("LLL");
@@ -276,8 +206,8 @@ export default {
   },
   data() {
     return {
-      isEdit: false,
-      title: null,
+      isEdit: true,
+      title: "Title",
       state: null,
 
       creationDate: null,
