@@ -2,12 +2,15 @@
   <div ref="ref_create_timeline_panel">
     <div class="create__timeline_panel">
       <div class="create__timeline_panel_container">
-        <h2><center>CREATE NEW TIMELINE</center></h2>
+        <h2>CREATE NEW TIMELINE</h2>
         <div class="create__timeline_panel_header">
         </div>
         <TextEdit
-          edit="true"
+          :edit="true"
           :defaultText="title"
+          :autoFocusOnEdit="false"
+          :cleanOnFirstFocus="true"
+          :exitEditOnClickOutside="false"
           v-model:newValue="title"
           field="title"
         >
@@ -93,83 +96,34 @@ export default {
     handleUpdateText: function (element, text) {
       console.log(" TEXT CHANGED " + text);
     },
-    handleTaskEditCancel: function (task) {
-      console.log(" CANCEL TASK EDIT ");
-      this.isEdit = false;
-      this.closeParent();
-    },
-    handleTaskEdit: function (task) {
-      console.log(" SET EDIT " + task.title);
-      if (this.isEdit) this.isEdit = false;
-
-      this.handleTask(task);
-
-      nextTick(() => {
-        this.isEdit = true;
-      });
-    },
-    handleTask: function (task) {
-      this.openParent();
-
-      let newTask = false;
-
-      // We detect if we are being provided with a new task.
-      // If we have the editor open, we will remember our tasks to be able to cancel it.
-      if (this.sourceTask == null || task.id != this.sourceTask.id) {
-        newTask = true;
-      }
-
-      // If we are a new task or we are not editing we update our cancel button
-      if (newTask || !this.isEdit) {
-        this.sourceTask = { ...task };
-      }
-
-      this.inEditTask = { ...task };
-      this.title = task.title;
-      this.groupId = task.group_id;
-      this.creationDate = task.creationDate;
-      this.dueDate = task.dueDate;
-      this.state = task.state;
-    },
     handleSubmit: function () {
-      // We update our internal reference to know that this task was OK
-      console.log(" Submit ");
-      this.sourceTask = this.inEditTask;
-      this.isEdit = false;
+      console.log(" Submit to API new timeline ");
       this.closeParent();
     },
     handleCancel: function () {
-      console.log(" Revert into edited task ");
-      this.handleTask(this.sourceTask);
-      this.commitTask();
-      this.isEdit = false;
+      console.log(" Cancel and close ");
       this.closeParent();
     },
     commitTask: function () {
       console.log("============ COMMIT TIMELINE " + this.title + "====================");
       let timeline = {
-        ...this.inEditTask,
         title: this.title,
         creationDate: this.creationDate,
         dueDate: this.dueDate,
-        progress: this.progressPct / 100,
         state: this.state,
       };
-
-      /*
-      try {
-        this.updateTask(timeline);
-      } catch (error) {
-        console.log(" CRASH " + error);
-        debugger;
-      }
-      */
     },
     invalidate: function () {
       console.log("Invalidate");
     },
   },
   mounted() {
+    if (!this.creationDate)
+      this.creationDate = new Date() / 1000;
+
+    if (!this.dueDate)
+      this.dueDate = new Date() / 1000;
+
     this.invalidate();
   },
   beforeUnmount() {},
@@ -190,15 +144,12 @@ export default {
   watch: {
     title(newTitle) {
       console.log(" PROPAGATE TITLE CHANGE TO " + newTitle);
-      if (this.inEditTask.title != newTitle) this.commitTask();
     },
     creationDate(newDate) {
       console.log(" PROPAGATE Start DATE ");
-      if (this.inEditTask.creationDate != newDate) this.commitTask();
     },
     dueDate(newDate) {
       console.log(" PROPAGATE End DATE ");
-      if (this.inEditTask.dueDate != newDate) this.commitTask();
     },
   },
   provide: function () {
@@ -207,15 +158,11 @@ export default {
   data() {
     return {
       isEdit: true,
-      title: "Title",
+      title: "Timeline Title",
       state: null,
 
       creationDate: null,
       dueDate: null,
-
-      // Converted from progress which is 0..1
-      sourceTask: null,
-      inEditTask: null,
     };
   },
 };

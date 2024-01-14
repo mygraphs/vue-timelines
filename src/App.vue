@@ -209,6 +209,10 @@ export default {
     }
 
     this.$store.dispatch("api/test");
+    this.tasks = test.tasks;
+    this.groups = test.groups;
+    this.hasTimeline = true;
+
   },
   components: {
     MyGraphs,

@@ -12,6 +12,7 @@
         type="text"
         v-model="tempText"
         @blur="saveText"
+        @focus="handleFocus"
         @keyup.enter="saveText"
         @keyup.esc="cancelEdit"
       />
@@ -29,6 +30,7 @@ export default {
     edit: {
       type: Boolean,
       required: false,
+      default: true,
     },
     field: {
       type: String,
@@ -53,15 +55,29 @@ export default {
       required: false,
       default: true,
     },
+    cleanOnFirstFocus: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+    exitEditOnClickOutside: {
+      type: Boolean,
+      required: false,
+      default: true,
+    },
   },
   mounted() {
     this.tempText = this.defaultText;
+    if (this.edit) {
+      this.enterEditMode();
+    }
   },
   data() {
     return {
       tempText: "Init", // Temporary holder for text while editing
       editMode: false, // Whether the text is in edit mode
       documentEventListener: null,
+      firstFocus: true,
     };
   },
   watch: {
@@ -104,19 +120,33 @@ export default {
           });
       });
     },
+    handleFocus() {
+      if (this.cleanOnFirstFocus && this.tempText == this.defaultText) {
+        this.tempText = "";
+        this.firstFocus = false;
+      }
+    },
     saveText() {
       console.log("SAVE TEXT [" + this.tempText + "]");
+      if (this.tempText == "") {
+        // Canceled ? We don't support to leave text empty.
+        this.tempText = this.defaultText;
+        return;
+      }
 
       if (this.trimText) this.tempText = this.tempText.trim();
 
       this.$emit("update:newValue", this.tempText); // Update the text
-      this.editMode = false; // Switch back to view mode
+      if (this.exitEditOnClickOutside)
+        this.editMode = false; // Switch back to view mode
     },
     cancelEdit() {
       console.log("CANCEL EDIT " + this.tempText);
 
       this.tempText = this.defaultText;
-      this.editMode = false; // Exit edit mode without saving changes
+
+      if (this.exitEditOnClickOutside)
+        this.editMode = false; // Exit edit mode without saving changes
     },
   },
 };
