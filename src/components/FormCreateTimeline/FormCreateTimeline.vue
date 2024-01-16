@@ -18,8 +18,7 @@
           </template>
           <template v-slot:inputFormat> </template>
         </TextEdit>
-        <br />
-        <div>
+        <div style="margin-top: 15px">
           <div class="flex-grid">
             <div class="coll">
               <b> START </b>
@@ -42,11 +41,8 @@
           </div>
           <br />
 
-          <div v-if="isEdit">
-            <button class="btn btn-success small" @click="handleSubmit">Save</button>
-            <button class="btn btn-warning small fa-pull-right" @click="handleCancel">
-              Cancel
-            </button>
+          <div v-if="this.defaultText != this.title">
+            <button class="btn btn-success" @click="handleSubmit">Create</button>
           </div>
         </div>
       </div>
@@ -187,25 +183,13 @@ export default {
   border-style: solid;
 
   background-color: #fafafa;
-
   padding: 12px;
-  float: right;
-
-  height: 320px;
-  width: 400px;
-
-  position: absolute;
-
-  left: v-bind('pos_x + "px"');
-  top: v-bind('pos_y + "px"');
-
   border: 1px solid black;
 }
 
 .create__timeline_panel_container {
-  min-width: 150px;
+  min-width: 550px;
   min-height: 100px;
-  margin-top: auto;
 }
 
 .task__title {
@@ -226,6 +210,7 @@ export default {
   justify-content: center;
   align-items: center;
 }
+
 .flex-grid .coll {
   width: 20%;
 }

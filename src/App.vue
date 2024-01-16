@@ -1,26 +1,28 @@
 <template>
-  <div v-if="!hasTimeline">
-    <FormCreateTimeline
-      ref="createTimeline"
-      class="form__create__panel"
-      @openParent="showModal = true"
-      @callbackSubmit="createNewTimeline"
-      @closeParent="showModal = false"
-    />
+  <div v-if="!hasTimeline" class="flex-container">
+    <div class="col">
+      <button class="btn btn-success small" @click="loadDemo">Load Demo</button>
+    </div>
+
+    <div class="col">
+      <FormCreateTimeline
+        ref="createTimeline"
+        class="form__create__panel"
+        @openParent="showModal = true"
+        @callbackSubmit="createNewTimeline"
+        @closeParent="showModal = false"
+      />
+    </div>
   </div>
 
   <div v-else class="graph__container" ref="myGraphContainer">
     <MyGraphs
       v-model:desiredHeight="height"
+      v-bind:title="title"
       :groups="groups"
       :tasks="tasks"
       @update="handleUpdatedTasks"
     />
-    <!--
-    <button class="btn btn-success small" @click="hasTimeline = true">
-      Create new Timeline
-    </button>
-    -->
   </div>
 </template>
 
@@ -29,6 +31,9 @@ import MyGraphs from "./MyGraphs";
 import { FormCreateTimeline } from "@/components";
 
 var test = {
+  title: "VUE-TIMELINES DEMO",
+  start: null,
+  end: null,
   tasks: [
     {
       id: "01",
@@ -165,6 +170,7 @@ export default {
       groups: null,
       start: null,
       end: null,
+      title: "VUE-TIMELINES",
       height: 0,
       hasTimeline: false,
     };
@@ -175,8 +181,11 @@ export default {
   methods: {
     createNewTimeline: function (timeline) {
       console.log("NEW TIMELINE");
-      this.tasks = test.tasks;
-      this.groups = test.groups;
+      this.tasks = [];
+      this.groups = [];
+      this.title = timeline.title;
+      this.start = timeline.creationDate;
+      this.end = timeline.dueDate;
       this.hasTimeline = true;
       this.configureHeightResize();
     },
@@ -206,6 +215,13 @@ export default {
       this.tasks[task.id] = task;
       console.log("******* UPDATED TASK " + task.title + " ********** " + task.group_id);
       //this.listTasks();
+    },
+    loadDemo: function () {
+      this.title = test.title;
+      this.tasks = test.tasks;
+      this.groups = test.groups;
+      this.hasTimeline = true;
+      this.configureHeightResize();
     },
     configureHeightResize() {
       nextTick(() => {
@@ -251,7 +267,20 @@ export default {
 }
 
 .form__create__panel {
+}
+</style>
+
+<style scoped>
+.flex-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+}
+
+.flex-container > div {
+  background-color: #fff;
+  padding: 15px;
+  font-size: 30px;
 }
 </style>
