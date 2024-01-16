@@ -41,9 +41,14 @@
           </div>
           <br />
 
-          <div v-if="this.defaultText != this.title">
-            <button class="btn btn-success" @click="handleSubmit">Create</button>
-          </div>
+          <button
+            class="btn"
+            :disabled="!isFormValidated"
+            :class="isFormValidated ? 'btn-success' : 'btn-dark'"
+            @click="handleSubmit"
+          >
+            Create
+          </button>
         </div>
       </div>
     </div>
@@ -65,6 +70,8 @@ import "@vuepic/vue-datepicker/dist/main.css";
 
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
+
+const DEFAULT_TITLE = "Timeline Title";
 
 export default {
   name: "FormCreateTimeline",
@@ -123,6 +130,10 @@ export default {
   },
   beforeUnmount() {},
   computed: {
+    isFormValidated() {
+      let isValid = this.DEFAULT_TITLE != this.title && this.title != "";
+      return isValid;
+    },
     creationDateText() {
       return dayjs(new Date(this.creationDate * 1000)).format("LLL");
     },
@@ -152,8 +163,9 @@ export default {
   },
   data() {
     return {
+      DEFAULT_TITLE: DEFAULT_TITLE,
+      title: DEFAULT_TITLE,
       isEdit: true,
-      title: "Timeline Title",
       state: null,
 
       creationDate: null,
