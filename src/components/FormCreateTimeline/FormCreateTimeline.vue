@@ -68,10 +68,13 @@ import { TextEdit } from "@/components/TextEdit/";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
+import { addDays } from "@/utils/date";
+
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
 
 const DEFAULT_TITLE = "Timeline Title";
+const DEFAULT_DAYS_MARGIN = 14;
 
 export default {
   name: "FormCreateTimeline",
@@ -122,9 +125,12 @@ export default {
     },
   },
   mounted() {
-    if (!this.creationDate) this.creationDate = new Date() / 1000;
+    const currentDate = new Date() / 1000;
 
-    if (!this.dueDate) this.dueDate = new Date() / 1000;
+    if (!this.creationDate)
+      this.creationDate = addDays(currentDate, -DEFAULT_DAYS_MARGIN);
+
+    if (!this.dueDate) this.dueDate = addDays(currentDate, DEFAULT_DAYS_MARGIN);
 
     this.invalidate();
   },
