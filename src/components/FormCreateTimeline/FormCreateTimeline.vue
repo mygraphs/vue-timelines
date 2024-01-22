@@ -103,19 +103,20 @@ export default {
     },
     handleSubmit: function () {
       console.log(" Submit to API new timeline ");
-      this.commitTask();
+      this.commitTimeline();
       this.closeParent();
     },
     handleCancel: function () {
       console.log(" Cancel and close ");
       this.closeParent();
     },
-    commitTask: function () {
+    commitTimeline: function () {
       console.log("============ COMMIT TIMELINE " + this.title + "====================");
       let timeline = {
+        etype: "TIMELINE",
+        start_date: this.creationDate,
+        end_date: this.dueDate,
         title: this.title,
-        creationDate: this.creationDate,
-        dueDate: this.dueDate,
         state: this.state,
       };
       this.$emit("callbackSubmit", timeline);

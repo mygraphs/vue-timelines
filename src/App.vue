@@ -181,13 +181,16 @@ export default {
   methods: {
     createNewTimeline: function (timeline) {
       console.log("NEW TIMELINE");
-      this.tasks = [];
-      this.groups = [];
-      this.title = timeline.title;
-      this.start = timeline.creationDate;
-      this.end = timeline.dueDate;
-      this.hasTimeline = true;
-      this.configureHeightResize();
+      this.$store.dispatch("api/createTimeline", timeline).then((data) => {
+        debugger;
+        this.tasks = [];
+        this.groups = [];
+        this.title = timeline.title;
+        this.start = timeline.creationDate;
+        this.end = timeline.dueDate;
+        this.hasTimeline = true;
+        this.configureHeightResize();
+      });
     },
     listTasks: function () {
       for (const key in this.tasks) {
@@ -241,6 +244,7 @@ export default {
     //    debugger;
 
     this.$store.dispatch("api/test");
+    this.$store.dispatch("api/test_obj", { title: "TEST" });
     if (this.hasTimeline) this.configureHeightResize();
   },
   components: {
