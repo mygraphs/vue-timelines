@@ -92,13 +92,22 @@ export default {
     closeParent: function () {
       this.$emit("CloseParent");
     },
+    validateDates: function () {
+      if (this.dueDate > this.creationDate) return;
+      // Due date before creation date
+      let t = this.creationDate;
+      this.creationDate = this.dueDate;
+      this.dueDate = t;
+    },
     setStartDate: function (startDate) {
       console.log(" START DATE CHANGED " + startDate);
       this.creationDate = startDate / 1000;
+      this.validateDates();
     },
     setEndDate: function (endDate) {
       console.log(" End DATE CHANGED " + endDate);
       this.dueDate = endDate / 1000;
+      this.validateDates();
     },
     handleUpdateText: function (element, text) {
       console.log(" TEXT CHANGED " + text);

@@ -35,7 +35,7 @@
               @click.stop.prevent="isEdit = true"
               style="cursor: pointer; padding: 5px"
             />
-<!--
+            <!--
             <i
               class="fa fa-thumbtack ml-2"
               @click.stop.prevent="closeParent"
@@ -67,7 +67,8 @@
               <VueDatePicker
                 :model-value="compStartDate"
                 @update:model-value="setStartDate"
-                placeholder="Start date ..." text-input
+                placeholder="Start date ..."
+                text-input
               />
             </div>
 
@@ -81,7 +82,8 @@
               <VueDatePicker
                 :model-value="compEndDate"
                 @update:model-value="setEndDate"
-                placeholder="End date ..." text-input
+                placeholder="End date ..."
+                text-input
               />
             </div>
             <div v-else class="colr">
@@ -168,13 +170,22 @@ export default {
     closeParent: function () {
       this.$emit("CloseParent");
     },
+    validateDates: function () {
+      if (this.dueDate > this.creationDate) return;
+      // Due date before creation date
+      let t = this.creationDate;
+      this.creationDate = this.dueDate;
+      this.dueDate = t;
+    },
     setStartDate: function (startDate) {
       console.log(" START DATE CHANGED " + startDate);
       this.creationDate = startDate / 1000;
+      this.validateDates();
     },
     setEndDate: function (endDate) {
       console.log(" End DATE CHANGED " + endDate);
       this.dueDate = endDate / 1000;
+      this.validateDates();
     },
     handleUpdateText: function (element, text) {
       console.log(" TEXT CHANGED " + text);
