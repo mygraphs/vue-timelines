@@ -67,6 +67,7 @@
               <VueDatePicker
                 :model-value="compStartDate"
                 @update:model-value="setStartDate"
+                placeholder="Start date ..." text-input
               />
             </div>
 
@@ -80,6 +81,7 @@
               <VueDatePicker
                 :model-value="compEndDate"
                 @update:model-value="setEndDate"
+                placeholder="End date ..." text-input
               />
             </div>
             <div v-else class="colr">

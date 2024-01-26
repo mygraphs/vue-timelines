@@ -5,6 +5,11 @@ export const getDiffDays = (firstDate, secondDate) => {
   return diff;
 };
 
+export const getTimestampNow = () => {
+  const now = new Date().getTime() / 1000;
+  return now;
+}
+
 export const addDays = (timestamp, days) => {
   return (timestamp + days * 24 * 60 * 60) | 0;
 };

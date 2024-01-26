@@ -27,6 +27,7 @@
               <VueDatePicker
                 :model-value="compStartDate"
                 @update:model-value="setStartDate"
+                placeholder="Start date ..." text-input
               />
             </div>
           </div>
@@ -36,6 +37,7 @@
               <VueDatePicker
                 :model-value="compEndDate"
                 @update:model-value="setEndDate"
+                placeholder="End date ..." text-input
               />
             </div>
           </div>
@@ -68,7 +70,7 @@ import { TextEdit } from "@/components/TextEdit/";
 import VueDatePicker from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 
-import { addDays } from "@/utils/date";
+import { addDays, getTimestampNow } from "@/utils/date";
 
 dayjs.extend(localizedFormat);
 dayjs.locale(navigator.language);
@@ -112,7 +114,13 @@ export default {
     },
     commitTimeline: function () {
       console.log("============ COMMIT TIMELINE " + this.title + "====================");
-      debugger;
+
+      if (!this.creationDate)
+        this.creationDate = getTimestampNow();
+
+      if (!this.dueDate)
+        this.creationDate = getTimestampNow();
+
       let timeline = {
         etype: "TIMELINE",
         start_date: this.creationDate,

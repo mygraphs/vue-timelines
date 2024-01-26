@@ -43,6 +43,13 @@ const root = {
 
       if (calendarEnd)
         state.calendarEnd = date.addDays(calendarEnd, margin);
+
+      if (state.calendarInit > state.calendarEnd) {
+        // Calendar start is bigger than end, we just swap the values.
+        let t = state.calendarInit;
+        state.calendarInit = state.calendarEnd;
+        state.calendarEnd = t;
+      }
     },
     checkCalendarSize(state, tasks) {
       let calendarInit = null;
