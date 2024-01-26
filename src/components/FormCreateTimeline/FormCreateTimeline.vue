@@ -112,6 +112,7 @@ export default {
     },
     commitTimeline: function () {
       console.log("============ COMMIT TIMELINE " + this.title + "====================");
+      debugger;
       let timeline = {
         etype: "TIMELINE",
         start_date: this.creationDate,

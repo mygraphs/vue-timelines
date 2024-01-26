@@ -32,8 +32,6 @@ import { FormCreateTimeline } from "@/components";
 
 var test = {
   title: "VUE-TIMELINES DEMO",
-  start: null,
-  end: null,
   tasks: [
     {
       id: "01",
@@ -156,7 +154,7 @@ var test = {
   ],
 };
 
-import { mapState } from "vuex";
+import { mapState, mapGetters, mapMutations } from "vuex";
 import { nextTick } from "vue";
 
 /* https://v3.vue-final-modal.org/guide/properties */
@@ -166,63 +164,42 @@ export default {
   name: "App",
   data() {
     return {
-      tasks: null,
-      groups: null,
-      start: null,
-      end: null,
-      title: "VUE-TIMELINES",
       height: 0,
       hasTimeline: false,
     };
   },
   computed: {
     ...mapState(["isDebug", "api"]),
+    ...mapState("api", ["groups", "tasks", "title"]),
   },
   methods: {
+    ...mapMutations("api", ["setGroups", "setTasks", "setTitle", "updateTask"]),
     createNewTimeline: function (timeline) {
       console.log("NEW TIMELINE");
-      this.$store.dispatch("api/createTimeline", timeline).then((data) => {
-        debugger;
-        this.tasks = [];
-        this.groups = [];
-        this.title = timeline.title;
-        this.start = timeline.creationDate;
-        this.end = timeline.dueDate;
-        this.hasTimeline = true;
-        this.configureHeightResize();
-      });
+      this.$store
+        .dispatch("api/createTimeline", timeline)
+        .then((data) => {
+          this.hasTimeline = true;
+          this.configureHeightResize();
+        })
+        .catch((error) => {
+          alert(error);
+        });
     },
-    listTasks: function () {
-      for (const key in this.tasks) {
-        const t = this.tasks[key];
-        console.log(
-          key +
-            ": (" +
-            t.title +
-            ") GROUP " +
-            t.group_id +
-            "[" +
-            new Date(t.creationDate * 1000).toLocaleDateString() +
-            "] [" +
-            new Date(t.dueDate * 1000).toLocaleDateString() +
-            "]"
-        );
-      }
-    },
+
     handleUpdatedTasks: function (task) {
       if (this.isDebug) {
         let t = task.title.split("|");
         task.title = t[0] + " | " + Math.round(Math.random() * 100);
       }
 
-      this.tasks[task.id] = task;
       console.log("******* UPDATED TASK " + task.title + " ********** " + task.group_id);
-      //this.listTasks();
+      this.updateTask(task);
     },
     loadDemo: function () {
-      this.title = test.title;
-      this.tasks = test.tasks;
-      this.groups = test.groups;
+      this.setTitle(test.title);
+      this.setTasks(test.tasks);
+      this.setGroups(test.groups);
       this.hasTimeline = true;
       this.configureHeightResize();
     },
@@ -244,7 +221,7 @@ export default {
     //    debugger;
 
     this.$store.dispatch("api/test");
-    this.$store.dispatch("api/test_obj", { title: "TEST" });
+    this.$store.dispatch("api/testObj", { title: "TEST" });
     if (this.hasTimeline) this.configureHeightResize();
   },
   components: {

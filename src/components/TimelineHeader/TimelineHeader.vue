@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2 class="header__title">vue-timelines</h2>
+    <h2 class="header__title">{{ title }}</h2>
 
     <div class="header__actions">
       <select v-model="selectedTimeFrame" @change="handleTimeFrame">
@@ -30,7 +30,7 @@
 <script>
 import eventBus from "../eventBus.js";
 
-import { mapMutations } from "vuex";
+import { mapMutations, mapState, mapGetters } from "vuex";
 
 import {
   mainHeaderHeight,
@@ -54,7 +54,7 @@ export default {
     resetCellSize,
     cellSize,
   },
-  computed: {},
+  computed: { ...mapState("api", ["title"]) },
   methods: {
     ...mapMutations(["setCellSizeDays"]),
     handleScrollToday: function () {

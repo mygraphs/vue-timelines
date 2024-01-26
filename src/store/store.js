@@ -38,8 +38,11 @@ const root = {
         margin = state.cellDays;
       }
 
-      state.calendarInit = date.subtractDays(calendarInit, margin);
-      state.calendarEnd = date.addDays(calendarEnd, margin);
+      if (calendarInit)
+        state.calendarInit = date.subtractDays(calendarInit, margin);
+
+      if (calendarEnd)
+        state.calendarEnd = date.addDays(calendarEnd, margin);
     },
     checkCalendarSize(state, tasks) {
       let calendarInit = null;
@@ -52,7 +55,8 @@ const root = {
           calendarEnd = task.dueDate;
       });
 
-      this.commit('setCalendarSize', { calendarInit, calendarEnd });
+      if (calendarInit && calendarEnd)
+        this.commit('setCalendarSize', { calendarInit, calendarEnd });
     },
   },
   getters: {

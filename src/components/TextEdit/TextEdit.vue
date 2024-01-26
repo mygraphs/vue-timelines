@@ -11,7 +11,7 @@
         ref="editorElement"
         type="text"
         v-model="tempText"
-        @blur="saveText"
+        @blur.stop="saveText"
         @focus="handleFocus"
         @keyup.enter="saveText"
         @keyup.esc="cancelEdit"

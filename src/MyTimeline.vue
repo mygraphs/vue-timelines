@@ -1,26 +1,26 @@
 <template>
   <div class="parent-container container-fluid">
-      <VueFinalModal
-        v-model="showModal"
-        :drag="true"
-        :fit-parent="false"
-        :click-to-close="false"
-        :fitParent="false"
-        :hide-overlay="true"
-        :focus-retain="false"
-        :focus-trap="false"
-        :esc-to-close="true"
-        :lock-scroll="false"
-        :preventClick="false"
-        attach="body"
-      >
-        <TaskDataPanel
-          ref="taskdata"
-          class="data__panel"
-          @openParent="showModal = true"
-          @closeParent="showModal = false"
-        />
-      </VueFinalModal>
+    <VueFinalModal
+      v-model="showModal"
+      :drag="true"
+      :fit-parent="false"
+      :click-to-close="false"
+      :fitParent="false"
+      :hide-overlay="true"
+      :focus-retain="false"
+      :focus-trap="false"
+      :esc-to-close="true"
+      :lock-scroll="false"
+      :preventClick="false"
+      attach="body"
+    >
+      <TaskDataPanel
+        ref="taskdata"
+        class="data__panel"
+        @openParent="showModal = true"
+        @closeParent="showModal = false"
+      />
+    </VueFinalModal>
 
     <div>
       <div>
@@ -55,10 +55,7 @@
 
             <Timeline ref="timeline">
               <template v-for="group in groupsToUse" :key="group.id">
-                <TimelineRow :group="group" :rowid="group.id">
-                  <!--
-              -->
-                </TimelineRow>
+                <TimelineRow :group="group" :rowid="group.id"> </TimelineRow>
               </template>
               <template v-for="task in tasksArray" :key="task.id">
                 <TimelineItem
@@ -328,6 +325,10 @@ export default {
       // Get the groups and create the dictionary and array to display them
       for (const key in this.groups) {
         let group = this.groups[key];
+
+        // Minimum one row in a group.
+        group.rows = 1;
+
         this.groupsDict[group.id] = group;
         this.groupsToUse.push(group);
 
@@ -473,7 +474,6 @@ export default {
 .vfm__content {
   pointer-events: auto;
 }
-
 </style>
 
 <style scoped>
@@ -508,5 +508,4 @@ export default {
 .overlay_disabled {
   visibility: none;
 }
-
 </style>
