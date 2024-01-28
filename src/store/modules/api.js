@@ -17,6 +17,19 @@ function getHeaders(json) {
 /* Get Fetch with headers */
 function apiGetFetch(url, json) {
     return fetch(process.env.VUE_APP_API_BASE_URL + url, getHeaders(json))
+        .then(response => response.json())
+        .then(data => {
+            if (data.status != "success") {
+                alert(data.error_msg);
+                return Promise.reject(data.error_msg);
+            }
+            return data;
+        })
+        .catch((error) => {
+            console.log(error);
+            alert(error)
+            return Promise.reject(error);
+        });
 }
 
 export default {
@@ -41,14 +54,20 @@ export default {
         setTitle(state, title) {
             state.title = title;
         },
-        addNewGroup(state) {
+        addNewGroup(state, title) {
             // Creates an empty new group and appends it to the end.
             const newGroup = {
-                name: "NEW GROUP",
-                id: "" + getTimestampNow(),
+                name: title,
+                etype: "GROUP",
+                gallery_id: state.id,
             }
 
-            state.groups = { ...state.groups, newGroup };
+            apiGetFetch("/events/create", newGroup)
+                .then(data => {
+                    let event = data.event;
+                    state.groups = { ...state.groups, event };
+                    return data;
+                })
         },
         setGroups(state, groups) {
             state.groups = groups;
@@ -58,7 +77,6 @@ export default {
         },
         setTimeline(state, json) {
             console.log(" SET NEW TIMELINE")
-            debugger;
             let event = json.event;
 
             state.id = event.id;
@@ -68,12 +86,7 @@ export default {
             if ('groups' in event)
                 state.groups = event.groups;
             else
-                state.groups = [
-                    {
-                        name: "default group",
-                        id: "1",
-                    },
-                ]
+                this.commit('api/addNewGroup', "default group");
 
             if ('tasks' in event)
                 state.tasks = event.tasks;
@@ -124,21 +137,12 @@ export default {
             console.log(" TEST API PARAM " + obj.title);
         },
         async createTimeline(state, newTimeline) {
+            newTimeline.etype="TIMELINE";
             return apiGetFetch("/events/create", newTimeline)
-                .then(response => response.json())
                 .then(data => {
-                    if (data.status != "success") {
-                        alert(data.error_msg);
-                        return Promise.reject(data.error_msg);
-                    }
-
                     this.commit('api/setTimeline', data);
                     return data;
                 })
-                .catch((error) => {
-                    console.log(error);
-                    return Promise.reject(error);
-                });
         },
     }
 }
