@@ -35,12 +35,6 @@ export default {
         findTaskById(state, taskId) {
             return state.tasks.find(task => task.id === taskId);
         },
-        groups: function(state) {
-            return state.groups;
-        },
-        tasks: function(state) {
-            return state.tasks;
-        },
     },
     mutations: {
         // Mutations have to call our API to update changes.
@@ -51,10 +45,10 @@ export default {
             // Creates an empty new group and appends it to the end.
             const newGroup = {
                 name: "NEW GROUP",
-                id: getTimestampNow(),
+                id: "" + getTimestampNow(),
             }
 
-            state.groups.push(newGroup);
+            state.groups = { ...state.groups, newGroup };
         },
         setGroups(state, groups) {
             state.groups = groups;
