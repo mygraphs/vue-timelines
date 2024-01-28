@@ -3,6 +3,7 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import { getTimestampNow } from "@/utils/date";
 
 function getHeaders(json) {
+    console.log(json);
     return {
         mode: 'cors',
         method: 'post',
@@ -54,18 +55,22 @@ export default {
         setTitle(state, title) {
             state.title = title;
         },
-        addNewGroup(state, title) {
+        addNewGroup(state, group) {
             // Creates an empty new group and appends it to the end.
             const newGroup = {
-                name: title,
+                ...group,
                 etype: "GROUP",
                 gallery_id: state.id,
             }
 
             apiGetFetch("/events/create", newGroup)
                 .then(data => {
-                    let event = data.event;
-                    state.groups = { ...state.groups, event };
+                    let e = data.event;
+                    if (e.name == "default group") {
+                        e.name += " " + (state.groups.length + 1);
+                    }
+
+                    state.groups = [...state.groups, data.event];
                     return data;
                 })
         },
@@ -85,8 +90,10 @@ export default {
 
             if ('groups' in event)
                 state.groups = event.groups;
-            else
-                this.commit('api/addNewGroup', "default group");
+            else {
+                state.groups = [];
+                this.commit('api/addNewGroup', { name: "default group" });
+            }
 
             if ('tasks' in event)
                 state.tasks = event.tasks;
@@ -137,7 +144,7 @@ export default {
             console.log(" TEST API PARAM " + obj.title);
         },
         async createTimeline(state, newTimeline) {
-            newTimeline.etype="TIMELINE";
+            newTimeline.etype = "TIMELINE";
             return apiGetFetch("/events/create", newTimeline)
                 .then(data => {
                     this.commit('api/setTimeline', data);

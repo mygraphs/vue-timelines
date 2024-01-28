@@ -19,8 +19,6 @@
     <MyGraphs
       v-model:desiredHeight="height"
       v-bind:title="title"
-      :groups="groups"
-      :tasks="tasks"
       @update="handleUpdatedTasks"
     />
   </div>

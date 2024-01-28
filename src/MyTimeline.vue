@@ -32,7 +32,9 @@
           <template v-if="groups">
             <List class="timeline__group">
               <ListHeader>
-                <button class="btn btn-primary btn-sm" @click="createNewGroup">New group</button>
+                <button class="btn btn-primary btn-sm" @click="createNewGroup">
+                  New group
+                </button>
               </ListHeader>
               <ListRow v-for="group in groupsToUse" :key="group.id">
                 <small>
@@ -126,14 +128,6 @@ export default {
     emitBubbleTask: { from: "emitBubbleTask" },
   },
   props: {
-    groups: {
-      type: Object,
-      default: () => {},
-    },
-    tasks: {
-      type: Object,
-      default: () => {},
-    },
     height: {
       type: String,
       default: "100vh",
@@ -149,6 +143,7 @@ export default {
     };
   },
   computed: {
+    ...mapState("api", ["groups", "tasks", "title"]),
     ...mapState([
       "calendarInit",
       "calendarEnd",
@@ -167,7 +162,7 @@ export default {
     ...mapMutations("api", ["addNewGroup"]),
     createNewGroup() {
       console.log(" CREATE NEW GROUP ");
-      this.addNewGroup();
+      this.addNewGroup({ name: "default group" });
     },
     getRef(groupId, taskId) {
       let refName = `timelineItem-${groupId}-${taskId}`;
