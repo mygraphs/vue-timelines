@@ -41,6 +41,11 @@ export default {
       emitBubbleTask: this.emitBubbleTask,
     };
   },
+  watch: {
+    groups: function () {
+      console.log(" MYGRAPH GROUPS WATCH ");
+    },
+  },
   components: {
     CellSizeContext,
     CalendarContext,

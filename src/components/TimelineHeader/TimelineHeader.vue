@@ -11,18 +11,18 @@
 
       <div class="header__zoom-buttons">
         <span>Zoom</span>
-        <button class="header__button" @click="reduceCellSize">-</button>
-        <button class="header__button" @click="increaseCellSize">+</button>
-        <button class="header__button" @click="resetCellSize">Reset</button>
+        <button class="btn btn-primary btn-sm" @click="reduceCellSize">-</button>
+        <button class="btn btn-primary btn-sm" @click="increaseCellSize">+</button>
+        <button class="btn btn-primary btn-sm" @click="resetCellSize">Reset</button>
       </div>
 
       <div class="header__zoom-buttons">
         <span>Height</span>
-        <button class="header__button" @click="reduceCellHeight">-</button>
-        <button class="header__button" @click="increaseCellHeight">+</button>
+        <button class="btn btn-primary btn-sm" @click="reduceCellHeight">-</button>
+        <button class="btn btn-primary btn-sm" @click="increaseCellHeight">+</button>
       </div>
 
-      <button class="header__button" @click="handleScrollToday">Today</button>
+      <button class="btn btn-primary btn-sm" @click="handleScrollToday">Today</button>
     </div>
   </div>
 </template>
@@ -110,11 +110,4 @@ export default {
   gap: 0.2rem;
 }
 
-.header__button {
-  background-color: whitesmoke;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid rgb(93, 125, 153);
-  border-radius: 2px;
-  box-shadow: none;
-}
 </style>

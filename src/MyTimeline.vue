@@ -31,7 +31,9 @@
         <slot>
           <template v-if="groups">
             <List class="timeline__group">
-              <ListHeader></ListHeader>
+              <ListHeader>
+                <button class="btn btn-primary btn-sm" @click="createNewGroup">New group</button>
+              </ListHeader>
               <ListRow v-for="group in groupsToUse" :key="group.id">
                 <small>
                   <span style="font-weight: bold">
@@ -162,6 +164,11 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays", "setRowBoundaries"]),
+    ...mapMutations("api", ["addNewGroup"]),
+    createNewGroup() {
+      console.log(" CREATE NEW GROUP ");
+      this.addNewGroup();
+    },
     getRef(groupId, taskId) {
       let refName = `timelineItem-${groupId}-${taskId}`;
       return refName;
@@ -390,6 +397,12 @@ export default {
   mounted() {
     this.buildDataView();
     this.setCellSizeDays(1);
+  },
+  watch: {
+    groups: function () {
+      console.log(" MYTIMELINE GROUPS WATCH ");
+      this.buildDataView();
+    },
   },
   provide: function () {
     return {

@@ -1,5 +1,6 @@
 
 import { mapState, mapGetters, mapMutations } from "vuex";
+import { getTimestampNow } from "@/utils/date";
 
 function getHeaders(json) {
     return {
@@ -45,6 +46,15 @@ export default {
         // Mutations have to call our API to update changes.
         setTitle(state, title) {
             state.title = title;
+        },
+        addNewGroup(state) {
+            // Creates an empty new group and appends it to the end.
+            const newGroup = {
+                name: "NEW GROUP",
+                id: getTimestampNow(),
+            }
+
+            state.groups.push(newGroup);
         },
         setGroups(state, groups) {
             state.groups = groups;
