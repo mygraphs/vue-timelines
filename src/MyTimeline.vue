@@ -43,9 +43,12 @@
                       :defaultText="group.name"
                       :edit="false"
                       v-model:newValue="group.name"
-                      field="group_name"
+                      field="name"
+                      id="group.id"
+                      :obj="group"
                       style="max-width: 100px"
                       :cancelClickOutside="true"
+                      @update-value="handleRenameGroup"
                       ><template v-slot:textFormat>
                         {{ group.name }}
                       </template>
@@ -159,7 +162,21 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays", "setRowBoundaries"]),
-    ...mapMutations("api", ["addNewGroup"]),
+    ...mapMutations("api", ["addNewGroup", "renameGroup", "updateGroup"]),
+    handleRenameGroup(group) {
+      if (!group.id) return;
+
+      this.renameGroup(group);
+    },
+    handleGroupUpdate(group) {
+      if (!group.id) {
+        console.log(" NO GROUP TO UPDATE, DEMO? ");
+        return;
+      }
+
+      console.log(" GROUP UPDATE ");
+      debugger;
+    },
     createNewGroup() {
       console.log(" CREATE NEW GROUP ");
       this.addNewGroup({ name: "default group" });

@@ -16,7 +16,7 @@ function getHeaders(json) {
 }
 
 /* Get Fetch with headers */
-function apiGetFetch(url, json) {
+function apiGetFetch(url, json = {}) {
     return fetch(process.env.VUE_APP_API_BASE_URL + url, getHeaders(json))
         .then(response => response.json())
         .then(data => {
@@ -60,7 +60,7 @@ export default {
             const newGroup = {
                 ...group,
                 etype: "GROUP",
-                gallery_id: state.id,
+                parent_id: state.id,
             }
 
             apiGetFetch("/events/create", newGroup)
@@ -73,6 +73,12 @@ export default {
                     state.groups = [...state.groups, data.event];
                     return data;
                 })
+        },
+        updateGroup(state, group) {
+            apiGetFetch("/events/update", group);
+        },
+        renameGroup(state, group) {
+            apiGetFetch("/events/" + group.id + "/set/name?value=" + encodeURI(group.name));
         },
         setGroups(state, groups) {
             state.groups = groups;

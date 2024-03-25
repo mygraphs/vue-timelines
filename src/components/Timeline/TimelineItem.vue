@@ -114,13 +114,13 @@ export default {
       return true;
     },
     selectorMargin: function () {
-      let w = Math.round(this.cellHeight / 2);
-      if (w < 14) w = 14;
+      let w = Math.round(this.cellHeight / 8);
+      if (w < 6) w = 6;
       return -w + "px";
     },
     selectorWidth: function () {
-      let w = Math.round(this.cellHeight / 2);
-      if (w < 12) w = 12;
+      let w = Math.round(this.cellHeight / 4);
+      if (w < 6) w = 6;
       return w + "px";
     },
     borderWidth: function () {
@@ -616,9 +616,9 @@ export default {
 
 .task__resize {
   position: absolute;
-  margin: 2px 0;
-  top: -4px;
-  height: 110%;
+  margin: 0px -8px;
+  top: 6px;
+  height: calc(100% - 12px);
   width: v-bind(selectorWidth);
   display: flex;
   align-items: center;

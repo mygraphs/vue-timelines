@@ -34,7 +34,8 @@ export default {
     },
     field: {
       type: String,
-      required: true,
+      required: false,
+      default: null,
     },
     defaultText: {
       type: String,
@@ -65,6 +66,14 @@ export default {
       required: false,
       default: true,
     },
+    id: {
+      type: String,
+      required: false
+    },
+    obj: {
+      type: Object,
+      required: false
+    }
   },
   mounted() {
     this.tempText = this.defaultText;
@@ -140,6 +149,11 @@ export default {
       if (this.trimText) this.tempText = this.tempText.trim();
 
       this.$emit("update:newValue", this.tempText); // Update the text
+
+      // The object updates the field automatically
+      if (this.obj)
+        this.$emit('update-value', this.obj);
+
       if (this.exitEditOnClickOutside)
         this.editMode = false; // Switch back to view mode
     },
