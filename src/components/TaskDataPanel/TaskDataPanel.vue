@@ -506,11 +506,11 @@ export default {
   background-color: var(--vt-bg-modal, #fafafa);
   box-shadow: var(--vt-shadow-lg, 0px 0px 10px 0px rgba(0, 0, 0, 0.2));
 
-  height: 320px;
-  width: 400px;
+  height: 350px;
+  width: 450px;
   max-width: 90vw;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: visible;
 
   position: fixed;
   z-index: 10001;
@@ -518,9 +518,11 @@ export default {
 }
 
 .task__panel_container {
-  min-width: 150px;
-  min-height: 100px;
+  min-width: 250px;
+  min-height: 150px;
   margin-top: auto;
+  position: relative;
+  max-height: calc(420px - 24px);
 }
 
 .task__title {
@@ -546,6 +548,16 @@ export default {
 }
 .flex-grid .colr {
   width: 80%;
+}
+
+/* Ensure date picker dropdown floats outside the panel */
+:deep(.dp__outer_menu_wrap) {
+  z-index: 10002 !important;
+  position: fixed !important;
+}
+
+:deep(.dp__menu) {
+  z-index: 10002 !important;
 }
 
 </style>
