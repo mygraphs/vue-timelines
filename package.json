@@ -3,7 +3,7 @@
   "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "type": "module",
   "private": false,
   "main": "dist/vue-timelines.umd.js",
@@ -129,7 +129,8 @@
     "rules": {
       "no-console": "off",
       "no-debugger": "off",
-      "no-unused-vars": "off"
+      "no-unused-vars": "off",
+      "vue/multi-word-component-names": "off"
     }
   },
   "browserslist": [
