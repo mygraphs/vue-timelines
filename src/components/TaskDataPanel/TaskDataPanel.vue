@@ -1,26 +1,34 @@
 <template>
   <div ref="ref_task_panel">
-    <div v-if="groupId === null" class="task__panel">
-      <div class="task__panel_container">
-        <div style="max-width: 300px">
-          <h1>HELP</h1>
+    <!-- Wrap panel in modal when groupId is set -->
+    <VueFinalModal
+      v-model="isModalOpen"
+      :drag="true"
+      :click-to-close="false"
+      :esc-to-close="true"
+      :content-style="modalContentStyle"
+    >
+      <div v-if="groupId === null" class="task__panel" style="display: none;">
+        <div class="task__panel_container">
+          <div style="max-width: 300px">
+            <h1>HELP</h1>
 
-          <p>
-            <i class="fa fa-square fa-xs" />
-            Select a task to resize.
-          </p>
-          <p>
-            <i class="fa fa-square fa-xs" />
-            Double click edits the task.
-          </p>
-          <p>
-            <i class="fa fa-square fa-xs" />
-            Double click on an empty space creates a new task.
-          </p>
+            <p>
+              <i class="fa fa-square fa-xs" />
+              Select a task to resize.
+            </p>
+            <p>
+              <i class="fa fa-square fa-xs" />
+              Double click edits the task.
+            </p>
+            <p>
+              <i class="fa fa-square fa-xs" />
+              Double click on an empty space creates a new task.
+            </p>
+          </div>
         </div>
       </div>
-    </div>
-    <div v-else class="task__panel">
+      <div v-else class="task__panel">
       <div class="task__panel_container">
         <div class="task__panel_header">
           <i
@@ -128,6 +136,7 @@
         </div>
       </div>
     </div>
+    </VueFinalModal>
   </div>
 </template>
 
@@ -140,6 +149,7 @@ import * as localizedFormat from "dayjs/plugin/localizedFormat";
 import eventBus from "../eventBus.js";
 
 import { nextTick } from "vue";
+import { VueFinalModal } from "vue-final-modal";
 import { TextEdit } from "@/components/TextEdit/";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -156,6 +166,7 @@ export default {
     TextEdit,
     VueDatePicker,
     VueSlider: vue3slider,
+    VueFinalModal,
   },
   inject: {
     mainHeaderHeight,
@@ -165,10 +176,21 @@ export default {
   },
   methods: {
     openParent: function () {
-      this.$emit("OpenParent");
+      console.log("[TaskDataPanel] openParent called, opening modal");
+      // If no position is set, center the modal
+      if (this.pos_x === 0 && this.pos_y === 0) {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        this.pos_x = (viewportWidth - 400) / 2; // Center horizontally
+        this.pos_y = (viewportHeight - 320) / 2; // Center vertically
+      }
+      this.isModalOpen = true;
+      this.$emit("openParent");
     },
     closeParent: function () {
-      this.$emit("CloseParent");
+      console.log("[TaskDataPanel] closeParent called, closing modal");
+      this.isModalOpen = false;
+      this.$emit("closeParent");
     },
     validateDates: function () {
       if (this.dueDate > this.creationDate) return;
@@ -206,8 +228,10 @@ export default {
       });
     },
     handleTask: function (task) {
-      this.openParent();
+      console.log("[TaskDataPanel] handleTask called with task:", task);
+      console.log("[TaskDataPanel] Task ID:", task.id, "Title:", task.title);
 
+      // Set task data first
       let newTask = false;
 
       // We detect if we are being provided with a new task.
@@ -228,6 +252,11 @@ export default {
       this.dueDate = task.dueDate;
       this.progressPct = Math.round(task.progress * 100);
       this.state = task.state;
+
+      console.log("[TaskDataPanel] Task data set, groupId:", this.groupId, "title:", this.title);
+
+      // Now open the modal
+      this.openParent();
     },
     handleSubmit: function () {
       // We update our internal reference to know that this task was OK
@@ -244,16 +273,25 @@ export default {
       this.closeParent();
     },
     handleTaskPosition: function (e) {
-      // When the task is created we position it where the mouse is.
-      let me = this.$refs.ref_task_panel;
-      let rect = me.getBoundingClientRect();
+      // Position the modal near the click position, but ensure it's visible
+      // Calculate position relative to viewport
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const modalWidth = 400; // task__panel width
+      const modalHeight = 320; // task__panel height
 
-      // Readjust to screen coordinates
-      var screenX = rect.left + window.scrollX;
-      var screenY = rect.top + window.scrollY;
+      // Center the modal on the click position, but clamp to viewport
+      let x = e.clientX - modalWidth / 2;
+      let y = e.clientY - modalHeight / 2;
 
-      this.pos_x = e.clientX - screenX; //- this.cellSize / 4;
-      this.pos_y = e.clientY - screenY + this.cellHeight / 2;
+      // Clamp to viewport bounds
+      x = Math.max(20, Math.min(x, viewportWidth - modalWidth - 20));
+      y = Math.max(20, Math.min(y, viewportHeight - modalHeight - 20));
+
+      this.pos_x = x;
+      this.pos_y = y;
+
+      console.log("[TaskDataPanel] Position set to:", x, y);
     },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
@@ -278,17 +316,56 @@ export default {
     },
   },
   mounted() {
+    console.log("[TaskDataPanel] Component mounted, setting up event listeners");
     this.invalidate();
-    eventBus.on("taskdatapanel", this.handleTask);
-    eventBus.on("taskdatapanel-edit", this.handleTaskEdit);
-    eventBus.on("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
-    eventBus.on("taskdatapanel-position", this.handleTaskPosition);
+
+    // Wrap handlers to add logging
+    const wrappedHandleTask = (task) => {
+      console.log("[TaskDataPanel] Event 'taskdatapanel' received with task:", task);
+      this.handleTask(task);
+    };
+    const wrappedHandleTaskEdit = (task) => {
+      console.log("[TaskDataPanel] Event 'taskdatapanel-edit' received with task:", task);
+      this.handleTaskEdit(task);
+    };
+    const wrappedHandleTaskEditCancel = (task) => {
+      console.log("[TaskDataPanel] Event 'taskdatapanel-edit-cancel' received");
+      this.handleTaskEditCancel(task);
+    };
+    const wrappedHandleTaskPosition = (e) => {
+      console.log("[TaskDataPanel] Event 'taskdatapanel-position' received with event:", e);
+      this.handleTaskPosition(e);
+    };
+
+    eventBus.on("taskdatapanel", wrappedHandleTask);
+    eventBus.on("taskdatapanel-edit", wrappedHandleTaskEdit);
+    eventBus.on("taskdatapanel-edit-cancel", wrappedHandleTaskEditCancel);
+    eventBus.on("taskdatapanel-position", wrappedHandleTaskPosition);
+
+    // Store wrapped handlers for cleanup
+    this._wrappedHandlers = {
+      taskdatapanel: wrappedHandleTask,
+      "taskdatapanel-edit": wrappedHandleTaskEdit,
+      "taskdatapanel-edit-cancel": wrappedHandleTaskEditCancel,
+      "taskdatapanel-position": wrappedHandleTaskPosition
+    };
+
+    console.log("[TaskDataPanel] Event listeners registered, eventBus:", eventBus);
   },
   beforeUnmount() {
-    eventBus.off("taskdatapanel", this.handleTask);
-    eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
-    eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
-    eventBus.off("taskdatapanel-position", this.handleTaskPosition);
+    console.log("[TaskDataPanel] Component unmounting, removing event listeners");
+    if (this._wrappedHandlers) {
+      eventBus.off("taskdatapanel", this._wrappedHandlers.taskdatapanel);
+      eventBus.off("taskdatapanel-edit", this._wrappedHandlers["taskdatapanel-edit"]);
+      eventBus.off("taskdatapanel-edit-cancel", this._wrappedHandlers["taskdatapanel-edit-cancel"]);
+      eventBus.off("taskdatapanel-position", this._wrappedHandlers["taskdatapanel-position"]);
+    } else {
+      // Fallback to original handlers if wrapped handlers don't exist
+      eventBus.off("taskdatapanel", this.handleTask);
+      eventBus.off("taskdatapanel-edit", this.handleTaskEdit);
+      eventBus.off("taskdatapanel-edit-cancel", this.handleTaskEditCancel);
+      eventBus.off("taskdatapanel-position", this.handleTaskPosition);
+    }
   },
   computed: {
     creationDateText() {
@@ -302,6 +379,23 @@ export default {
     },
     compEndDate() {
       return new Date(this.dueDate * 1000);
+    },
+    modalContentStyle() {
+      // Only apply positioning if we have valid position values
+      if (this.pos_x !== 0 || this.pos_y !== 0) {
+        return {
+          position: 'fixed',
+          left: `${this.pos_x}px`,
+          top: `${this.pos_y}px`,
+          margin: '0',
+          transform: 'none'
+        };
+      }
+      // Default: center the modal
+      return {
+        position: 'relative',
+        margin: 'auto'
+      };
     },
   },
   watch: {
@@ -328,6 +422,7 @@ export default {
   data() {
     return {
       isEdit: false,
+      isModalOpen: false,
       title: null,
       groupId: null,
       state: null,
@@ -349,37 +444,37 @@ export default {
 
 <style>
 .task__panel_header {
-  height: 10px;
+  height: 30px;
   z-index: 100;
+  cursor: move;
+  user-select: none;
+  padding: 5px;
+  margin: -12px -12px 0 -12px;
+  border-bottom: 1px solid var(--vt-border-primary, rgb(226, 226, 226));
+  background-color: var(--vt-bg-secondary, #f8f9fc);
+  border-radius: var(--vt-radius-md, 10px) var(--vt-radius-md, 10px) 0 0;
 }
 
 .task__panel:before {
 }
 
 .task__panel {
-  margin-left: 12px;
-  margin-right: 12px;
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: var(--vt-radius-md, 10px);
+  padding: var(--vt-spacing-lg, 12px);
 
-  border: 1px;
-  border-color: var(--vt-form-border, #000);
-  border-style: solid;
-
-  background-color: var(--vt-form-bg, #fafafa);
-
-  padding: 12px;
-  float: right;
+  border: 1px solid var(--vt-form-border, #000);
+  background-color: var(--vt-bg-modal, #fafafa);
+  box-shadow: var(--vt-shadow-lg, 0px 0px 10px 0px rgba(0, 0, 0, 0.2));
 
   height: 320px;
   width: 400px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
 
-  position: absolute;
-
-  left: v-bind('pos_x + "px"');
-  top: v-bind('pos_y + "px"');
-
-  border: 1px solid black;
+  /* Modal handles positioning, panel is just content */
+  position: relative;
+  margin: 0;
 }
 
 .task__panel_container {
@@ -411,5 +506,19 @@ export default {
 }
 .flex-grid .colr {
   width: 80%;
+}
+
+/* Ensure modal is visible and centered */
+:deep(.vfm) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Modal content - ensure it's visible and positioned correctly */
+:deep(.vfm__content) {
+  max-width: 90vw !important;
+  max-height: 90vh !important;
+  /* Allow inline styles from content-style prop to override */
 }
 </style>

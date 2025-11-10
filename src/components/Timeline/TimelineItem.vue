@@ -200,6 +200,8 @@ export default {
     },
 
     handleResizeOpen: function (e) {
+      console.log("[TimelineItem] handleResizeOpen called for task:", this.task.id, this.task.title);
+
       this.showResizes = true;
       this.dragging = true;
       this.state = "info";
@@ -215,18 +217,37 @@ export default {
 
       this.resetTaskPositions();
 
-      this.documentEventListener = clickOutside(this.$refs.task, () => {
-        this.handleResizeClose();
+      // Clean up any existing listener first
+      if (this.documentEventListener) {
+        console.log("[TimelineItem] Cleaning up existing click-outside listener");
+        document.removeEventListener("click", this.documentEventListener, true);
+      }
+
+      // Set up click-outside listener - use nextTick to avoid immediate trigger
+      this.$nextTick(() => {
+        console.log("[TimelineItem] Setting up click-outside listener");
+        this.documentEventListener = clickOutside(this.$refs.task, () => {
+          console.log("[TimelineItem] Click outside detected, closing task");
+          this.handleResizeClose();
+        });
       });
 
+      console.log("[TimelineItem] Emitting events: selected-timeline-item, taskdatapanel-position, taskdatapanel");
+      console.log("[TimelineItem] EventBus state before emit:", eventBus.events);
       eventBus.emit("selected-timeline-item", this.task);
       eventBus.emit("taskdatapanel-position", e);
-
       eventBus.emit("taskdatapanel", this.task);
+      console.log("[TimelineItem] Events emitted, task data:", this.task);
     },
 
     handleResizeClose: function () {
       window.removeEventListener("keyup", this.handleKeyUp);
+
+      // Clean up click-outside listener
+      if (this.documentEventListener) {
+        document.removeEventListener("click", this.documentEventListener, true);
+        this.documentEventListener = null;
+      }
 
       this.cancelDropCheck();
 
@@ -535,7 +556,9 @@ export default {
     eventBus.on("selected-timeline-item", this.selectedTimeline);
   },
   beforeUnmount() {
-    document.removeEventListener("click", this.documentEventListener);
+    if (this.documentEventListener) {
+      document.removeEventListener("click", this.documentEventListener, true);
+    }
     eventBus.off("invalidate-timeline-items", this.invalidate);
     eventBus.off("selected-timeline-item", this.selectedTimeline);
   },

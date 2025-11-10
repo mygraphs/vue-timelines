@@ -1,26 +1,12 @@
 <template>
   <div class="parent-container container-fluid">
-    <VueFinalModal
-      v-model="showModal"
-      :drag="true"
-      :fit-parent="false"
-      :click-to-close="false"
-      :fitParent="false"
-      :hide-overlay="true"
-      :focus-retain="false"
-      :focus-trap="false"
-      :esc-to-close="true"
-      :lock-scroll="false"
-      :preventClick="false"
-      attach="body"
-    >
-      <TaskDataPanel
-        ref="taskdata"
-        class="data__panel"
-        @openParent="showModal = true"
-        @closeParent="showModal = false"
-      />
-    </VueFinalModal>
+    <!-- TaskDataPanel must always be mounted to receive eventBus events -->
+    <TaskDataPanel
+      ref="taskdata"
+      class="data__panel"
+      @openParent="handleOpenParent"
+      @closeParent="handleCloseParent"
+    />
 
     <div>
       <div>
@@ -89,7 +75,7 @@
 
 <script>
 /* https://v3.vue-final-modal.org/guide/properties */
-import { VueFinalModal, ModalsContainer } from "vue-final-modal";
+import { ModalsContainer } from "vue-final-modal";
 
 /* eslint-disable vue/no-unused-components */
 
@@ -160,6 +146,15 @@ export default {
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays", "setRowBoundaries"]),
     ...mapActions("api", ["addNewGroup"]),
+    handleOpenParent() {
+      console.log("[MyTimeline] handleOpenParent called, setting showModal = true");
+      this.showModal = true;
+      console.log("[MyTimeline] showModal is now:", this.showModal);
+    },
+    handleCloseParent() {
+      console.log("[MyTimeline] handleCloseParent called, setting showModal = false");
+      this.showModal = false;
+    },
     createNewGroup() {
       console.log(" CREATE NEW GROUP ");
       this.addNewGroup({ name: "default group" })
@@ -396,10 +391,14 @@ export default {
   beforeUnmount() {},
 
   mounted() {
+    console.log("[MyTimeline] Component mounted, showModal initial value:", this.showModal);
     this.buildDataView();
     this.setCellSizeDays(1);
   },
   watch: {
+    showModal(newVal) {
+      console.log("[MyTimeline] showModal changed to:", newVal);
+    },
     groups: function () {
       console.log(" MYTIMELINE GROUPS WATCH ");
       this.buildDataView();
@@ -414,7 +413,6 @@ export default {
     };
   },
   components: {
-    VueFinalModal,
     ModalsContainer,
     TextEdit,
     TimelineHeader,
