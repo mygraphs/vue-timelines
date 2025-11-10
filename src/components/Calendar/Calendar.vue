@@ -16,26 +16,30 @@
         <div v-else class="cal__day-container">
           <template v-for="day in month.days" :key="day">
             <table>
-              <tr>
-                <td>
-                  <div>{{ day.title }}</div>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <div class="cal__int-container">
-                    <table>
-                      <tr>
-                        <template v-for="hour in day.hours" :key="hour">
-                          <td>
-                            <div>{{ hour }}</div>
-                          </td>
-                        </template>
-                      </tr>
-                    </table>
-                  </div>
-                </td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td>
+                    <div>{{ day.title }}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="cal__int-container">
+                      <table>
+                        <tbody>
+                          <tr>
+                            <template v-for="hour in day.hours" :key="hour">
+                              <td>
+                                <div>{{ hour }}</div>
+                              </td>
+                            </template>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </template>
         </div>
@@ -174,13 +178,13 @@ export default {
   top: 0;
   display: flex;
   position: sticky;
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-bg, #f8f9fc);
   width: 100%;
   z-index: 100;
 }
 
 .calendar > div {
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-bg, #f8f9fc);
 }
 
 .cal__inner-header {
@@ -189,7 +193,7 @@ export default {
 }
 
 .cal__inner-container {
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-bg, #f8f9fc);
   padding-top: 0rem;
   text-align: left;
 
@@ -204,11 +208,11 @@ export default {
 
 .cal__day-container {
   display: flex;
-  background-color: #f7f8fb;
+  background-color: var(--vt-bg-tertiary, #f7f8fb);
 }
 
 .cal__int-container {
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-bg, #f8f9fc);
   text-align: left;
 }
 

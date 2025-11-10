@@ -94,7 +94,7 @@ import { VueFinalModal, ModalsContainer } from "vue-final-modal";
 /* eslint-disable vue/no-unused-components */
 
 import { reactive } from "vue";
-import { mapState, mapMutations, mapGetters } from "vuex";
+import { mapState, mapMutations, mapGetters, mapActions } from "vuex";
 import { TimelineHeader } from "@/components";
 import { TaskDataPanel } from "@/components";
 import { TextEdit } from "@/components";
@@ -159,10 +159,16 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays", "setRowBoundaries"]),
-    ...mapMutations("api", ["addNewGroup"]),
+    ...mapActions("api", ["addNewGroup"]),
     createNewGroup() {
       console.log(" CREATE NEW GROUP ");
-      this.addNewGroup({ name: "default group" });
+      this.addNewGroup({ name: "default group" })
+        .then(() => {
+          console.log("Group created successfully");
+        })
+        .catch((error) => {
+          console.error("Failed to create group:", error);
+        });
     },
     getRef(groupId, taskId) {
       let refName = `timelineItem-${groupId}-${taskId}`;
@@ -460,7 +466,7 @@ export default {
 
 .calendar {
   text-align: center;
-  color: #707070;
+  color: var(--vt-calendar-text, #707070);
 }
 .cal__int-container {
   display: flex;
@@ -468,8 +474,8 @@ export default {
 
 .cal__int-container div {
   width: v-bind('cellSize + "px"');
-  border-right: 1px solid rgba(177, 184, 189, 0.45);
-  border-bottom: 1px solid rgb(226, 226, 226);
+  border-right: 1px solid var(--vt-calendar-border, rgba(177, 184, 189, 0.45));
+  border-bottom: 1px solid var(--vt-border-primary, rgb(226, 226, 226));
 }
 
 /*
@@ -493,9 +499,9 @@ export default {
 .confirm-modal-content {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  background: #fff;
-  border-radius: 0.5rem;
+  padding: var(--vt-spacing-lg, 1rem);
+  background: var(--vt-bg-modal, #fff);
+  border-radius: var(--vt-radius-md, 0.5rem);
 }
 .confirm-modal-content > * + * {
   margin: 0.5rem 0;
@@ -509,9 +515,7 @@ export default {
   border: 1px solid;
   border-radius: 0.5rem;
 }
-.dark .confirm-modal-content {
-  background: #000;
-}
+/* Dark theme is now handled via CSS variables */
 
 .overlay_disabled {
   visibility: none;

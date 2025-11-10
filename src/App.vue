@@ -1,26 +1,43 @@
 <template>
-  <div v-if="!hasTimeline" class="flex-container">
-    <div class="col">
-      <button class="btn btn-success small" @click="loadDemo">Load Demo</button>
+  <div :class="themeClass">
+    <!-- Theme Selector - Always visible -->
+    <div class="theme-selector">
+      <label for="theme-select" class="theme-selector__label">Theme:</label>
+      <select
+        id="theme-select"
+        v-model="currentTheme"
+        @change="handleThemeChange"
+        class="theme-selector__select"
+      >
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="auto">Auto (System)</option>
+      </select>
     </div>
 
-    <div class="col">
-      <FormCreateTimeline
-        ref="createTimeline"
-        class="form__create__panel"
-        @openParent="showModal = true"
-        @callbackSubmit="createNewTimeline"
-        @closeParent="showModal = false"
+    <div v-if="!hasTimeline" class="flex-container">
+      <div class="col">
+        <button class="btn btn-success small" @click="loadDemo">Load Demo</button>
+      </div>
+
+      <div class="col">
+        <FormCreateTimeline
+          ref="createTimeline"
+          class="form__create__panel"
+          @openParent="showModal = true"
+          @callbackSubmit="createNewTimeline"
+          @closeParent="showModal = false"
+        />
+      </div>
+    </div>
+
+    <div v-else class="graph__container" ref="myGraphContainer">
+      <MyGraphs
+        v-model:desiredHeight="height"
+        v-bind:title="title"
+        @update="handleUpdatedTasks"
       />
     </div>
-  </div>
-
-  <div v-else class="graph__container" ref="myGraphContainer">
-    <MyGraphs
-      v-model:desiredHeight="height"
-      v-bind:title="title"
-      @update="handleUpdatedTasks"
-    />
   </div>
 </template>
 
@@ -154,6 +171,7 @@ var test = {
 
 import { mapState, mapGetters, mapMutations } from "vuex";
 import { nextTick } from "vue";
+import { applyTheme, getTheme, watchSystemTheme } from "./utils/theme-provider";
 
 /* https://v3.vue-final-modal.org/guide/properties */
 import { VueFinalModal } from "vue-final-modal";
@@ -164,9 +182,14 @@ export default {
     return {
       height: 0,
       hasTimeline: false,
+      currentTheme: 'light',
+      systemThemeWatcher: null,
     };
   },
   computed: {
+    themeClass() {
+      return this.currentTheme === 'dark' ? 'vt-theme-dark' : '';
+    },
     ...mapState(["isDebug", "api"]),
     ...mapState("api", ["groups", "tasks", "title"]),
   },
@@ -214,6 +237,28 @@ export default {
         }
       });
     },
+    handleThemeChange() {
+      // Save theme preference
+      localStorage.setItem('vue-timelines-theme', this.currentTheme);
+
+      if (this.currentTheme === 'auto') {
+        // Watch system theme
+        if (this.systemThemeWatcher) {
+          this.systemThemeWatcher();
+        }
+        this.systemThemeWatcher = watchSystemTheme(document.body, (theme) => {
+          // Theme is automatically applied by watchSystemTheme
+        });
+      } else {
+        // Stop watching system theme if it was active
+        if (this.systemThemeWatcher) {
+          this.systemThemeWatcher();
+          this.systemThemeWatcher = null;
+        }
+        // Apply selected theme
+        applyTheme(document.body, this.currentTheme);
+      }
+    },
   },
   mounted: function () {
     //    debugger;
@@ -221,6 +266,17 @@ export default {
     this.$store.dispatch("api/test");
     this.$store.dispatch("api/testObj", { title: "TEST" });
     if (this.hasTimeline) this.configureHeightResize();
+
+    // Initialize theme
+    const savedTheme = localStorage.getItem('vue-timelines-theme') || 'light';
+    this.currentTheme = savedTheme;
+    this.handleThemeChange();
+  },
+  beforeUnmount() {
+    // Cleanup theme watcher
+    if (this.systemThemeWatcher) {
+      this.systemThemeWatcher();
+    }
   },
   components: {
     MyGraphs,
@@ -246,6 +302,49 @@ export default {
 }
 
 .form__create__panel {
+}
+
+/* Theme Selector */
+.theme-selector {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--vt-bg-modal, #fff);
+  border: 1px solid var(--vt-border-primary, rgb(226, 226, 226));
+  border-radius: var(--vt-radius-md, 0.5rem);
+  box-shadow: var(--vt-shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.theme-selector__label {
+  font-size: 0.875rem;
+  color: var(--vt-text-secondary, #606060);
+  margin: 0;
+  font-weight: 500;
+}
+
+.theme-selector__select {
+  padding: 4px 8px;
+  border: 1px solid var(--vt-border-primary, rgb(226, 226, 226));
+  border-radius: var(--vt-radius-sm, 0.2rem);
+  background-color: var(--vt-bg-primary, #fff);
+  color: var(--vt-text-primary, #000);
+  font-size: 0.875rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.theme-selector__select:hover {
+  border-color: var(--vt-primary, #3c8dbc);
+}
+
+.theme-selector__select:focus {
+  border-color: var(--vt-primary, #3c8dbc);
+  box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.2);
 }
 </style>
 

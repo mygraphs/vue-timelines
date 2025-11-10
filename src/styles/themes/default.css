@@ -1,0 +1,97 @@
+/**
+ * Vue Timelines - Default (Light) Theme
+ *
+ * This file defines CSS custom properties for the light theme.
+ * Components should use these variables instead of hardcoded colors.
+ */
+
+:root {
+  /* Primary Colors */
+  --vt-primary: #3c8dbc;
+  --vt-primary-hover: #2e6fa5;
+  --vt-primary-light: #5ba0d4;
+
+  /* Secondary Colors */
+  --vt-secondary: #e91e63;
+  --vt-secondary-hover: #c2185b;
+
+  /* Status Colors */
+  --vt-success: #00a85d;
+  --vt-warning: #ffb311;
+  --vt-error: #ff3636;
+  --vt-info: #3c8dbc;
+  --vt-neutral: #343a40;
+
+  /* Background Colors */
+  --vt-bg-primary: #ffffff;
+  --vt-bg-secondary: #f8f9fc;
+  --vt-bg-tertiary: #f7f8fb;
+  --vt-bg-panel: #fafafa;
+  --vt-bg-overlay: rgba(255, 255, 255, 0.25);
+  --vt-bg-modal: #ffffff;
+
+  /* Text Colors */
+  --vt-text-primary: #000000;
+  --vt-text-secondary: #606060;
+  --vt-text-tertiary: #707070;
+  --vt-text-inverse: #ffffff;
+  --vt-text-muted: rgba(0, 0, 0, 0.6);
+
+  /* Border Colors */
+  --vt-border-primary: rgb(226, 226, 226);
+  --vt-border-secondary: rgba(177, 184, 189, 0.45);
+  --vt-border-dark: #000000;
+  --vt-border-light: rgba(128, 128, 128, 0.2);
+
+  /* Task/Item Colors */
+  --vt-task-bg: #ffffff;
+  --vt-task-border: rgba(160, 160, 160, 0.7);
+  --vt-task-border-hover: rgba(160, 160, 160, 0.85);
+  --vt-task-shadow: rgba(0, 0, 0, 0.1);
+  --vt-task-shadow-hover: 0px 0px 10px 0px #000;
+
+  /* Timeline Colors */
+  --vt-timeline-bg: #f8f9fc;
+  --vt-timeline-header-bg: #f8f9fc;
+  --vt-timeline-row-bg: rgba(128, 128, 128, 0.2);
+  --vt-timeline-row-hover: rgba(255, 0, 0, 0.6);
+
+  /* Calendar Colors */
+  --vt-calendar-text: #707070;
+  --vt-calendar-border: rgba(177, 184, 189, 0.45);
+
+  /* List Colors */
+  --vt-list-text: #606060;
+  --vt-list-header-text: #707070;
+  --vt-list-header-bg: #f8f9fc;
+  --vt-list-border: rgb(226, 226, 226);
+
+  /* Form Colors */
+  --vt-form-border: #000000;
+  --vt-form-bg: #fafafa;
+  --vt-form-text: #e91e63;
+  --vt-form-border-focus: #e91e63;
+
+  /* Spacing */
+  --vt-spacing-xs: 0.25rem;
+  --vt-spacing-sm: 0.5rem;
+  --vt-spacing-md: 0.8rem;
+  --vt-spacing-lg: 1rem;
+  --vt-spacing-xl: 1.5rem;
+
+  /* Border Radius */
+  --vt-radius-sm: 0.2rem;
+  --vt-radius-md: 0.5rem;
+  --vt-radius-lg: 1rem;
+
+  /* Shadows */
+  --vt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --vt-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --vt-shadow-lg: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+
+  /* Transitions */
+  --vt-transition-fast: 0.15s ease;
+  --vt-transition-base: 0.3s ease;
+  --vt-transition-slow: 0.5s ease;
+}
+

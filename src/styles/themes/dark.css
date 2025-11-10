@@ -1,0 +1,81 @@
+/**
+ * Vue Timelines - Dark Theme
+ *
+ * This file defines CSS custom properties for the dark theme.
+ * Apply by adding the 'vt-theme-dark' class to a parent element.
+ */
+
+.vt-theme-dark,
+.vt-theme-dark :root {
+  /* Primary Colors */
+  --vt-primary: #5ba0d4;
+  --vt-primary-hover: #7bb8e0;
+  --vt-primary-light: #3c8dbc;
+
+  /* Secondary Colors */
+  --vt-secondary: #ff4081;
+  --vt-secondary-hover: #ff6eb3;
+
+  /* Status Colors */
+  --vt-success: #4caf50;
+  --vt-warning: #ffc107;
+  --vt-error: #f44336;
+  --vt-info: #2196f3;
+  --vt-neutral: #9e9e9e;
+
+  /* Background Colors */
+  --vt-bg-primary: #1e1e1e;
+  --vt-bg-secondary: #2d2d2d;
+  --vt-bg-tertiary: #252525;
+  --vt-bg-panel: #2a2a2a;
+  --vt-bg-overlay: rgba(0, 0, 0, 0.5);
+  --vt-bg-modal: #2d2d2d;
+
+  /* Text Colors */
+  --vt-text-primary: #e0e0e0;
+  --vt-text-secondary: #b0b0b0;
+  --vt-text-tertiary: #909090;
+  --vt-text-inverse: #1e1e1e;
+  --vt-text-muted: rgba(255, 255, 255, 0.6);
+
+  /* Border Colors */
+  --vt-border-primary: rgba(255, 255, 255, 0.1);
+  --vt-border-secondary: rgba(255, 255, 255, 0.15);
+  --vt-border-dark: rgba(255, 255, 255, 0.2);
+  --vt-border-light: rgba(255, 255, 255, 0.05);
+
+  /* Task/Item Colors */
+  --vt-task-bg: #2d2d2d;
+  --vt-task-border: rgba(255, 255, 255, 0.2);
+  --vt-task-border-hover: rgba(255, 255, 255, 0.3);
+  --vt-task-shadow: rgba(0, 0, 0, 0.3);
+  --vt-task-shadow-hover: 0px 0px 10px 0px rgba(255, 255, 255, 0.2);
+
+  /* Timeline Colors */
+  --vt-timeline-bg: #252525;
+  --vt-timeline-header-bg: #2d2d2d;
+  --vt-timeline-row-bg: rgba(255, 255, 255, 0.05);
+  --vt-timeline-row-hover: rgba(255, 100, 100, 0.3);
+
+  /* Calendar Colors */
+  --vt-calendar-text: #b0b0b0;
+  --vt-calendar-border: rgba(255, 255, 255, 0.15);
+
+  /* List Colors */
+  --vt-list-text: #b0b0b0;
+  --vt-list-header-text: #c0c0c0;
+  --vt-list-header-bg: #2d2d2d;
+  --vt-list-border: rgba(255, 255, 255, 0.1);
+
+  /* Form Colors */
+  --vt-form-border: rgba(255, 255, 255, 0.2);
+  --vt-form-bg: #2a2a2a;
+  --vt-form-text: #ff4081;
+  --vt-form-border-focus: #ff4081;
+
+  /* Shadows (darker for dark theme) */
+  --vt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --vt-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --vt-shadow-lg: 0px 0px 10px 0px rgba(0, 0, 0, 0.6);
+}
+

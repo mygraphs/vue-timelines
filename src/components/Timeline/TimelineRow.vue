@@ -162,7 +162,7 @@ export default {
 }
 
 .cal__row--dragover {
-  background-color: rgba(128, 128, 128, 0.2) !important;
+  background-color: var(--vt-timeline-row-bg, rgba(128, 128, 128, 0.2)) !important;
 }
 
 .cal__row:after {
@@ -171,7 +171,7 @@ export default {
   height: 100%;
   width: 1px;
   top: -3px;
-  background-color: rgba(255, 0, 0, 0.6);
+  background-color: var(--vt-timeline-row-hover, rgba(255, 0, 0, 0.6));
   left: calc(v-bind('cellSize + "px"') * v-bind(todayCell));
 }
 
@@ -199,7 +199,7 @@ export default {
   z-index: 10;
   font-size: 0.7rem;
 
-  border-color: #f8f9fc;
+  border-color: var(--vt-timeline-bg, #f8f9fc);
 }
 
 .cal__button-bottom {
@@ -210,7 +210,7 @@ export default {
   font-size: 0.7rem;
 
   margin-left: 3px;
-  border-color: #f8f9fc;
+  border-color: var(--vt-timeline-bg, #f8f9fc);
 }
 
 .cal__cell {
@@ -221,6 +221,6 @@ export default {
   border-bottom: 1px solid rgba(212, 222, 230, 0.7);
   height: 100%;
   position: relative;
-  background-color: #fff;
+  background-color: var(--vt-bg-primary, #fff);
 }
 </style>

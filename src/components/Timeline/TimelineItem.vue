@@ -557,7 +557,7 @@ export default {
   overflow: hidden;
   height: 85%;
   background: rgba(205, 206, 255, 1);
-  color: black;
+  color: var(--vt-text-primary, black);
   border-radius: 0px v-bind(borderWidth) v-bind(borderWidth) 0px;
 }
 </style>
@@ -575,7 +575,7 @@ export default {
 .task__container {
   position: relative;
   align-items: center;
-  color: white;
+  color: var(--vt-text-inverse, white);
   width: 100%;
   height: 100%;
   display: flex;
@@ -591,7 +591,7 @@ export default {
   text-overflow: ellipsis;
   overflow: hidden;
   height: 85%;
-  background-color: tomato;
+  background-color: var(--vt-primary, tomato);
   border-radius: v-bind(borderWidth) 0px 0px v-bind(borderWidth);
   width: calc(100% - v-bind(iconWidth));
 }
@@ -604,12 +604,12 @@ export default {
   display: block;
   height: 100%;
   width: calc(100% * (1 - v-bind(task.progress)));
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: var(--vt-bg-overlay, rgba(255, 255, 255, 0.25));
   z-index: 2;
 }
 
 .task__content:active {
-  box-shadow: 0px 0px 10px 0px #000;
+  box-shadow: var(--vt-task-shadow-hover, 0px 0px 10px 0px #000);
   pointer-events: none;
   z-index: 100;
 }
@@ -624,13 +624,13 @@ export default {
   align-items: center;
   z-index: 10;
   cursor: ew-resize;
-  background-color: rgba(160, 160, 160, 0.7);
+  background-color: var(--vt-task-border, rgba(160, 160, 160, 0.7));
   border-radius: 2px;
   z-index: 10001 !important;
 }
 
 .task__resize:hover {
-  background-color: rgba(160, 160, 160, 0.85);
+  background-color: var(--vt-task-border-hover, rgba(160, 160, 160, 0.85));
 }
 
 .task__resize::after,
@@ -639,7 +639,7 @@ export default {
   position: absolute;
   width: 0.1rem;
   height: 50%;
-  background-color: #fff;
+  background-color: var(--vt-task-bg, #fff);
   margin: 1rem 0.2rem;
   border-radius: 100px;
 }
@@ -661,23 +661,23 @@ export default {
 }
 
 .task__state--info {
-  background-color: #3c8dbc;
+  background-color: var(--vt-info, #3c8dbc);
 }
 
 .task__state--success {
-  background-color: #00a85d;
+  background-color: var(--vt-success, #00a85d);
 }
 
 .task__state--warning {
-  background-color: #ffb311;
+  background-color: var(--vt-warning, #ffb311);
 }
 
 .task__state--danger {
-  background-color: #ff3636;
+  background-color: var(--vt-error, #ff3636);
 }
 
 .task__state--dark {
-  background-color: #343a40;
+  background-color: var(--vt-neutral, #343a40);
 }
 
 .prevent-select {

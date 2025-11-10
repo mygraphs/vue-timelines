@@ -23,11 +23,10 @@ export default {
 }
 
 .list__header {
-  color: #707070;
-  background-color: #f8f9fc;
+  color: var(--vt-list-header-text, #707070);
+  background-color: var(--vt-list-header-bg, #f8f9fc);
   padding-top: 2rem;
-  padding-bottom: 0.8rem;
-  color: #707070;
+  padding-bottom: var(--vt-spacing-md, 0.8rem);
   position: sticky;
   top: 0;
 }

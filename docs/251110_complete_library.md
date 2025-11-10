@@ -62,26 +62,26 @@ This document outlines the plan to complete the `vue-timelines` library, transfo
 
 ### Phase 2: API Service Abstraction
 
-- [ ] **Create API service interface**
-  - [ ] Create `src/services/api-service.js` with interface/abstract class
-  - [ ] Define methods: `createTimeline(timeline)`, `updateTask(task)`, `createGroup(group)`, `fetchTimeline(id)`, etc.
-  - [ ] Create default implementation `src/services/default-api-service.js` that uses current fetch-based approach
-  - [ ] Create no-op implementation `src/services/noop-api-service.js` for demo/static use
+- [x] **Create API service interface**
+  - [x] Create `src/services/api-service.js` with interface/abstract class
+  - [x] Define methods: `createTimeline(timeline)`, `updateTask(task)`, `createGroup(group)`, `fetchTimeline(id)`, etc.
+  - [x] Create default implementation `src/services/default-api-service.js` that uses current fetch-based approach
+  - [x] Create no-op implementation `src/services/noop-api-service.js` for demo/static use
 
-- [ ] **Refactor Vuex store to use service**
-  - [ ] Update `src/store/modules/api.js` to accept API service via dependency injection
-  - [ ] Remove hardcoded `process.env` references from store
-  - [ ] Make API service configurable via plugin options or provide/inject
+- [x] **Refactor Vuex store to use service**
+  - [x] Update `src/store/modules/api.js` to accept API service via dependency injection
+  - [x] Remove hardcoded `process.env` references from store
+  - [x] Make API service configurable via plugin options or provide/inject
 
-- [ ] **Update component to accept API service**
-  - [ ] Modify `MyTimeline.vue` to accept `apiService` prop or inject
-  - [ ] Pass API service to Vuex store initialization
-  - [ ] Update `src/index.js` to allow API service configuration during install
+- [x] **Update component to accept API service**
+  - [x] Modify `MyTimeline.vue` to accept `apiService` prop or inject
+  - [x] Pass API service to Vuex store initialization
+  - [x] Update `src/index.js` to allow API service configuration during install
 
-- [ ] **Document API service interface**
-  - [ ] Create `docs/API_SERVICE.md` with interface documentation
-  - [ ] Provide examples for custom API service implementations
-  - [ ] Show how to use with different backends (REST, GraphQL, etc.)
+- [x] **Document API service interface**
+  - [x] Create `docs/API_SERVICE.md` with interface documentation
+  - [x] Provide examples for custom API service implementations
+  - [x] Show how to use with different backends (REST, GraphQL, etc.)
 
 ### Phase 3: CSS Theming System
 

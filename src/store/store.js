@@ -1,8 +1,9 @@
 // store.js
 import { createStore } from 'vuex';
 
-import api from './modules/api.js'
+import createApiModule from './modules/api.js'
 import foo from './modules/foo.js'
+import { NoopApiService } from '@/services';
 
 import * as date from "@/utils/date";
 
@@ -93,10 +94,27 @@ const root = {
   },
 
   modules: {
-    api: api,
+    api: createApiModule(new NoopApiService()),
     foo: foo,
   }
 };
 
+/**
+ * Create Vuex store with optional API service
+ * @param {ApiService} apiService - Optional API service instance
+ * @returns {Store} Vuex store instance
+ */
+export function createTimelineStore(apiService = new NoopApiService()) {
+  const storeConfig = {
+    ...root,
+    modules: {
+      ...root.modules,
+      api: createApiModule(apiService),
+    }
+  };
+  return createStore(storeConfig);
+}
+
+// Default export for backward compatibility
 export default createStore(root);
 

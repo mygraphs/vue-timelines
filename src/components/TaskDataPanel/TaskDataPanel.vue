@@ -100,8 +100,8 @@
               <VueSlider
                 v-model="progressPct"
                 style="
-                  --tooltip-color: #ffffff;
-                  --tooltip-text-color: #000000;
+                  --tooltip-color: var(--vt-bg-primary, #ffffff);
+                  --tooltip-text-color: var(--vt-text-primary, #000000);
                   --min: 0;
                   --max: 100;
                   --height: 10px;
@@ -363,10 +363,10 @@ export default {
   padding: 12px;
 
   border: 1px;
-  border-color: #000;
+  border-color: var(--vt-form-border, #000);
   border-style: solid;
 
-  background-color: #fafafa;
+  background-color: var(--vt-form-bg, #fafafa);
 
   padding: 12px;
   float: right;

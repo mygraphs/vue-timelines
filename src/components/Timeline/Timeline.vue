@@ -103,7 +103,7 @@ export default {
 
 <style>
 .timeline {
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-bg, #f8f9fc);
   overflow-x: scroll;
   width: 100%;
   overflow-y: hidden;

@@ -58,9 +58,10 @@ const baseConfig = {
         asyncAwait: false,
         objectRestSpread: true,
         defaultParameter: true,
-        destructuring: true
+        destructuring: true,
+        classes: false  // Don't transform classes - let them through as-is
       },
-      exclude: 'node_modules/**'
+      exclude: ['node_modules/**', 'src/services/**']  // Exclude services from buble (uses ES6 classes)
     }),
   ],
 };

@@ -76,19 +76,42 @@ Overall, the interface appears to be a web-based tool designed for tracking proj
 
 ## 🔧 Requirements
 
-Needed node 18.12 for vue3datepicker
+- **Node.js**: >= 18.0.0
+- **npm**: >= 9.0.0
 
 You can update your node version using nvm and make it persistent like this:
-```
-nvm install 18.12
-nvm alias default 18.12
+```bash
+nvm install 18
+nvm use 18
+nvm alias default 18
 ```
 
-Update packages
-```
-npm i -g npm-check-updates
-ncu -u
+## 🚀 Quick Start
+
+### Installation
+
+```bash
 npm install
+```
+
+### Development
+
+Start the development server:
+
+```bash
+npm run serve
+```
+
+This will start the dev server at `http://localhost:8080` with hot-reload enabled.
+
+For detailed development instructions, see [DEVELOPMENT.md](./DEVELOPMENT.md).
+
+### Build Library
+
+```bash
+npm run build          # Build library (UMD, ESM, IIFE)
+npm run build:wc       # Build web component
+npm run build:all      # Build everything
 ```
 
 ## 🔧 Usage

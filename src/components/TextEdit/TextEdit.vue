@@ -164,9 +164,9 @@ input[type="text"] {
   outline: none;
   width: 100%;
 
-  border-bottom: 0.2em solid #e91e63;
-  border-radius: 0.2em 0.2em 0 0;
+  border-bottom: 0.2em solid var(--vt-form-border-focus, #e91e63);
+  border-radius: var(--vt-radius-sm, 0.2em) var(--vt-radius-sm, 0.2em) 0 0;
   padding: 0.4em;
-  color: #e91e63;
+  color: var(--vt-form-text, #e91e63);
 }
 </style>

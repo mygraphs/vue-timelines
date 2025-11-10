@@ -19,7 +19,7 @@ export default {
 <style>
 .list {
   min-width: v-bind(width);
-  color: #606060;
+  color: var(--vt-list-text, #606060);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -28,8 +28,8 @@ export default {
 .list > * {
   display: flex;
   align-items: center;
-  padding: 0 0.8rem;
-  border-right: 1px solid rgb(226, 226, 226);
-  border-bottom: 1px solid rgb(226, 226, 226);
+  padding: 0 var(--vt-spacing-md, 0.8rem);
+  border-right: 1px solid var(--vt-list-border, rgb(226, 226, 226));
+  border-bottom: 1px solid var(--vt-list-border, rgb(226, 226, 226));
 }
 </style>

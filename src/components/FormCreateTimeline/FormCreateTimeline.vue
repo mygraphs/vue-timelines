@@ -216,10 +216,10 @@ export default {
   padding: 12px;
 
   border: 1px;
-  border-color: #000;
+  border-color: var(--vt-form-border, #000);
   border-style: solid;
 
-  background-color: #fafafa;
+  background-color: var(--vt-form-bg, #fafafa);
   padding: 12px;
   border: 1px solid black;
 }

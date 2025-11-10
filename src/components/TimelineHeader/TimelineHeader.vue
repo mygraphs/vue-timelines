@@ -90,7 +90,7 @@ export default {
 .header {
   display: flex;
   justify-content: space-between;
-  background-color: #f8f9fc;
+  background-color: var(--vt-timeline-header-bg, #f8f9fc);
   height: v-bind('mainHeaderHeight + "px"');
 }
 

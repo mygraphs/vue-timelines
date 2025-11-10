@@ -1,0 +1,9 @@
+/**
+ * Vue Timelines - Theme System
+ *
+ * Import this file to get the default theme.
+ * For dark theme, also import dark.css and add 'vt-theme-dark' class to a parent element.
+ */
+
+@import './default.css';
+

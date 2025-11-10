@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import MyTimeline from './MyTimeline.vue';
-import store from './store/store';
+import { createTimelineStore } from './store/store';
+import { NoopApiService, DefaultApiService } from './services';
 
 // Import styles - these will be bundled by rollup
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -24,7 +25,7 @@ class VueTimelineElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['height', 'groups', 'tasks', 'title'];
+    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token'];
   }
 
   connectedCallback() {
@@ -34,10 +35,14 @@ class VueTimelineElement extends HTMLElement {
       this.attachShadow({ mode: 'open' });
     }
 
+    // Get API service configuration from attributes
+    const apiService = this.createApiService();
+
     // Create Vue app instance
     this.app = createApp(MyTimeline);
 
-    // Provide store to the app
+    // Create store with API service
+    const store = createTimelineStore(apiService);
     this.app.use(store);
 
     // Get props from attributes
@@ -54,6 +59,12 @@ class VueTimelineElement extends HTMLElement {
       store.commit('api/setTitle', props.title);
     }
 
+    // Store reference for later use
+    this.store = store;
+
+    // Setup event listeners after store is created
+    this.setupEventListeners();
+
     // Create a container for Vue
     const container = document.createElement('div');
     container.style.width = '100%';
@@ -65,9 +76,6 @@ class VueTimelineElement extends HTMLElement {
 
     // Mount Vue app
     this.app.mount(container);
-
-    // Listen for events from the component
-    this.setupEventListeners();
   }
 
   disconnectedCallback() {
@@ -127,34 +135,58 @@ class VueTimelineElement extends HTMLElement {
     }
   }
 
+  createApiService() {
+    const baseURL = this.getAttribute('api-base-url');
+    const apiToken = this.getAttribute('api-token');
+
+    if (baseURL) {
+      // Use DefaultApiService if API configuration is provided
+      return new DefaultApiService({
+        baseURL: baseURL,
+        apiToken: apiToken || ''
+      });
+    }
+
+    // Default to NoopApiService for demo/static use
+    return new NoopApiService();
+  }
+
   setupEventListeners() {
     // Listen to Vuex store changes and emit custom events
-    store.subscribe((mutation, state) => {
-      // Emit custom events for important state changes
-      if (mutation.type === 'api/updateTask') {
-        this.dispatchEvent(new CustomEvent('task-updated', {
-          detail: mutation.payload,
-          bubbles: true,
-          composed: true
-        }));
-      }
-    });
+    if (this.store) {
+      this.store.subscribe((mutation, state) => {
+        // Emit custom events for important state changes
+        if (mutation.type === 'api/updateTask') {
+          this.dispatchEvent(new CustomEvent('task-updated', {
+            detail: mutation.payload,
+            bubbles: true,
+            composed: true
+          }));
+        }
+      });
+    }
   }
 
   // Public API methods
   setGroups(groups) {
     this.setAttribute('groups', JSON.stringify(groups));
-    store.commit('api/setGroups', groups);
+    if (this.store) {
+      this.store.commit('api/setGroups', groups);
+    }
   }
 
   setTasks(tasks) {
     this.setAttribute('tasks', JSON.stringify(tasks));
-    store.commit('api/setTasks', tasks);
+    if (this.store) {
+      this.store.commit('api/setTasks', tasks);
+    }
   }
 
   setTitle(title) {
     this.setAttribute('title', title);
-    store.commit('api/setTitle', title);
+    if (this.store) {
+      this.store.commit('api/setTitle', title);
+    }
   }
 }
 
