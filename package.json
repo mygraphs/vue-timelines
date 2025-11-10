@@ -19,43 +19,61 @@
     "serve": "vue-cli-service serve",
     "lint": "vue-cli-service lint",
     "build:demo": "vue-cli-service build --mode prod ",
-    "build": "rimraf dist & cross-env NODE_ENV=production & npm run build:unpkg & npm run build:es & npm run build:umd",
-    "build:umd": "rollup --config rollup.config.js --format umd --file dist/vue-timelines.umd.js",
-    "build:es": "rollup --config rollup.config.js --format es --file dist/vue-timelines.esm.js",
-    "build:unpkg": "rollup --config rollup.config.js --format iife --file dist/vue-timelines.min.js"
+    "build": "rimraf dist && cross-env NODE_ENV=production BUILD_FORMAT=all rollup --config rollup.config.js",
+    "build:umd": "rimraf dist/vue-timelines.umd.js && cross-env NODE_ENV=production BUILD_FORMAT=umd rollup --config rollup.config.js",
+    "build:es": "rimraf dist/vue-timelines.esm.js && cross-env NODE_ENV=production BUILD_FORMAT=es rollup --config rollup.config.js",
+    "build:unpkg": "rimraf dist/vue-timelines.min.js && cross-env NODE_ENV=production BUILD_FORMAT=iife rollup --config rollup.config.js"
   },
   "peerDependencies": {
     "vue": ">= 3.3.0"
   },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "overrides": {
+    "cross-spawn": "^7.0.3",
+    "@babel/runtime": "^7.26.10",
+    "@vue/component-compiler-utils": {
+      "postcss": "^8.4.31"
+    },
+    "yorkie": {
+      "cross-spawn": "^7.0.3"
+    },
+    "@vue/cli-service": {
+      "webpack-dev-server": "^4.15.1"
+    }
+  },
   "dependencies": {
-    "@vuepic/vue-datepicker": "^5.0.0",
-    "bootstrap": "^5.3.2",
-    "core-js": "^3.6.5",
-    "dayjs": "^1.11.10",
-    "vue-final-modal": "^3.4.11",
-    "vue3-slider": "^1.9.0",
-    "vuex": "^4.0.2"
+    "@vuepic/vue-datepicker": "^5.4.0",
+    "bootstrap": "^5.3.8",
+    "core-js": "^3.46.0",
+    "dayjs": "^1.11.19",
+    "vue-final-modal": "^4.5.5",
+    "vue3-slider": "^1.10.1",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.9",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-node-resolve": "^13.3.0",
-    "@rollup/plugin-replace": "^4.0.0",
-    "@vue/cli-plugin-babel": "~4.5.13",
-    "@vue/cli-plugin-eslint": "~4.5.13",
-    "@vue/cli-service": "~4.5.13",
-    "@vue/compiler-sfc": "^3.0.0",
-    "babel-eslint": "^10.1.0",
+    "@rollup/plugin-alias": "^6.0.0",
+    "@rollup/plugin-buble": "^1.0.3",
+    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@vue/cli-plugin-babel": "~5.0.9",
+    "@vue/cli-plugin-eslint": "~5.0.9",
+    "@vue/cli-service": "~5.0.9",
+    "@vue/compiler-sfc": "^3.5.24",
+    "@babel/eslint-parser": "^7.26.0",
     "cross-env": "^7.0.3",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.0.0",
-    "postcss": "^8.4.13",
-    "rollup": "^2.71.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-vue": "^9.32.0",
+    "postcss": "^8.5.6",
+    "rimraf": "^6.0.1",
+    "rollup": "^4.53.1",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-terser": "^7.0.2",
+    "@rollup/plugin-terser": "^0.4.4",
     "rollup-plugin-vue": "^6.0.0",
-    "vue": "^3.3.0"
+    "vue": "^3.5.24"
   },
   "keywords": [
     "vuecomponent",
@@ -73,7 +91,7 @@
       "eslint:recommended"
     ],
     "parserOptions": {
-      "parser": "babel-eslint"
+      "parser": "@babel/eslint-parser"
     },
     "rules": {
       "no-console": "off",

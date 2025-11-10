@@ -6,22 +6,16 @@ import postcss from "rollup-plugin-postcss";
 import replace from "@rollup/plugin-replace";
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from "@rollup/plugin-node-resolve";
-import { terser } from "rollup-plugin-terser";
+import { terser } from "@rollup/plugin-terser";
 
 const projectRootDir = path.resolve(__dirname);
 
-export default {
+// Get format from command line or default to all
+const format = process.env.BUILD_FORMAT || 'all';
+
+const baseConfig = {
   input: "src/index.js",
   external: ["vue", "dayjs", "@vuepic/vue-datepicker"],
-  output: {
-    name: "MyTimeline",
-    exports: "named",
-    globals: {
-      vue: "Vue",
-      dayjs: "dayjs",
-      vue3slider: "vue3-slider",
-    },
-  },
   plugins: [
     alias({
       entries: [
@@ -57,6 +51,55 @@ export default {
       objectAssign: "Object.assign",
       transforms: {  generator: false, forOf: false, asyncAwait: false  },
     }),
-    terser({ output: { ecma: 5 } }),
   ],
 };
+
+const outputs = {
+  umd: {
+    format: "umd",
+    file: "dist/vue-timelines.umd.js",
+    name: "MyTimeline",
+    exports: "named",
+    globals: {
+      vue: "Vue",
+      dayjs: "dayjs",
+      vue3slider: "vue3-slider",
+    },
+  },
+  es: {
+    format: "es",
+    file: "dist/vue-timelines.esm.js",
+    exports: "named",
+    globals: {
+      vue: "Vue",
+      dayjs: "dayjs",
+      vue3slider: "vue3-slider",
+    },
+  },
+  iife: {
+    format: "iife",
+    file: "dist/vue-timelines.min.js",
+    name: "MyTimeline",
+    exports: "named",
+    globals: {
+      vue: "Vue",
+      dayjs: "dayjs",
+      vue3slider: "vue3-slider",
+    },
+  },
+};
+
+// Add terser only for iife/minified builds
+if (format === 'iife') {
+  baseConfig.plugins.push(terser({ output: { ecma: 5 } }));
+}
+
+if (format === 'all') {
+  baseConfig.output = [outputs.umd, outputs.es, outputs.iife];
+} else if (outputs[format]) {
+  baseConfig.output = outputs[format];
+} else {
+  baseConfig.output = [outputs.umd, outputs.es, outputs.iife];
+}
+
+export default baseConfig;
