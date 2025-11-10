@@ -13,12 +13,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRootDir = path.resolve(__dirname);
 
-// Get format from command line or default to all
-const format = process.env.BUILD_FORMAT || 'all';
-
-const baseConfig = {
-  input: "src/index.js",
-  external: ["vue", "dayjs", "@vuepic/vue-datepicker"],
+// Web component build - bundles everything including Vue and Vuex
+export default {
+  input: "src/web-component.js",
+  // Don't externalize Vue/Vuex - bundle them for web component
+  external: [],
+  output: {
+    format: "iife",
+    file: "dist/vue-timelines-wc.js",
+    name: "VueTimelines",
+    exports: "named",
+    globals: {},
+  },
   plugins: [
     alias({
       entries: [
@@ -62,58 +68,11 @@ const baseConfig = {
       },
       exclude: 'node_modules/**'
     }),
+    terser({
+      output: {
+        ecma: 5
+      }
+    }),
   ],
 };
 
-const outputs = {
-  umd: {
-    format: "umd",
-    file: "dist/vue-timelines.umd.js",
-    name: "MyTimeline",
-    exports: "named",
-    globals: {
-      vue: "Vue",
-      dayjs: "dayjs",
-      vue3slider: "vue3-slider",
-      "@vuepic/vue-datepicker": "VueDatePicker",
-    },
-  },
-  es: {
-    format: "es",
-    file: "dist/vue-timelines.esm.js",
-    exports: "named",
-    globals: {
-      vue: "Vue",
-      dayjs: "dayjs",
-      vue3slider: "vue3-slider",
-      "@vuepic/vue-datepicker": "VueDatePicker",
-    },
-  },
-  iife: {
-    format: "iife",
-    file: "dist/vue-timelines.min.js",
-    name: "MyTimeline",
-    exports: "named",
-    globals: {
-      vue: "Vue",
-      dayjs: "dayjs",
-      vue3slider: "vue3-slider",
-      "@vuepic/vue-datepicker": "VueDatePicker",
-    },
-  },
-};
-
-// Add terser only for iife/minified builds
-if (format === 'iife') {
-  baseConfig.plugins.push(terser({ output: { ecma: 5 } }));
-}
-
-if (format === 'all') {
-  baseConfig.output = [outputs.umd, outputs.es, outputs.iife];
-} else if (outputs[format]) {
-  baseConfig.output = outputs[format];
-} else {
-  baseConfig.output = [outputs.umd, outputs.es, outputs.iife];
-}
-
-export default baseConfig;

@@ -156,7 +156,7 @@ import { mapState, mapGetters, mapMutations } from "vuex";
 import { nextTick } from "vue";
 
 /* https://v3.vue-final-modal.org/guide/properties */
-import { $vfm, VueFinalModal } from "vue-final-modal";
+import { VueFinalModal } from "vue-final-modal";
 
 export default {
   name: "App",

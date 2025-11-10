@@ -1,6 +1,7 @@
 import * as TimelineComponets from "./components/Timeline";
 import * as ListComponents from "./components/List";
 import MyGraph from "./MyGraphs";
+import MyTimeline from "./MyTimeline.vue";
 
 const install = (Vue) => {
   if (install.installed) return;
@@ -44,6 +45,10 @@ if (GlobalVue) {
 const { List, ListHeader, ListRow } = ListComponents;
 const { Timeline, TimelineItem, TimelineRow } = TimelineComponets;
 
+// Export plugin for Vue.use()
+export default plugin;
+
+// Export individual components
 export {
   Timeline,
   TimelineItem,
@@ -52,4 +57,7 @@ export {
   ListHeader,
   ListRow,
   MyGraph,
+  MyTimeline,
+  plugin,
+  install,
 };

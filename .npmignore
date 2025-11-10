@@ -1,0 +1,60 @@
+# Development files
+node_modules/
+.vscode/
+.idea/
+*.log
+*.swp
+*.swo
+*~
+
+# Build artifacts (will be included via files field)
+# dist/ is included in files, so we don't ignore it
+
+# Source maps (optional - include if you want)
+# *.map
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage/
+
+# Demo and example files (keep examples/ for users)
+# examples/ is kept for documentation
+
+# Development config
+.env
+.env.local
+.env.*.local
+.eslintcache
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# Documentation build
+docs/_build/
+docs/.vuepress/dist/
+
+# Misc
+.DS_Store
+Thumbs.db
+*.orig
+
+# Vue CLI
+.vue-cli-service/
+
+# Rollup cache
+.rollup.cache/
+

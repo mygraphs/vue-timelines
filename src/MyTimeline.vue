@@ -89,7 +89,7 @@
 
 <script>
 /* https://v3.vue-final-modal.org/guide/properties */
-import { $vfm, VueFinalModal, ModalsContainer } from "vue-final-modal";
+import { VueFinalModal, ModalsContainer } from "vue-final-modal";
 
 /* eslint-disable vue/no-unused-components */
 

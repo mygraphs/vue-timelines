@@ -7,9 +7,23 @@ Visit our demo!
 
 ## 📦 Install
 
+```bash
+npm install vue-timelines
 ```
-npm install vue-timelines --save
+
+or
+
+```bash
+yarn add vue-timelines
 ```
+
+or
+
+```bash
+pnpm add vue-timelines
+```
+
+See [Installation Guide](./README_INSTALL.md) for detailed usage instructions.
 
 ```html
 // component.vue

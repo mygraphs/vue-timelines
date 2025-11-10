@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue Timeline Web Component Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            height: 600px;
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 4px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Vue Timeline Web Component Test</h1>
+
+    <div class="controls">
+        <button onclick="loadDemo()">Load Demo Data</button>
+        <button onclick="clearData()">Clear Data</button>
+        <button onclick="updateTitle()">Update Title</button>
+    </div>
+
+    <div class="container">
+        <vue-timeline
+            id="timeline"
+            height="100%"
+            title="My Timeline"
+        ></vue-timeline>
+    </div>
+
+    <script src="../dist/vue-timelines-wc.js"></script>
+    <script>
+        // Wait for custom element to be defined
+        customElements.whenDefined('vue-timeline').then(() => {
+            console.log('Vue Timeline web component is ready!');
+
+            const timeline = document.getElementById('timeline');
+
+            // Demo data
+            const demoGroups = [
+                { id: "1", name: "Group 01" },
+                { id: "2", name: "Group 02" },
+                { id: "3", name: "Group 03" },
+                { id: "4", name: "Group 04" }
+            ];
+
+            const demoTasks = [
+                {
+                    id: "01",
+                    group_id: "1",
+                    title: "Test task 01",
+                    creationDate: 1641437099,
+                    dueDate: 1651805099,
+                    progress: 0.8,
+                    priority: 0,
+                },
+                {
+                    id: "02",
+                    group_id: "1",
+                    title: "Test task 02",
+                    creationDate: 1643856299,
+                    dueDate: 1649126699,
+                    progress: 0.5,
+                    priority: 1,
+                },
+                {
+                    id: "03",
+                    group_id: "2",
+                    title: "Test task 03",
+                    creationDate: 1649041200,
+                    dueDate: 1650510000,
+                    progress: 0.8,
+                    priority: 0,
+                },
+                {
+                    id: "07",
+                    group_id: "3",
+                    title: "Test task 07",
+                    creationDate: 1642737099,
+                    dueDate: 1651805099,
+                    progress: 1.0,
+                    priority: 0,
+                },
+                {
+                    id: "09",
+                    group_id: "4",
+                    title: "Test task 09",
+                    creationDate: 1649031200,
+                    dueDate: 1649410000,
+                    progress: 0.8,
+                    priority: 1,
+                },
+            ];
+
+            // Listen for events
+            timeline.addEventListener('task-updated', (event) => {
+                console.log('Task updated:', event.detail);
+            });
+
+            // Global functions for buttons
+            window.loadDemo = function() {
+                timeline.setGroups(demoGroups);
+                timeline.setTasks(demoTasks);
+                timeline.setTitle('Vue Timeline Demo');
+                console.log('Demo data loaded');
+            };
+
+            window.clearData = function() {
+                timeline.setGroups([]);
+                timeline.setTasks([]);
+                timeline.setTitle('');
+                console.log('Data cleared');
+            };
+
+            window.updateTitle = function() {
+                timeline.setTitle('Updated Title - ' + new Date().toLocaleTimeString());
+            };
+        });
+    </script>
+</body>
+</html>
+

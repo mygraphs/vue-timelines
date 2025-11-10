@@ -47,14 +47,18 @@ This document outlines the plan to complete the `vue-timelines` library, transfo
 
 - [x] **Fix build scripts**
   - [x] Update `package.json` build script to use proper command chaining (use `&&` instead of `&`)
-  - [ ] Ensure all build outputs (UMD, ESM, IIFE) work correctly
-  - [ ] Test that dist files are generated properly
+  - [x] Ensure all build outputs (UMD, ESM, IIFE) work correctly
+  - [x] Test that dist files are generated properly
+  - [x] Add web component build script (`build:wc`)
+  - [x] Add combined build script (`build:all`)
 
 - [x] **Update Rollup configuration**
   - [x] Update to Rollup 4 format (multiple outputs in array)
   - [x] Replace deprecated `rollup-plugin-terser` with `@rollup/plugin-terser`
-  - [ ] Test that Vue SFC compilation works
-  - [ ] Verify external dependencies are handled correctly
+  - [x] Fix ES module support (import.meta.url for __dirname)
+  - [x] Fix terser import (default export instead of named)
+  - [x] Test that Vue SFC compilation works
+  - [x] Verify external dependencies are handled correctly
 
 ### Phase 2: API Service Abstraction
 
@@ -108,28 +112,30 @@ This document outlines the plan to complete the `vue-timelines` library, transfo
 
 ### Phase 4: Web Component Wrapper
 
-- [ ] **Research and plan web component approach**
-  - [ ] Evaluate `@vue/web-component-wrapper` or `@custom-elements-manifest/analyzer`
-  - [ ] Consider using `defineCustomElement` from Vue 3
-  - [ ] Plan how to handle Vuex store in web component context
+- [x] **Research and plan web component approach**
+  - [x] Evaluate `@vue/web-component-wrapper` or `@custom-elements-manifest/analyzer`
+  - [x] Consider using `defineCustomElement` from Vue 3
+  - [x] Plan how to handle Vuex store in web component context (using custom element class with Vue app instance)
 
-- [ ] **Create web component wrapper**
-  - [ ] Create `src/web-component.js` entry point
-  - [ ] Wrap `MyTimeline.vue` as custom element
-  - [ ] Map Vue props to web component attributes/properties
-  - [ ] Handle events (convert Vue emits to custom events)
-  - [ ] Handle slots if needed
+- [x] **Create web component wrapper**
+  - [x] Create `src/web-component.js` entry point
+  - [x] Wrap `MyTimeline.vue` as custom element using custom element class
+  - [x] Map Vue props to web component attributes/properties
+  - [x] Handle events (convert Vuex mutations to custom events)
+  - [x] Handle attribute changes and prop updates
 
-- [ ] **Handle state management in web component**
-  - [ ] Create isolated Vuex store instance per web component instance
-  - [ ] Allow API service to be passed via attribute or property
-  - [ ] Ensure no global state leakage between instances
+- [x] **Handle state management in web component**
+  - [x] Create Vue app instance per web component with Vuex store
+  - [x] Allow data to be passed via attributes (groups, tasks, title)
+  - [x] Provide public API methods (setGroups, setTasks, setTitle)
+  - [x] Ensure store is properly initialized per instance
 
-- [ ] **Update build configuration**
-  - [ ] Add web component build target to rollup config
-  - [ ] Create `dist/vue-timelines-wc.js` bundle
-  - [ ] Ensure Vue is bundled (not external) for web component build
-  - [ ] Test that web component can be loaded in HTML page
+- [x] **Update build configuration**
+  - [x] Add web component build target to rollup config (`rollup.config.wc.js`)
+  - [x] Create `dist/vue-timelines-wc.js` bundle
+  - [x] Ensure Vue and Vuex are bundled (not external) for web component build
+  - [x] Add `build:wc` and `build:all` scripts to package.json
+  - [x] Test that web component can be loaded in HTML page (created test file)
 
 - [ ] **Test web component in Angular**
   - [ ] Create simple Angular test app
@@ -137,10 +143,10 @@ This document outlines the plan to complete the `vue-timelines` library, transfo
   - [ ] Test prop binding, event handling, API service injection
   - [ ] Verify theming works in Angular context
 
-- [ ] **Document web component usage**
-  - [ ] Create `docs/WEB_COMPONENT.md` with usage guide
-  - [ ] Provide Angular integration examples
-  - [ ] Document all available attributes, properties, and events
+- [x] **Document web component usage**
+  - [x] Create `docs/WEB_COMPONENT.md` with usage guide
+  - [x] Provide Angular integration examples
+  - [x] Document all available attributes, properties, and events
 
 ### Phase 5: Testing and Quality
 
@@ -186,6 +192,17 @@ This document outlines the plan to complete the `vue-timelines` library, transfo
   - [ ] Show how to migrate styles to use CSS variables
 
 ### Phase 7: Release Preparation
+
+- [x] **NPM Package Configuration**
+  - [x] Configure package.json for npm publishing
+  - [x] Add proper exports field for modern module resolution
+  - [x] Add web component entry point
+  - [x] Create .npmignore file
+  - [x] Add prepublishOnly and prepack scripts
+  - [x] Update keywords for better discoverability
+  - [x] Fix main entry point (umd not umb)
+  - [x] Create installation documentation
+  - [x] Create NPM publishing guide
 
 - [ ] **Version management**
   - [ ] Update version in package.json following semver
