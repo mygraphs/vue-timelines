@@ -1,34 +1,37 @@
 <template>
-  <div ref="ref_task_panel">
-    <!-- Wrap panel in modal when groupId is set -->
-    <VueFinalModal
-      v-model="isModalOpen"
-      :drag="true"
-      :click-to-close="false"
-      :esc-to-close="true"
-      :content-style="modalContentStyle"
+  <!-- Custom floating panel - no modal dependency -->
+  <div v-if="isModalOpen" class="task__panel_overlay" @click.self="closeParent">
+    <div
+      v-if="groupId === null"
+      class="task__panel"
+      style="display: none;"
+      :style="panelStyle"
     >
-      <div v-if="groupId === null" class="task__panel" style="display: none;">
-        <div class="task__panel_container">
-          <div style="max-width: 300px">
-            <h1>HELP</h1>
+      <div class="task__panel_container">
+        <div style="max-width: 300px">
+          <h1>HELP</h1>
 
-            <p>
-              <i class="fa fa-square fa-xs" />
-              Select a task to resize.
-            </p>
-            <p>
-              <i class="fa fa-square fa-xs" />
-              Double click edits the task.
-            </p>
-            <p>
-              <i class="fa fa-square fa-xs" />
-              Double click on an empty space creates a new task.
-            </p>
-          </div>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Select a task to resize.
+          </p>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Double click edits the task.
+          </p>
+          <p>
+            <i class="fa fa-square fa-xs" />
+            Double click on an empty space creates a new task.
+          </p>
         </div>
       </div>
-      <div v-else class="task__panel">
+    </div>
+    <div
+      v-else
+      class="task__panel"
+      :style="panelStyle"
+      @mousedown="handlePanelMouseDown"
+    >
       <div class="task__panel_container">
         <div class="task__panel_header">
           <i
@@ -136,7 +139,6 @@
         </div>
       </div>
     </div>
-    </VueFinalModal>
   </div>
 </template>
 
@@ -149,7 +151,6 @@ import * as localizedFormat from "dayjs/plugin/localizedFormat";
 import eventBus from "../eventBus.js";
 
 import { nextTick } from "vue";
-import { VueFinalModal } from "vue-final-modal";
 import { TextEdit } from "@/components/TextEdit/";
 
 import VueDatePicker from "@vuepic/vue-datepicker";
@@ -166,7 +167,6 @@ export default {
     TextEdit,
     VueDatePicker,
     VueSlider: vue3slider,
-    VueFinalModal,
   },
   inject: {
     mainHeaderHeight,
@@ -176,13 +176,13 @@ export default {
   },
   methods: {
     openParent: function () {
-      console.log("[TaskDataPanel] openParent called, opening modal");
-      // If no position is set, center the modal
+      console.log("[TaskDataPanel] openParent called, opening panel");
+      // Center panel if no position is set
       if (this.pos_x === 0 && this.pos_y === 0) {
         const viewportWidth = window.innerWidth;
         const viewportHeight = window.innerHeight;
-        this.pos_x = (viewportWidth - 400) / 2; // Center horizontally
-        this.pos_y = (viewportHeight - 320) / 2; // Center vertically
+        this.pos_x = (viewportWidth - 400) / 2;
+        this.pos_y = (viewportHeight - 320) / 2;
       }
       this.isModalOpen = true;
       this.$emit("openParent");
@@ -273,25 +273,56 @@ export default {
       this.closeParent();
     },
     handleTaskPosition: function (e) {
-      // Position the modal near the click position, but ensure it's visible
-      // Calculate position relative to viewport
+      // Set initial position near click, but center if no position specified
+      if (e && e.clientX && e.clientY) {
+        const modalWidth = 400;
+        const modalHeight = 320;
+        this.pos_x = e.clientX - modalWidth / 2;
+        this.pos_y = e.clientY - modalHeight / 2;
+
+        // Clamp to viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        this.pos_x = Math.max(20, Math.min(this.pos_x, viewportWidth - modalWidth - 20));
+        this.pos_y = Math.max(20, Math.min(this.pos_y, viewportHeight - modalHeight - 20));
+      } else {
+        // Center by default
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        this.pos_x = (viewportWidth - 400) / 2;
+        this.pos_y = (viewportHeight - 320) / 2;
+      }
+    },
+    handlePanelMouseDown: function (e) {
+      // Only start drag if clicking on the header
+      if (e.target.closest('.task__panel_header')) {
+        this.isDragging = true;
+        this.dragStartX = e.clientX - this.pos_x;
+        this.dragStartY = e.clientY - this.pos_y;
+        document.addEventListener('mousemove', this.handleDrag);
+        document.addEventListener('mouseup', this.handleDragEnd);
+        e.preventDefault();
+      }
+    },
+    handleDrag: function (e) {
+      if (!this.isDragging) return;
+
+      const modalWidth = 400;
+      const modalHeight = 320;
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      const modalWidth = 400; // task__panel width
-      const modalHeight = 320; // task__panel height
 
-      // Center the modal on the click position, but clamp to viewport
-      let x = e.clientX - modalWidth / 2;
-      let y = e.clientY - modalHeight / 2;
+      this.pos_x = e.clientX - this.dragStartX;
+      this.pos_y = e.clientY - this.dragStartY;
 
-      // Clamp to viewport bounds
-      x = Math.max(20, Math.min(x, viewportWidth - modalWidth - 20));
-      y = Math.max(20, Math.min(y, viewportHeight - modalHeight - 20));
-
-      this.pos_x = x;
-      this.pos_y = y;
-
-      console.log("[TaskDataPanel] Position set to:", x, y);
+      // Clamp to viewport
+      this.pos_x = Math.max(0, Math.min(this.pos_x, viewportWidth - modalWidth));
+      this.pos_y = Math.max(0, Math.min(this.pos_y, viewportHeight - modalHeight));
+    },
+    handleDragEnd: function () {
+      this.isDragging = false;
+      document.removeEventListener('mousemove', this.handleDrag);
+      document.removeEventListener('mouseup', this.handleDragEnd);
     },
     commitTask: function () {
       console.log("============ COMMIT TASK " + this.title + "====================");
@@ -380,21 +411,10 @@ export default {
     compEndDate() {
       return new Date(this.dueDate * 1000);
     },
-    modalContentStyle() {
-      // Only apply positioning if we have valid position values
-      if (this.pos_x !== 0 || this.pos_y !== 0) {
-        return {
-          position: 'fixed',
-          left: `${this.pos_x}px`,
-          top: `${this.pos_y}px`,
-          margin: '0',
-          transform: 'none'
-        };
-      }
-      // Default: center the modal
+    panelStyle() {
       return {
-        position: 'relative',
-        margin: 'auto'
+        left: `${this.pos_x}px`,
+        top: `${this.pos_y}px`,
       };
     },
   },
@@ -437,7 +457,17 @@ export default {
       progressPct: 0,
       sourceTask: null,
       inEditTask: null,
+
+      // Drag state
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
     };
+  },
+  beforeUnmount() {
+    // Clean up drag listeners
+    document.removeEventListener('mousemove', this.handleDrag);
+    document.removeEventListener('mouseup', this.handleDragEnd);
   },
 };
 </script>
@@ -458,6 +488,16 @@ export default {
 .task__panel:before {
 }
 
+.task__panel_overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10000;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
 .task__panel {
   border-radius: var(--vt-radius-md, 10px);
   padding: var(--vt-spacing-lg, 12px);
@@ -472,8 +512,8 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
 
-  /* Modal handles positioning, panel is just content */
-  position: relative;
+  position: fixed;
+  z-index: 10001;
   margin: 0;
 }
 
@@ -508,17 +548,4 @@ export default {
   width: 80%;
 }
 
-/* Ensure modal is visible and centered */
-:deep(.vfm) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Modal content - ensure it's visible and positioned correctly */
-:deep(.vfm__content) {
-  max-width: 90vw !important;
-  max-height: 90vh !important;
-  /* Allow inline styles from content-style prop to override */
-}
 </style>

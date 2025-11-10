@@ -1,7 +1,6 @@
 <template>
   <div
     class="task"
-    @click="handleResizeOpen"
     @dblclick="handleEditOpen"
     @pointerdown.left="handleDragStartTask"
     @pointerup="handleUpdateDate"
@@ -261,7 +260,14 @@ export default {
     },
 
     handleDragStartTask: function (e) {
-      if (!this.showResizes) this.handleResizeOpen(e);
+      // Set up drag state without opening the panel
+      if (!this.showResizes) {
+        this.showResizes = true;
+        this.state = "info";
+        this.topPosition = this.task.row;
+        this.isValidDrop = true;
+        this.resetTaskPositions();
+      }
 
       this.handleDragStart(e, this.handleResizeTask.bind(this));
     },
@@ -507,7 +513,11 @@ export default {
         row: this.topPosition,
       };
 
-      if (this.dragging) eventBus.emit("taskdatapanel", task);
+      // Only emit panel event if panel was explicitly opened (has click-outside listener)
+      // This prevents opening the panel when just dragging a task
+      if (this.dragging && this.documentEventListener) {
+        eventBus.emit("taskdatapanel", task);
+      }
       return task;
     },
 

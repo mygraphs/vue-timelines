@@ -1,5 +1,8 @@
 <template>
   <div :class="themeClass">
+    <!-- ModalsContainer is required for VueFinalModal to teleport modals to root level -->
+    <ModalsContainer />
+
     <!-- Theme Selector - Always visible -->
     <div class="theme-selector">
       <label for="theme-select" class="theme-selector__label">Theme:</label>
@@ -174,7 +177,7 @@ import { nextTick } from "vue";
 import { applyTheme, getTheme, watchSystemTheme } from "./utils/theme-provider";
 
 /* https://v3.vue-final-modal.org/guide/properties */
-import { VueFinalModal } from "vue-final-modal";
+import { ModalsContainer } from "vue-final-modal";
 
 export default {
   name: "App",
@@ -281,6 +284,7 @@ export default {
   components: {
     MyGraphs,
     FormCreateTimeline,
+    ModalsContainer,
   },
 };
 </script>
