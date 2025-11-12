@@ -95,3 +95,29 @@
   --vt-transition-slow: 0.5s ease;
 }
 
+/* Ensure vue-timeline-container supports sticky positioning */
+.vue-timeline-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure Timeline component maintains overflow for sticky positioning */
+.vue-timeline-container .timeline {
+  overflow-x: scroll;
+  overflow-y: hidden;
+}
+
+/* Fix for sticky positioning in scoped CSS - ensure buttons stick correctly */
+.vue-timeline-container .cal__button {
+  position: sticky !important;
+  right: 0 !important;
+  z-index: 10 !important;
+}
+
+.vue-timeline-container .cal__button-bottom {
+  position: sticky !important;
+  right: 10px !important;
+  z-index: 10 !important;
+}
+

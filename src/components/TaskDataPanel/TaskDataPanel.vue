@@ -395,6 +395,9 @@ export default {
     console.log("[TaskDataPanel] Event listeners registered, eventBus:", eventBus);
   },
   beforeUnmount() {
+    document.removeEventListener('mousemove', this.handleDrag);
+    document.removeEventListener('mouseup', this.handleDragEnd);
+
     console.log("[TaskDataPanel] Component unmounting, removing event listeners");
     if (this._wrappedHandlers) {
       eventBus.off("taskdatapanel", this._wrappedHandlers.taskdatapanel);
@@ -474,11 +477,6 @@ export default {
       dragStartX: 0,
       dragStartY: 0,
     };
-  },
-  beforeUnmount() {
-    // Clean up drag listeners
-    document.removeEventListener('mousemove', this.handleDrag);
-    document.removeEventListener('mouseup', this.handleDragEnd);
   },
 };
 </script>

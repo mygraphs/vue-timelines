@@ -260,6 +260,14 @@ export default {
     },
 
     handleDragStartTask: function (e) {
+      // Check if dragging is enabled
+      const draggingEnabled = this.getConfig("TASK_DRAGGING_ENABLED", true);
+      if (!draggingEnabled) {
+        // If dragging is disabled, just open the edit panel on click
+        this.handleEditOpen();
+        return;
+      }
+
       // Set up drag state without opening the panel
       if (!this.showResizes) {
         this.showResizes = true;

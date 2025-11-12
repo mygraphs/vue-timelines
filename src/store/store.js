@@ -19,6 +19,10 @@ const root = {
       config: {
         // Configurable minimum distance in seconds between tasks.
         TASK_MIN_SEPARATION_S: 300,
+        // Enable/disable task dragging (moving tasks on the timeline)
+        TASK_DRAGGING_ENABLED: true,
+        // Constrain tasks to their group (prevent dragging outside group boundaries)
+        TASK_CONSTRAINED_TO_GROUP: false,
       },
     };
   },
@@ -65,6 +69,12 @@ const root = {
 
       if (calendarInit && calendarEnd)
         this.commit('setCalendarSize', { calendarInit, calendarEnd });
+    },
+    setConfig(state, { key, value }) {
+      // Set a configuration value
+      if (key && typeof key === 'string') {
+        state.config[key] = value;
+      }
     },
   },
   getters: {

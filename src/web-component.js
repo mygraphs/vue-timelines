@@ -1,5 +1,6 @@
-import { createApp } from 'vue';
+import { createApp, h } from 'vue';
 import MyTimeline from './MyTimeline.vue';
+import { CellSizeContext, CalendarContext } from './contexts';
 import { createTimelineStore } from './store/store';
 import { NoopApiService, DefaultApiService } from './services';
 
@@ -7,6 +8,10 @@ import { NoopApiService, DefaultApiService } from './services';
 // Note: CSS imports are handled by rollup-plugin-postcss
 // Bootstrap CSS will be injected into the page when the bundle loads
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Import theme styles - these will be scoped to .vue-timeline-container
+import './styles/themes/index.css';
+import './styles/themes/dark.css';
 
 // Wrap in try-catch to catch any import errors
 try {
@@ -52,7 +57,7 @@ class VueTimelineElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token'];
+    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled'];
   }
 
   connectedCallback() {
@@ -91,19 +96,43 @@ class VueTimelineElement extends HTMLElement {
       const apiService = this.createApiService();
       console.log('[vue-timelines] API service created:', apiService.constructor.name);
 
-      // Create Vue app instance
+      // Get props from attributes first (needed for height calculation)
+      const props = this.getPropsFromAttributes();
+
+      // Calculate desired height from height attribute or container
+      let desiredHeight = 0;
+      if (props.height) {
+        // Parse height string (e.g., "600px" -> 600)
+        const heightMatch = props.height.match(/(\d+)/);
+        if (heightMatch) {
+          desiredHeight = parseInt(heightMatch[1], 10);
+        }
+      }
+      // If no height specified, use container height
+      if (desiredHeight === 0 && this.offsetHeight > 0) {
+        desiredHeight = this.offsetHeight;
+      }
+
+      // Create Vue app instance with proper context wrappers
       console.log('[vue-timelines] Creating Vue app instance...');
-      this.app = createApp(MyTimeline);
-      console.log('[vue-timelines] Vue app instance created');
+      // Wrap MyTimeline in CalendarContext and CellSizeContext to provide necessary context
+      this.app = createApp({
+        render: () => h(CalendarContext, null, {
+          default: () => h(CellSizeContext, {
+            desiredHeight: desiredHeight,
+            style: 'height: 100%'
+          }, {
+            default: () => h(MyTimeline, { height: props.height })
+          })
+        })
+      });
+      console.log('[vue-timelines] Vue app instance created with context wrappers, desiredHeight:', desiredHeight);
 
       // Create store with API service
       console.log('[vue-timelines] Creating store...');
       const store = createTimelineStore(apiService);
       this.app.use(store);
       console.log('[vue-timelines] Store created and added to app');
-
-      // Get props from attributes
-      const props = this.getPropsFromAttributes();
       console.log('[vue-timelines] Props from attributes:', {
         groups: (props.groups && props.groups.length) || 0,
         tasks: (props.tasks && props.tasks.length) || 0,
@@ -125,6 +154,14 @@ class VueTimelineElement extends HTMLElement {
         console.log('[vue-timelines] Title set in store:', props.title);
       }
 
+      // Configure dragging if specified
+      const draggingEnabled = this.getAttribute('dragging-enabled');
+      if (draggingEnabled !== null) {
+        const enabled = draggingEnabled === 'true' || draggingEnabled === '';
+        store.commit('setConfig', { key: 'TASK_DRAGGING_ENABLED', value: enabled });
+        console.log('[vue-timelines] Task dragging enabled:', enabled);
+      }
+
       // Store reference for later use
       this.store = store;
 
@@ -132,11 +169,12 @@ class VueTimelineElement extends HTMLElement {
       this.setupEventListeners();
       console.log('[vue-timelines] Event listeners setup complete');
 
-      // Create a container for Vue
+      // Create a container for Vue with scoping class
       const container = document.createElement('div');
+      container.className = 'vue-timeline-container';
       container.style.width = '100%';
       container.style.height = '100%';
-      console.log('[vue-timelines] Container element created');
+      console.log('[vue-timelines] Container element created with scoping class');
 
       // Use light DOM (no shadow) - append directly to element
       this.appendChild(container);
@@ -193,6 +231,14 @@ class VueTimelineElement extends HTMLElement {
         if (this.app && this.app._instance) {
           this.app._instance.props.height = props.height;
           console.log('[vue-timelines] Height updated:', props.height);
+        }
+        break;
+      case 'dragging-enabled':
+        // Update dragging configuration
+        if (this.store) {
+          const enabled = newValue === 'true' || newValue === '';
+          this.store.commit('setConfig', { key: 'TASK_DRAGGING_ENABLED', value: enabled });
+          console.log('[vue-timelines] Task dragging enabled updated:', enabled);
         }
         break;
     }
@@ -278,6 +324,14 @@ class VueTimelineElement extends HTMLElement {
     this.setAttribute('title', title);
     if (this.store) {
       this.store.commit('api/setTitle', title);
+    }
+  }
+
+  setDraggingEnabled(enabled) {
+    console.log('[vue-timelines] setDraggingEnabled called:', enabled);
+    this.setAttribute('dragging-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'TASK_DRAGGING_ENABLED', value: enabled });
     }
   }
 }

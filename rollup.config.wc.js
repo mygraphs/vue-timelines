@@ -8,6 +8,7 @@ import replace from "@rollup/plugin-replace";
 import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
+import postcssScopePlugin from "./postcss-scope-plugin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,6 +75,12 @@ export default {
       inject: true, // This will inject CSS as <style> tags
       extract: false, // Don't extract to separate file
       minimize: false, // Don't minimize for debugging
+      plugins: [
+        // Scope all CSS to .vue-timeline-container to prevent style leakage
+        postcssScopePlugin({
+          containerSelector: '.vue-timeline-container'
+        })
+      ]
     }),
     buble({
       objectAssign: "Object.assign",

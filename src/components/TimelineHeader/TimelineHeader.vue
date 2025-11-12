@@ -1,6 +1,6 @@
 <template>
   <div class="header">
-    <h2 class="header__title">{{ title }}</h2>
+    <h4 class="header__title">{{ title }}</h4>
 
     <div class="header__actions">
       <select v-model="selectedTimeFrame" @change="handleTimeFrame">
