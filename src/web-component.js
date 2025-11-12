@@ -57,7 +57,7 @@ class VueTimelineElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled'];
+    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled', 'constrained-to-group'];
   }
 
   connectedCallback() {
@@ -113,10 +113,34 @@ class VueTimelineElement extends HTMLElement {
         desiredHeight = this.offsetHeight;
       }
 
+      // Create store with API service first (needed for emitBubbleTask)
+      console.log('[vue-timelines] Creating store...');
+      const store = createTimelineStore(apiService);
+      this.store = store; // Store reference early for emitBubbleTask
+
       // Create Vue app instance with proper context wrappers
       console.log('[vue-timelines] Creating Vue app instance...');
+      // Provide emitBubbleTask function for MyTimeline
+      // This allows tasks to emit updates, which we'll handle via the store
+      const emitBubbleTask = (taskData) => {
+        console.log('[vue-timelines] Task updated:', taskData);
+        // Update the task in the store
+        if (this.store) {
+          this.store.commit('api/updateTask', taskData);
+        }
+        // Emit a custom event for external listeners
+        this.dispatchEvent(new CustomEvent('task-updated', {
+          detail: taskData,
+          bubbles: true,
+          composed: true
+        }));
+      };
+
       // Wrap MyTimeline in CalendarContext and CellSizeContext to provide necessary context
       this.app = createApp({
+        provide: {
+          emitBubbleTask: emitBubbleTask
+        },
         render: () => h(CalendarContext, null, {
           default: () => h(CellSizeContext, {
             desiredHeight: desiredHeight,
@@ -128,9 +152,7 @@ class VueTimelineElement extends HTMLElement {
       });
       console.log('[vue-timelines] Vue app instance created with context wrappers, desiredHeight:', desiredHeight);
 
-      // Create store with API service
-      console.log('[vue-timelines] Creating store...');
-      const store = createTimelineStore(apiService);
+      // Add store to app
       this.app.use(store);
       console.log('[vue-timelines] Store created and added to app');
       console.log('[vue-timelines] Props from attributes:', {
@@ -162,8 +184,13 @@ class VueTimelineElement extends HTMLElement {
         console.log('[vue-timelines] Task dragging enabled:', enabled);
       }
 
-      // Store reference for later use
-      this.store = store;
+      // Configure group constraint if specified
+      const constrainedToGroup = this.getAttribute('constrained-to-group');
+      if (constrainedToGroup !== null) {
+        const constrained = constrainedToGroup === 'true' || constrainedToGroup === '';
+        store.commit('setConfig', { key: 'TASK_CONSTRAINED_TO_GROUP', value: constrained });
+        console.log('[vue-timelines] Task constrained to group:', constrained);
+      }
 
       // Setup event listeners after store is created
       this.setupEventListeners();
@@ -239,6 +266,14 @@ class VueTimelineElement extends HTMLElement {
           const enabled = newValue === 'true' || newValue === '';
           this.store.commit('setConfig', { key: 'TASK_DRAGGING_ENABLED', value: enabled });
           console.log('[vue-timelines] Task dragging enabled updated:', enabled);
+        }
+        break;
+      case 'constrained-to-group':
+        // Update group constraint configuration
+        if (this.store) {
+          const constrained = newValue === 'true' || newValue === '';
+          this.store.commit('setConfig', { key: 'TASK_CONSTRAINED_TO_GROUP', value: constrained });
+          console.log('[vue-timelines] Task constrained to group updated:', constrained);
         }
         break;
     }
@@ -332,6 +367,14 @@ class VueTimelineElement extends HTMLElement {
     this.setAttribute('dragging-enabled', enabled ? 'true' : 'false');
     if (this.store) {
       this.store.commit('setConfig', { key: 'TASK_DRAGGING_ENABLED', value: enabled });
+    }
+  }
+
+  setConstrainedToGroup(constrained) {
+    console.log('[vue-timelines] setConstrainedToGroup called:', constrained);
+    this.setAttribute('constrained-to-group', constrained ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'TASK_CONSTRAINED_TO_GROUP', value: constrained });
     }
   }
 }

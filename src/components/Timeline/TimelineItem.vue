@@ -102,6 +102,7 @@ export default {
       "timelineMinRow",
       "timelineMaxRow",
     ]),
+    ...mapState("api", ["groups"]),
     ...mapGetters(["totalCells", "todayCell", "isDebug", "getConfig"]),
 
     iconVisible: function () {
@@ -351,8 +352,23 @@ export default {
       // I don't have brain right now to figure out why it is -1 :(
       // I guess we start counting rows in 1 and that cascades to here ¯\_(ツ)_/¯
 
+      // First check global boundaries
       if (newRow < this.timelineMinRow) return false;
       if (newRow > this.timelineMaxRow - 1) return false;
+
+      // Check if task is constrained to its group
+      const constrainedToGroup = this.getConfig("TASK_CONSTRAINED_TO_GROUP", true);
+      if (constrainedToGroup && this.groups) {
+        const group = this.groups.find(function(g) { return g.id === this.task.group_id; }.bind(this));
+        if (group && group.timeline_row !== undefined && group.rows !== undefined) {
+          const groupMinRow = group.timeline_row;
+          const groupMaxRow = group.timeline_row + group.rows - 1;
+          // Row must be within the group's boundaries
+          if (newRow < groupMinRow || newRow > groupMaxRow) {
+            return false;
+          }
+        }
+      }
 
       return true;
     },
@@ -395,6 +411,9 @@ export default {
         this.topPosition -= rowToMove;
       }
 
+      // Check for conflicts with the new position
+      // This will set isValidDrop to false if there's a conflict
+      // and change the visual state to "dark" to show the conflict
       this.calculateConflictTask();
 
       this.width = this.endPosition - this.initPosition;
@@ -533,13 +552,32 @@ export default {
       this.clearHandlers();
       this.cancelDropCheck();
 
+      // Check if the drop is valid before updating
+      if (!this.isValidDrop) {
+        console.log('[TimelineItem] Invalid drop detected, reverting task position');
+        // Position will be reverted by cancelDropCheck, just exit
+        this.dragging = false;
+        this.showResizes = false;
+        return;
+      }
+
       // Reset position to be the closest so we align the ROW
       this.topPosition = Math.round(this.topPosition);
+
+      // Final conflict check before updating
+      const finalConflict = this.calculateConflictTask();
+      if (finalConflict && !this.isValidDrop) {
+        console.log('[TimelineItem] Final conflict check failed, reverting task position');
+        this.dragging = false;
+        this.showResizes = false;
+        return;
+      }
+
       let task = this.updateDataPanel();
       try {
         this.updateTask(task);
       } catch (error) {
-        debugger;
+        console.error('[TimelineItem] Error updating task:', error);
         console.log(" CRASH " + error);
       }
 

@@ -22,7 +22,7 @@ const root = {
         // Enable/disable task dragging (moving tasks on the timeline)
         TASK_DRAGGING_ENABLED: true,
         // Constrain tasks to their group (prevent dragging outside group boundaries)
-        TASK_CONSTRAINED_TO_GROUP: false,
+        TASK_CONSTRAINED_TO_GROUP: true,
       },
     };
   },
