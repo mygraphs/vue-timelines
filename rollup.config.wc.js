@@ -24,6 +24,9 @@ export default {
     name: "VueTimelines",
     exports: "named",
     globals: {},
+    // Add intro/outro for debugging
+    intro: 'console.log("[vue-timelines] Bundle starting to execute...");',
+    outro: 'console.log("[vue-timelines] Bundle execution complete");',
   },
   plugins: [
     alias({
@@ -44,18 +47,34 @@ export default {
       preventAssignment: true,
     }),
     nodeResolve({
-      dedupe: ["vue"],
+      dedupe: ["vue", "dayjs"],
       extensions: [".js", ".jsx", ".vue"],
+      preferBuiltins: false,
+      browser: true,
     }),
     vue({
-      css: true,
+      css: true, // Extract CSS from Vue components
       compileTemplate: true,
       template: {
         isProduction: true,
       },
+      // Ensure styles are included in the bundle
+      style: {
+        inject: true, // Inject styles into the page
+      },
     }),
-    commonjs(),
-    postcss({}),
+    commonjs({
+      include: ['node_modules/**'],
+      requireReturnsDefault: 'auto',
+      // Ensure dayjs and its plugins are properly handled
+      transformMixedEsModules: true,
+    }),
+    postcss({
+      // Inject CSS into the page when bundle loads
+      inject: true, // This will inject CSS as <style> tags
+      extract: false, // Don't extract to separate file
+      minimize: false, // Don't minimize for debugging
+    }),
     buble({
       objectAssign: "Object.assign",
       transforms: {

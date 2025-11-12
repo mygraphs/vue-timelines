@@ -60,7 +60,7 @@
 <script>
 import dayjs from "dayjs";
 
-import * as localizedFormat from "dayjs/plugin/localizedFormat";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
 
@@ -72,8 +72,19 @@ import "@vuepic/vue-datepicker/dist/main.css";
 
 import { addDays, getTimestampNow } from "@/utils/date";
 
-dayjs.extend(localizedFormat);
-dayjs.locale(navigator.language);
+// Wrap dayjs.extend in try-catch to handle initialization issues
+try {
+  if (dayjs && typeof dayjs.extend === 'function' && localizedFormat) {
+    dayjs.extend(localizedFormat);
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      dayjs.locale(navigator.language);
+    }
+  } else {
+    console.warn('[vue-timelines] dayjs.extend failed: dayjs or plugin not available');
+  }
+} catch (error) {
+  console.error('[vue-timelines] Error initializing dayjs:', error);
+}
 
 const DEFAULT_TITLE = "Timeline Title";
 const DEFAULT_DAYS_MARGIN = 14;

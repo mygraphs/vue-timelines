@@ -50,9 +50,18 @@
 
 <script>
 import dayjs from "dayjs";
-import * as isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 
-dayjs.extend(isSameOrAfter);
+// Wrap dayjs.extend in try-catch to handle initialization issues
+try {
+  if (dayjs && typeof dayjs.extend === 'function' && isSameOrAfter) {
+    dayjs.extend(isSameOrAfter);
+  } else {
+    console.warn('[vue-timelines] dayjs.extend failed: dayjs or plugin not available');
+  }
+} catch (error) {
+  console.error('[vue-timelines] Error initializing dayjs:', error);
+}
 
 import { mapState, mapMutations, mapGetters } from "vuex";
 import { cellSize, resetCellSize, headerHeight} from "@/contexts/CellSizeContext";

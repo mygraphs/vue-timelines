@@ -146,7 +146,7 @@
 import dayjs from "dayjs";
 import vue3slider from "vue3-slider";
 
-import * as localizedFormat from "dayjs/plugin/localizedFormat";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 
 import eventBus from "../eventBus.js";
 
@@ -158,8 +158,19 @@ import "@vuepic/vue-datepicker/dist/main.css";
 
 import { mainHeaderHeight, cellHeight, cellSize } from "@/contexts/CellSizeContext";
 
-dayjs.extend(localizedFormat);
-dayjs.locale(navigator.language);
+// Wrap dayjs.extend in try-catch to handle initialization issues
+try {
+  if (dayjs && typeof dayjs.extend === 'function' && localizedFormat) {
+    dayjs.extend(localizedFormat);
+    if (typeof navigator !== 'undefined' && navigator.language) {
+      dayjs.locale(navigator.language);
+    }
+  } else {
+    console.warn('[vue-timelines] dayjs.extend failed: dayjs or plugin not available');
+  }
+} catch (error) {
+  console.error('[vue-timelines] Error initializing dayjs:', error);
+}
 
 export default {
   name: "TaskDataPanel",
