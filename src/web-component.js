@@ -3,6 +3,7 @@ import MyTimeline from './MyTimeline.vue';
 import { CellSizeContext, CalendarContext } from './contexts';
 import { createTimelineStore } from './store/store';
 import { NoopApiService, DefaultApiService } from './services';
+import { VERSION, NAME, DESCRIPTION, AUTHOR, LICENSE } from './version';
 
 // Import styles - these will be bundled by rollup
 // Note: CSS imports are handled by rollup-plugin-postcss
@@ -15,6 +16,8 @@ import './styles/themes/dark.css';
 
 // Wrap in try-catch to catch any import errors
 try {
+  console.log(`%c[${NAME}]`, 'color: #42b983; font-weight: bold;', `${NAME} v${VERSION} - ${DESCRIPTION}`);
+  console.log(`%c[${NAME}]`, 'color: #42b983;', `Author: ${AUTHOR} | License: ${LICENSE}`);
   console.log('[vue-timelines] Web component script loading...');
   console.log('[vue-timelines] Checking Vue availability...');
 
