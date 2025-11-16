@@ -23,6 +23,15 @@ const root = {
         TASK_DRAGGING_ENABLED: true,
         // Constrain tasks to their group (prevent dragging outside group boundaries)
         TASK_CONSTRAINED_TO_GROUP: true,
+        // Show/hide the "New group" button
+        GROUP_CREATE_ENABLED: true,
+        // Enable/disable group name editing
+        GROUP_EDIT_ENABLED: true,
+        // Enable/disable row add/remove buttons (+ and - buttons in timeline rows)
+        ROW_ADD_REMOVE_ENABLED: true,
+        // Status color mapping: maps status names to CSS color values
+        // Format: { "Pending": "#ffb311", "Completed": "#00a85d", ... }
+        STATUS_COLORS: {},
       },
     };
   },

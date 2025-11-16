@@ -26,7 +26,10 @@
         :class="{ dragging }"
       />
 
-      <div class="task__content prevent-select" :class="`task__state--${state}`">
+      <div
+        class="task__content prevent-select"
+        :class="taskStateClass"
+        :style="taskStateStyle">
         <slot name="task_text" />
       </div>
 
@@ -150,6 +153,35 @@ export default {
     taskLeftPosition: function () {
       return `${this.cellSize * this.initPosition}px`;
     },
+    taskStateClass: function () {
+      // Use predefined state classes if no custom status colors are configured
+      // or if the task state matches a predefined state
+      const statusColors = this.getConfig("STATUS_COLORS", {});
+      const taskState = this.task.state || this.state;
+
+      // If custom status colors are configured and this state is not a predefined one,
+      // we'll use inline styles instead
+      const predefinedStates = ["info", "success", "warning", "danger", "dark", "NO_STATE"];
+      if (Object.keys(statusColors).length > 0 && !predefinedStates.includes(taskState)) {
+        return ""; // No class, use inline style
+      }
+
+      // Use predefined state class
+      return `task__state--${taskState || "NO_STATE"}`;
+    },
+    taskStateStyle: function () {
+      // Apply custom color if status colors are configured
+      const statusColors = this.getConfig("STATUS_COLORS", {});
+      const taskState = this.task.state || this.state;
+
+      if (Object.keys(statusColors).length > 0 && statusColors[taskState]) {
+        return {
+          backgroundColor: statusColors[taskState]
+        };
+      }
+
+      return {};
+    },
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
@@ -174,6 +206,11 @@ export default {
 
       if (this.task.icon) this.taskIcon = "fa fa-" + this.task.icon + " fa-xs";
 
+      // Update state from task.state if available
+      if (this.task.state) {
+        this.state = this.task.state;
+      }
+
       if (this.isDebug) {
         console.log("--- resetTaskPositions ------------------- ");
         console.log(
@@ -196,7 +233,16 @@ export default {
     },
 
     handleEditOpen: function () {
-      eventBus.emit("taskdatapanel-edit", this.task);
+      // Check if a custom callback is configured
+      const editCallback = this.getConfig("TASK_EDIT_CALLBACK", null);
+
+      if (editCallback && typeof editCallback === 'function') {
+        // Call the custom callback instead of opening the default panel
+        editCallback(this.task);
+      } else {
+        // Default behavior: emit event to open the task data panel
+        eventBus.emit("taskdatapanel-edit", this.task);
+      }
     },
 
     handleResizeOpen: function (e) {

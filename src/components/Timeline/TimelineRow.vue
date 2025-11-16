@@ -11,8 +11,14 @@
     </template>
 
     <slot />
-    <button class="cal__button" @click="handleAddRow">+</button>
-    <button class="cal__button-bottom" @click="handleRemoveRow">-</button>
+    <button
+      v-if="rowAddRemoveEnabled"
+      class="cal__button"
+      @click="handleAddRow">+</button>
+    <button
+      v-if="rowAddRemoveEnabled"
+      class="cal__button-bottom"
+      @click="handleRemoveRow">-</button>
   </div>
 </template>
 
@@ -55,7 +61,10 @@ export default {
   },
   computed: {
     ...mapState(["calendarInit", "calendarEnd", "cellDays"]),
-    ...mapGetters(["totalCells", "todayCell"]),
+    ...mapGetters(["totalCells", "todayCell", "getConfig"]),
+    rowAddRemoveEnabled() {
+      return this.getConfig("ROW_ADD_REMOVE_ENABLED", true);
+    },
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),

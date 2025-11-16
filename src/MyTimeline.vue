@@ -18,7 +18,10 @@
           <template v-if="groups">
             <List class="timeline__group">
               <ListHeader>
-                <button class="btn btn-primary btn-sm" @click="createNewGroup">
+                <button
+                  v-if="groupCreateEnabled"
+                  class="btn btn-primary btn-sm"
+                  @click="createNewGroup">
                   New group
                 </button>
               </ListHeader>
@@ -26,6 +29,7 @@
                 <small>
                   <span style="font-weight: bold">
                     <TextEdit
+                      v-if="groupEditEnabled"
                       :defaultText="group.name"
                       :edit="false"
                       v-model:newValue="group.name"
@@ -37,6 +41,7 @@
                       </template>
                       <template v-slot:inputFormat> </template>
                     </TextEdit>
+                    <span v-else>{{ group.name }}</span>
                   </span>
                   {{ group.color_name }}
                 </small>
@@ -141,6 +146,12 @@ export default {
     ...mapGetters(["totalCells", "todayCell", "getConfig"]),
     tasksArray() {
       return Object.values(this.tasksDict);
+    },
+    groupCreateEnabled() {
+      return this.getConfig("GROUP_CREATE_ENABLED", true);
+    },
+    groupEditEnabled() {
+      return this.getConfig("GROUP_EDIT_ENABLED", true);
     },
   },
   methods: {

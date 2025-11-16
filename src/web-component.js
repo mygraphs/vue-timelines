@@ -57,7 +57,7 @@ class VueTimelineElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled', 'constrained-to-group'];
+    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled', 'constrained-to-group', 'group-create-enabled', 'group-edit-enabled', 'row-add-remove-enabled', 'status-colors'];
   }
 
   connectedCallback() {
@@ -192,6 +192,42 @@ class VueTimelineElement extends HTMLElement {
         console.log('[vue-timelines] Task constrained to group:', constrained);
       }
 
+      // Configure group create if specified
+      const groupCreateEnabled = this.getAttribute('group-create-enabled');
+      if (groupCreateEnabled !== null) {
+        const enabled = groupCreateEnabled === 'true' || groupCreateEnabled === '';
+        store.commit('setConfig', { key: 'GROUP_CREATE_ENABLED', value: enabled });
+        console.log('[vue-timelines] Group create enabled:', enabled);
+      }
+
+      // Configure group edit if specified
+      const groupEditEnabled = this.getAttribute('group-edit-enabled');
+      if (groupEditEnabled !== null) {
+        const enabled = groupEditEnabled === 'true' || groupEditEnabled === '';
+        store.commit('setConfig', { key: 'GROUP_EDIT_ENABLED', value: enabled });
+        console.log('[vue-timelines] Group edit enabled:', enabled);
+      }
+
+      // Configure row add/remove buttons if specified
+      const rowAddRemoveEnabled = this.getAttribute('row-add-remove-enabled');
+      if (rowAddRemoveEnabled !== null) {
+        const enabled = rowAddRemoveEnabled === 'true' || rowAddRemoveEnabled === '';
+        store.commit('setConfig', { key: 'ROW_ADD_REMOVE_ENABLED', value: enabled });
+        console.log('[vue-timelines] Row add/remove enabled:', enabled);
+      }
+
+      // Configure status colors if specified
+      const statusColorsAttr = this.getAttribute('status-colors');
+      if (statusColorsAttr) {
+        try {
+          const statusColors = JSON.parse(statusColorsAttr);
+          store.commit('setConfig', { key: 'STATUS_COLORS', value: statusColors });
+          console.log('[vue-timelines] Status colors configured:', Object.keys(statusColors).length, 'statuses');
+        } catch (e) {
+          console.warn('[vue-timelines] Invalid status-colors JSON:', e);
+        }
+      }
+
       // Setup event listeners after store is created
       this.setupEventListeners();
       console.log('[vue-timelines] Event listeners setup complete');
@@ -274,6 +310,42 @@ class VueTimelineElement extends HTMLElement {
           const constrained = newValue === 'true' || newValue === '';
           this.store.commit('setConfig', { key: 'TASK_CONSTRAINED_TO_GROUP', value: constrained });
           console.log('[vue-timelines] Task constrained to group updated:', constrained);
+        }
+        break;
+      case 'group-create-enabled':
+        // Update group create configuration
+        if (this.store) {
+          const enabled = newValue === 'true' || newValue === '';
+          this.store.commit('setConfig', { key: 'GROUP_CREATE_ENABLED', value: enabled });
+          console.log('[vue-timelines] Group create enabled updated:', enabled);
+        }
+        break;
+      case 'group-edit-enabled':
+        // Update group edit configuration
+        if (this.store) {
+          const enabled = newValue === 'true' || newValue === '';
+          this.store.commit('setConfig', { key: 'GROUP_EDIT_ENABLED', value: enabled });
+          console.log('[vue-timelines] Group edit enabled updated:', enabled);
+        }
+        break;
+      case 'row-add-remove-enabled':
+        // Update row add/remove buttons configuration
+        if (this.store) {
+          const enabled = newValue === 'true' || newValue === '';
+          this.store.commit('setConfig', { key: 'ROW_ADD_REMOVE_ENABLED', value: enabled });
+          console.log('[vue-timelines] Row add/remove enabled updated:', enabled);
+        }
+        break;
+      case 'status-colors':
+        // Update status colors configuration
+        if (this.store && newValue) {
+          try {
+            const statusColors = JSON.parse(newValue);
+            this.store.commit('setConfig', { key: 'STATUS_COLORS', value: statusColors });
+            console.log('[vue-timelines] Status colors updated:', Object.keys(statusColors).length, 'statuses');
+          } catch (e) {
+            console.warn('[vue-timelines] Invalid status-colors JSON:', e);
+          }
         }
         break;
     }
@@ -375,6 +447,70 @@ class VueTimelineElement extends HTMLElement {
     this.setAttribute('constrained-to-group', constrained ? 'true' : 'false');
     if (this.store) {
       this.store.commit('setConfig', { key: 'TASK_CONSTRAINED_TO_GROUP', value: constrained });
+    }
+  }
+
+  setTaskEditCallback(callback) {
+    console.log('[vue-timelines] setTaskEditCallback called');
+    if (callback && typeof callback !== 'function') {
+      console.warn('[vue-timelines] setTaskEditCallback: callback must be a function');
+      return;
+    }
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'TASK_EDIT_CALLBACK', value: callback });
+      console.log('[vue-timelines] Task edit callback set');
+    }
+  }
+
+  updateTask(task) {
+    console.log('[vue-timelines] updateTask called:', task);
+    if (this.store) {
+      // Update the task in the store, which will trigger the task-updated event
+      // Use dispatch to go through the API service, which will also update local state
+      this.store.dispatch('api/updateTask', task)
+        .then(() => {
+          console.log('[vue-timelines] Task updated successfully');
+        })
+        .catch((error) => {
+          console.error('[vue-timelines] Error updating task:', error);
+          // The action already updates local state even if API fails
+        });
+    }
+  }
+
+  setGroupCreateEnabled(enabled) {
+    console.log('[vue-timelines] setGroupCreateEnabled called:', enabled);
+    this.setAttribute('group-create-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'GROUP_CREATE_ENABLED', value: enabled });
+    }
+  }
+
+  setGroupEditEnabled(enabled) {
+    console.log('[vue-timelines] setGroupEditEnabled called:', enabled);
+    this.setAttribute('group-edit-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'GROUP_EDIT_ENABLED', value: enabled });
+    }
+  }
+
+  setRowAddRemoveEnabled(enabled) {
+    console.log('[vue-timelines] setRowAddRemoveEnabled called:', enabled);
+    this.setAttribute('row-add-remove-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'ROW_ADD_REMOVE_ENABLED', value: enabled });
+    }
+  }
+
+  setStatusColors(statusColors) {
+    console.log('[vue-timelines] setStatusColors called:', statusColors);
+    if (!statusColors || typeof statusColors !== 'object') {
+      console.warn('[vue-timelines] setStatusColors: statusColors must be an object');
+      return;
+    }
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'STATUS_COLORS', value: statusColors });
+      console.log('[vue-timelines] Status colors set');
     }
   }
 }
