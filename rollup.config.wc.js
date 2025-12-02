@@ -9,6 +9,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import terser from "@rollup/plugin-terser";
 import postcssScopePlugin from "./postcss-scope-plugin.js";
+import postcssImport from "postcss-import";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -76,6 +77,9 @@ export default {
       extract: false, // Don't extract to separate file
       minimize: false, // Don't minimize for debugging
       plugins: [
+        // IMPORTANT: postcss-import must be first to resolve all @import statements
+        // This ensures all CSS is inlined and no external requests are made
+        postcssImport(),
         // Scope all CSS to .vue-timeline-container to prevent style leakage
         postcssScopePlugin({
           containerSelector: '.vue-timeline-container'

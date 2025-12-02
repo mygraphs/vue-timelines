@@ -11,7 +11,8 @@ import { VERSION, NAME, DESCRIPTION, AUTHOR, LICENSE } from './version';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Import theme styles - these will be scoped to .vue-timeline-container
-import './styles/themes/index.css';
+// Import default.css directly to avoid @import issues in web component bundle
+import './styles/themes/default.css';
 import './styles/themes/dark.css';
 
 // Wrap in try-catch to catch any import errors
@@ -423,9 +424,15 @@ class VueTimelineElement extends HTMLElement {
 
   setTasks(tasks) {
     console.log('[vue-timelines] setTasks called:', (tasks && tasks.length) || 0);
+    console.log('[vue-timelines] setTasks - tasks data:', tasks);
+    console.log('[vue-timelines] setTasks - store available:', !!this.store);
     this.setAttribute('tasks', JSON.stringify(tasks));
     if (this.store) {
+      console.log('[vue-timelines] Committing tasks to store');
       this.store.commit('api/setTasks', tasks);
+      console.log('[vue-timelines] Store state after commit:', this.store.state.api.tasks.length, 'tasks');
+    } else {
+      console.warn('[vue-timelines] Store not available when setTasks called');
     }
   }
 

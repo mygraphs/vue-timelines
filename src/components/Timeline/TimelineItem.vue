@@ -17,7 +17,7 @@
   >
     <!-- Connection line from parent to subtask (Gantt-style) -->
     <div
-      v-if="task.isSubtask && task.parentTaskId"
+      v-if="task.isSubtask && task.parentTaskId && !dragging"
       class="task__connection-line"
       :style="connectionLineStyle"
     ></div>
@@ -698,6 +698,15 @@ export default {
     task: function () {
       this.invalidate();
     },
+    // Watch for position changes to update connection lines
+    'task.row': function () {
+      // Force recalculation of connection line when row changes
+      this.$forceUpdate();
+    },
+    'initPosition': function () {
+      // Force recalculation of connection line when position changes
+      this.$forceUpdate();
+    },
   },
   mounted() {
     this.invalidate();
@@ -921,8 +930,9 @@ export default {
 
 /* Connection line from parent to subtask (Gantt-style) */
 .task__connection-line {
+  display: none; /* Not working yet */
   position: absolute;
-  z-index: 0;
+  z-index: 100 !important;
   pointer-events: none;
   overflow: visible;
 }
@@ -933,10 +943,11 @@ export default {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 1px;
+  width: 2px;
   height: 100%;
-  background-color: #999;
-  opacity: 0.4;
+  background-color: #666;
+  opacity: 0.6;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Horizontal line connecting to parent (L-shape) */
@@ -946,8 +957,9 @@ export default {
   top: 0;
   left: 0;
   width: 100%;
-  height: 1px;
-  background-color: #999;
-  opacity: 0.4;
+  height: 2px;
+  background-color: #666;
+  opacity: 0.6;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
 }
 </style>

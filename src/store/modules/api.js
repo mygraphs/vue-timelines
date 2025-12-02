@@ -33,7 +33,10 @@ export default function createApiModule(apiService = new NoopApiService()) {
         state.groups = groups;
       },
       setTasks(state, tasks) {
-        state.tasks = tasks;
+        const taskCount = (tasks && tasks.length) ? tasks.length : 0;
+        console.log('[vue-timelines] Store mutation: api/setTasks', taskCount, tasks);
+        state.tasks = tasks || [];
+        console.log('[vue-timelines] Store state.tasks after mutation:', state.tasks.length, 'tasks');
       },
       setTimeline(state, json) {
         console.log(" SET NEW TIMELINE");

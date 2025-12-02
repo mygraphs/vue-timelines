@@ -387,7 +387,14 @@ export default {
         groupTaskRows[group.id] = {};
       }
 
-      // Assign rows to tasks hierarchically
+      // Assign rows to tasks sequentially within each group
+      // Since sortedTasks is already in hierarchical order (parent, then subtasks, then next parent),
+      // we can process them in order and assign rows sequentially
+      let currentRowPerGroup = {};
+      for (const key in this.groups) {
+        currentRowPerGroup[key] = 0;
+      }
+
       for (const task of sortedTasks) {
         const group = this.groupsDict[task.group_id];
         if (!group) continue;
@@ -395,28 +402,30 @@ export default {
         task.group = group;
 
         if (task.isSubtask && task.parentTaskId) {
-          // Subtask: assign to row after parent
+          // Subtask: assign to next row after parent
           const parentRow = groupTaskRows[group.id][task.parentTaskId];
           if (parentRow !== undefined) {
-            // Find the next available row after parent and its existing subtasks
-            let nextRow = parentRow + 1;
+            // Find the highest row already assigned to subtasks of this parent
             const parentSubtasks = subtaskMap.get(task.parentTaskId) || [];
             const existingSubtaskRows = parentSubtasks
               .filter(st => st.id !== task.id && groupTaskRows[group.id][st.id] !== undefined)
               .map(st => groupTaskRows[group.id][st.id]);
-
-            // Find the first available row after parent
-            while (existingSubtaskRows.includes(nextRow)) {
-              nextRow++;
-            }
-
+            
+            const maxSubtaskRow = existingSubtaskRows.length > 0 
+              ? Math.max(...existingSubtaskRows) 
+              : parentRow;
+            
+            // Assign to next row after the highest subtask row (or parent if no subtasks yet)
+            const nextRow = maxSubtaskRow + 1;
             groupTaskRows[group.id][task.id] = nextRow;
+            currentRowPerGroup[group.id] = Math.max(currentRowPerGroup[group.id], nextRow + 1);
             groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], nextRow + 1);
           }
         } else {
-          // Parent task: use priority for row assignment
-          const row = task.priority || 0;
+          // Parent task: assign to current row in group (which is after all previous tasks)
+          const row = currentRowPerGroup[group.id];
           groupTaskRows[group.id][task.id] = row;
+          currentRowPerGroup[group.id] = row + 1;
           groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], row + 1);
         }
       }
@@ -491,6 +500,11 @@ export default {
     },
     groups: function () {
       console.log(" MYTIMELINE GROUPS WATCH ");
+      this.buildDataView();
+    },
+    tasks: function () {
+      const taskCount = (this.tasks && this.tasks.length) ? this.tasks.length : 0;
+      console.log(" MYTIMELINE TASKS WATCH ", taskCount);
       this.buildDataView();
     },
   },
