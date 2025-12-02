@@ -25,6 +25,8 @@ pnpm add vue-timelines
 
 See [Installation Guide](./README_INSTALL.md) for detailed usage instructions.
 
+For information about displaying task dependencies and subtasks in a Gantt-like hierarchy, see [Task Dependencies Documentation](./docs/TASK_DEPENDENCIES.md).
+
 ```html
 // component.vue
 <script>

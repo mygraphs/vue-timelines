@@ -1,6 +1,12 @@
 <template>
   <div
     class="task"
+    :class="[
+      { dragging },
+      taskDepthClass,
+      { 'task--subtask': task.isSubtask }
+    ]"
+    :style="taskIndentStyle"
     @dblclick="handleEditOpen"
     @pointerdown.left="handleDragStartTask"
     @pointerup="handleUpdateDate"
@@ -8,8 +14,13 @@
     @touchstart.prevent=""
     @dragstart.prevent=""
     ref="task"
-    :class="{ dragging }"
   >
+    <!-- Connection line from parent to subtask (Gantt-style) -->
+    <div
+      v-if="task.isSubtask && task.parentTaskId"
+      class="task__connection-line"
+      :style="connectionLineStyle"
+    ></div>
     <div class="task__container">
       <div v-if="iconVisible" class="task__icon">
         <div v-if="taskIcon"><i :class="taskIcon" /></div>
@@ -105,7 +116,7 @@ export default {
       "timelineMinRow",
       "timelineMaxRow",
     ]),
-    ...mapState("api", ["groups"]),
+    ...mapState("api", ["groups", "tasks"]),
     ...mapGetters(["totalCells", "todayCell", "isDebug", "getConfig"]),
 
     iconVisible: function () {
@@ -181,6 +192,42 @@ export default {
       }
 
       return {};
+    },
+    taskDepthClass: function () {
+      const depth = this.task.depth || 0;
+      return depth > 0 ? `task--depth-${depth}` : '';
+    },
+    taskIndentStyle: function () {
+      const depth = this.task.depth || 0;
+      const indentPerLevel = 24; // pixels per depth level
+      const indent = depth * indentPerLevel;
+
+      return indent > 0 ? {
+        marginLeft: `${indent}px`,
+        paddingLeft: '8px',
+        borderLeft: depth > 0 ? '2px solid #e0e0e0' : 'none'
+      } : {};
+    },
+    connectionLineStyle: function () {
+      if (!this.task.isSubtask || !this.task.parentTaskId) {
+        return { display: 'none' };
+      }
+
+      // For now, use a simple approach: draw line from left edge going back
+      // The line will connect visually to show hierarchy
+      // Position relative to the task itself
+      const lineOffset = -30; // Offset to draw line backwards
+      const lineHeight = this.cellHeight; // Height to go up one row
+
+      return {
+        position: 'absolute',
+        left: `${lineOffset}px`,
+        top: `-${lineHeight}px`,
+        width: '30px',
+        height: `${lineHeight}px`,
+        zIndex: 0,
+        pointerEvents: 'none'
+      };
     },
   },
   methods: {
@@ -819,5 +866,88 @@ export default {
   user-select: none;
   cursor: grabbing;
   z-index: 4000 !important;
+}
+
+/* Hierarchical task styling - subtasks */
+.task--subtask {
+  background-color: rgba(0, 0, 0, 0.02);
+  font-size: 0.9em;
+}
+
+.task--subtask .task__container {
+  color: var(--vt-text-primary, #333) !important;
+}
+
+.task--subtask .task__content {
+  background-color: rgba(240, 240, 240, 0.95) !important;
+  color: var(--vt-text-primary, #333) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure subtask text is always visible, even with state colors */
+.task--subtask .task__content.task__state--info,
+.task--subtask .task__content.task__state--success,
+.task--subtask .task__content.task__state--warning,
+.task--subtask .task__content.task__state--danger,
+.task--subtask .task__content.task__state--dark {
+  background-color: rgba(240, 240, 240, 0.95) !important;
+  color: var(--vt-text-primary, #333) !important;
+}
+
+/* Depth-based indentation */
+.task--depth-1 {
+  border-left: 2px solid #e0e0e0;
+}
+
+.task--depth-2 {
+  border-left: 2px solid #d0d0d0;
+}
+
+.task--depth-3 {
+  border-left: 2px solid #c0c0c0;
+}
+
+/* Subtask indicator (optional visual cue) */
+.task--subtask::before {
+  content: "▸";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-size: 0.8em;
+  line-height: 1;
+}
+
+/* Connection line from parent to subtask (Gantt-style) */
+.task__connection-line {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Vertical line going up from subtask */
+.task__connection-line::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #999;
+  opacity: 0.4;
+}
+
+/* Horizontal line connecting to parent (L-shape) */
+.task__connection-line::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #999;
+  opacity: 0.4;
 }
 </style>

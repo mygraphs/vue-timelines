@@ -93,7 +93,7 @@ import { List, ListHeader, ListRow } from "@/components";
 
 import { Timeline, TimelineRow, TimelineItem } from "@/components";
 import { cellSize } from "@/contexts/CellSizeContext";
-import { orderTasks, setPriorityTasks } from "@/utils/tasks";
+import { orderTasks, setPriorityTasks, sortTasksHierarchically, calculateTaskDepth, hasSubtasks, getSubtaskCount } from "@/utils/tasks";
 import { initDay } from "@/utils/date";
 
 function binarySearch(tasks, startTime) {
@@ -349,14 +349,82 @@ export default {
         //group.order = this.groupsToUse.length;
       }
 
-      // First pass to calculate how many rows do we have in each group
-      for (const task of this.tasks.values()) {
-        let group = this.groupsDict[task.group_id];
-        if (!group.rows || task.priority >= group.rows) {
-          // Size of the rows is task + 1 because tasks start at 0 priority.
-          group.rows = task.priority + 1;
+      // Sort tasks hierarchically before processing
+      // this.tasks is an array from Vuex store
+      const allTasksArray = Array.isArray(this.tasks) ? this.tasks : [];
+      const sortedTasks = sortTasksHierarchically(allTasksArray);
+
+      // Add hierarchy metadata to tasks
+      sortedTasks.forEach(task => {
+        task.depth = calculateTaskDepth(task, allTasksArray);
+        task.hasSubtasks = hasSubtasks(task, allTasksArray);
+        task.subtaskCount = getSubtaskCount(task, allTasksArray);
+      });
+
+      // Separate parent tasks and subtasks
+      const parentTasks = sortedTasks.filter(t => !t.isSubtask || !t.parentTaskId);
+      const subtasks = sortedTasks.filter(t => t.isSubtask && t.parentTaskId);
+
+      // Create a map of parent ID to its subtasks
+      const subtaskMap = new Map();
+      subtasks.forEach(subtask => {
+        const parentId = subtask.parentTaskId;
+        if (!subtaskMap.has(parentId)) {
+          subtaskMap.set(parentId, []);
         }
+        subtaskMap.get(parentId).push(subtask);
+      });
+
+      // Calculate rows per group with hierarchical assignment
+      // For each group, we need: parent tasks + their subtasks
+      const groupRowCounts = {};
+      const groupTaskRows = {}; // Track row assignments per group
+
+      // Initialize row counters per group
+      for (const key in this.groups) {
+        const group = this.groups[key];
+        groupRowCounts[group.id] = 0;
+        groupTaskRows[group.id] = {};
+      }
+
+      // Assign rows to tasks hierarchically
+      for (const task of sortedTasks) {
+        const group = this.groupsDict[task.group_id];
+        if (!group) continue;
+
         task.group = group;
+
+        if (task.isSubtask && task.parentTaskId) {
+          // Subtask: assign to row after parent
+          const parentRow = groupTaskRows[group.id][task.parentTaskId];
+          if (parentRow !== undefined) {
+            // Find the next available row after parent and its existing subtasks
+            let nextRow = parentRow + 1;
+            const parentSubtasks = subtaskMap.get(task.parentTaskId) || [];
+            const existingSubtaskRows = parentSubtasks
+              .filter(st => st.id !== task.id && groupTaskRows[group.id][st.id] !== undefined)
+              .map(st => groupTaskRows[group.id][st.id]);
+
+            // Find the first available row after parent
+            while (existingSubtaskRows.includes(nextRow)) {
+              nextRow++;
+            }
+
+            groupTaskRows[group.id][task.id] = nextRow;
+            groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], nextRow + 1);
+          }
+        } else {
+          // Parent task: use priority for row assignment
+          const row = task.priority || 0;
+          groupTaskRows[group.id][task.id] = row;
+          groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], row + 1);
+        }
+      }
+
+      // Update group.rows based on calculated row counts
+      for (const key in this.groups) {
+        const group = this.groups[key];
+        group.rows = groupRowCounts[group.id] || 1;
       }
 
       // Calculate the incrementals of the rows
@@ -372,12 +440,23 @@ export default {
       let init = null;
       let end = null;
 
-      // Build the task structure
-      for (const key in this.tasks) {
-        let task = { ...this.tasks[key] };
+      // Build the task structure using sorted tasks to maintain hierarchy
+      for (const task of sortedTasks) {
         let group = this.groupsDict[task.group_id];
+        if (!group) continue;
 
-        task.row = group.timeline_row + task.priority;
+        // Create task copy with hierarchy metadata
+        let taskCopy = { ...task };
+        // Use the pre-calculated row from groupTaskRows
+        const taskRow = groupTaskRows[group.id][task.id];
+        taskCopy.row = group.timeline_row + (taskRow !== undefined ? taskRow : task.priority || 0);
+
+        // Preserve hierarchy metadata
+        if (task.depth !== undefined) taskCopy.depth = task.depth;
+        if (task.hasSubtasks !== undefined) taskCopy.hasSubtasks = task.hasSubtasks;
+        if (task.subtaskCount !== undefined) taskCopy.subtaskCount = task.subtaskCount;
+        if (task.parentTaskId !== undefined) taskCopy.parentTaskId = task.parentTaskId;
+        if (task.isSubtask !== undefined) taskCopy.isSubtask = task.isSubtask;
 
         const startDay = initDay(task.creationDate);
         const endDay = initDay(task.dueDate);
@@ -385,7 +464,7 @@ export default {
         init = init ? Math.min(init, startDay) : startDay;
         end = Math.max(end, endDay);
 
-        this.tasksDict[task.id] = task;
+        this.tasksDict[task.id] = taskCopy;
       }
 
       let unix_time = Date.now() / 1000;
