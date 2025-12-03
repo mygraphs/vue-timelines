@@ -2,7 +2,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import vue from "rollup-plugin-vue";
 import alias from "@rollup/plugin-alias";
-import buble from "@rollup/plugin-buble";
 import postcss from "rollup-plugin-postcss";
 import replace from "@rollup/plugin-replace";
 import commonjs from '@rollup/plugin-commonjs';
@@ -15,6 +14,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRootDir = path.resolve(__dirname);
 
+const isDebug = process.env.DEBUG === 'true';
+const nodeEnv = isDebug ? 'development' : 'production';
+
 // Web component build - bundles everything including Vue and Vuex
 export default {
   input: "src/web-component.js",
@@ -25,7 +27,13 @@ export default {
     file: "dist/vue-timelines-wc.js",
     name: "VueTimelines",
     exports: "named",
+    sourcemap: isDebug,
     globals: {},
+    // Use modern JavaScript features
+    generatedCode: {
+      constBindings: true,
+      objectShorthand: true,
+    },
     // Add intro/outro for debugging
     intro: 'console.log("[vue-timelines] Bundle starting to execute...");',
     outro: 'console.log("[vue-timelines] Bundle execution complete");',
@@ -43,9 +51,9 @@ export default {
       }),
     }),
     replace({
-      "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.NODE_ENV": JSON.stringify(nodeEnv),
       __VUE_OPTIONS_API__: JSON.stringify(true),
-      __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(isDebug),
       preventAssignment: true,
     }),
     nodeResolve({
@@ -58,7 +66,7 @@ export default {
       css: true, // Extract CSS from Vue components
       compileTemplate: true,
       template: {
-        isProduction: true,
+        isProduction: !isDebug,
       },
       // Ensure styles are included in the bundle
       style: {
@@ -75,7 +83,7 @@ export default {
       // Inject CSS into the page when bundle loads
       inject: true, // This will inject CSS as <style> tags
       extract: false, // Don't extract to separate file
-      minimize: false, // Don't minimize for debugging
+      minimize: !isDebug, // Minimize only in production
       plugins: [
         // IMPORTANT: postcss-import must be first to resolve all @import statements
         // This ensures all CSS is inlined and no external requests are made
@@ -86,24 +94,15 @@ export default {
         })
       ]
     }),
-    buble({
-      objectAssign: "Object.assign",
-      transforms: {
-        generator: false,
-        forOf: false,
-        asyncAwait: false,
-        objectRestSpread: true,
-        defaultParameter: true,
-        destructuring: true,
-        classes: false  // Don't transform classes - let them through as-is
+    // Only add terser in production mode (preserve all symbols in debug)
+    // Use modern ECMAScript (2020) instead of ES5
+    ...(isDebug ? [] : [terser({
+      format: {
+        comments: false,
+        ecma: 2020,
       },
-      exclude: ['node_modules/**', 'src/services/**']  // Exclude services from buble (uses ES6 classes)
-    }),
-    terser({
-      output: {
-        ecma: 5
-      }
-    }),
+      safari10: true, // Fix Safari 10/11 await in loop bugs
+    })]),
   ],
 };
 

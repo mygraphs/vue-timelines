@@ -3,7 +3,7 @@
   "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "type": "module",
   "private": false,
   "main": "dist/vue-timelines.umd.js",
@@ -45,6 +45,11 @@
     "build:unpkg": "rimraf dist/vue-timelines.min.js && cross-env NODE_ENV=production BUILD_FORMAT=iife rollup --config rollup.config.js",
     "build:wc": "rimraf dist/vue-timelines-wc.js && cross-env NODE_ENV=production rollup --config rollup.config.wc.js",
     "build:all": "npm run build && npm run build:wc",
+    "build:debug": "rimraf dist && cross-env NODE_ENV=development DEBUG=true BUILD_FORMAT=all rollup --config rollup.config.js",
+    "build:debug:umd": "rimraf dist/vue-timelines.umd.js && cross-env NODE_ENV=development DEBUG=true BUILD_FORMAT=umd rollup --config rollup.config.js",
+    "build:debug:es": "rimraf dist/vue-timelines.esm.js && cross-env NODE_ENV=development DEBUG=true BUILD_FORMAT=es rollup --config rollup.config.js",
+    "build:debug:wc": "rimraf dist/vue-timelines-wc.js && cross-env NODE_ENV=development DEBUG=true rollup --config rollup.config.wc.js",
+    "build:debug:all": "npm run build:debug && npm run build:debug:wc",
     "prepublishOnly": "npm run build:all",
     "prepack": "npm run build:all"
   },
@@ -78,9 +83,11 @@
     "vuex": "^4.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
     "@babel/eslint-parser": "^7.26.0",
+    "@babel/preset-env": "^7.28.5",
     "@rollup/plugin-alias": "^6.0.0",
-    "@rollup/plugin-buble": "^1.0.3",
+    "@rollup/plugin-babel": "^6.1.0",
     "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-replace": "^6.0.3",

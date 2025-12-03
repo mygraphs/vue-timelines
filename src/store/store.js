@@ -85,6 +85,10 @@ const root = {
         state.config[key] = value;
       }
     },
+    setDebug(state, enabled) {
+      // Enable or disable debug mode
+      state.debug = enabled === true || enabled === 'true' || enabled === '';
+    },
   },
   getters: {
     // A getter can be a function, but you have to return

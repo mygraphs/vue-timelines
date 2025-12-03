@@ -61,7 +61,7 @@ class VueTimelineElement extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled', 'constrained-to-group', 'group-create-enabled', 'group-edit-enabled', 'row-add-remove-enabled', 'status-colors'];
+    return ['height', 'groups', 'tasks', 'title', 'api-base-url', 'api-token', 'dragging-enabled', 'constrained-to-group', 'group-create-enabled', 'group-edit-enabled', 'row-add-remove-enabled', 'status-colors', 'debug', 'debug-enabled'];
   }
 
   connectedCallback() {
@@ -232,6 +232,14 @@ class VueTimelineElement extends HTMLElement {
         }
       }
 
+      // Configure debug mode if specified
+      const debugAttr = this.getAttribute('debug') || this.getAttribute('debug-enabled');
+      if (debugAttr !== null) {
+        const enabled = debugAttr === 'true' || debugAttr === '';
+        store.commit('setDebug', enabled);
+        console.log('[vue-timelines] Debug mode enabled:', enabled);
+      }
+
       // Setup event listeners after store is created
       this.setupEventListeners();
       console.log('[vue-timelines] Event listeners setup complete');
@@ -352,6 +360,15 @@ class VueTimelineElement extends HTMLElement {
           }
         }
         break;
+      case 'debug':
+      case 'debug-enabled':
+        // Update debug mode configuration
+        if (this.store) {
+          const enabled = newValue === 'true' || newValue === '';
+          this.store.commit('setDebug', enabled);
+          console.log('[vue-timelines] Debug mode updated:', enabled);
+        }
+        break;
     }
   }
 
@@ -415,17 +432,42 @@ class VueTimelineElement extends HTMLElement {
 
   // Public API methods
   setGroups(groups) {
-    console.log('[vue-timelines] setGroups called:', (groups && groups.length) || 0);
+    const groupCount = (groups && groups.length) ? groups.length : 0;
+    console.log('[vue-timelines] setGroups called:', groupCount, 'groups');
+
+    if (groupCount > 0) {
+      console.log('[vue-timelines] 📋 Groups summary:');
+      groups.forEach((group, idx) => {
+        console.log(`  Group ${idx + 1}: "${group.name}" (${group.id})`);
+      });
+    }
+
     this.setAttribute('groups', JSON.stringify(groups));
     if (this.store) {
       this.store.commit('api/setGroups', groups);
+      console.log('[vue-timelines] Groups committed to store:', this.store.state.api.groups.length, 'groups');
     }
   }
 
   setTasks(tasks) {
-    console.log('[vue-timelines] setTasks called:', (tasks && tasks.length) || 0);
-    console.log('[vue-timelines] setTasks - tasks data:', tasks);
-    console.log('[vue-timelines] setTasks - store available:', !!this.store);
+    const taskCount = (tasks && tasks.length) ? tasks.length : 0;
+    console.log('[vue-timelines] setTasks called:', taskCount, 'tasks');
+
+    if (taskCount > 0) {
+      // Log summary of tasks
+      console.log('[vue-timelines] 📋 Tasks summary:');
+      tasks.forEach((task, idx) => {
+        const startDate = task.creationDate ? new Date(task.creationDate * 1000).toISOString() : 'N/A';
+        const endDate = task.dueDate ? new Date(task.dueDate * 1000).toISOString() : 'N/A';
+        console.log(`  Task ${idx + 1}: "${task.title}" (${task.id})`);
+        console.log(`    - group_id: ${task.group_id}`);
+        console.log(`    - creationDate: ${task.creationDate} (${startDate})`);
+        console.log(`    - dueDate: ${task.dueDate} (${endDate})`);
+        console.log(`    - isSubtask: ${task.isSubtask || false}, parentTaskId: ${task.parentTaskId || 'none'}`);
+        console.log(`    - progress: ${task.progress || 0}, state: ${task.state || 'N/A'}`);
+      });
+    }
+
     this.setAttribute('tasks', JSON.stringify(tasks));
     if (this.store) {
       console.log('[vue-timelines] Committing tasks to store');
@@ -521,6 +563,15 @@ class VueTimelineElement extends HTMLElement {
     if (this.store) {
       this.store.commit('setConfig', { key: 'STATUS_COLORS', value: statusColors });
       console.log('[vue-timelines] Status colors set');
+    }
+  }
+
+  setDebugEnabled(enabled) {
+    console.log('[vue-timelines] setDebugEnabled called:', enabled);
+    this.setAttribute('debug-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setDebug', enabled);
+      console.log('[vue-timelines] Debug mode set:', enabled);
     }
   }
 }

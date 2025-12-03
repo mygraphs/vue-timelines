@@ -1,7 +1,7 @@
 <template>
   <div class="cal__row" ref="timelineRow" :rowid="rowid">
     <div class="cal__inner-row-container" :class="{ 'cal__row--dragover': isDragover }">
-      <template v-for="(_, index) in Array(rows)" :key="index">
+      <template v-for="(_, index) in Array(Math.max(1, Math.floor(rows || 1)))" :key="index">
         <div class="cal__inner-row" />
       </template>
     </div>
@@ -126,7 +126,13 @@ export default {
     },
     handleReduceRow: function () {},
     setRows: function (rowCount) {
-      this.rows = rowCount;
+      // Ensure rowCount is always a valid positive integer
+      if (typeof rowCount === 'number' && !isNaN(rowCount) && rowCount > 0 && isFinite(rowCount)) {
+        this.rows = Math.max(1, Math.floor(rowCount));
+      } else {
+        console.warn(`[TimelineRow] Invalid rowCount: ${rowCount}. Using default of 1.`);
+        this.rows = 1;
+      }
     },
 
     setListRowHeight: function () {
@@ -156,7 +162,14 @@ export default {
   mounted() {
     //console.log(this.group.name + " GROUP ROWS " + this.group.rows);
     this.$nextTick(() => {
-      this.rows = this.group.rows;
+      // Ensure rows is always a valid positive integer
+      const groupRows = this.group.rows;
+      if (typeof groupRows === 'number' && !isNaN(groupRows) && groupRows > 0 && isFinite(groupRows)) {
+        this.rows = Math.max(1, Math.floor(groupRows));
+      } else {
+        console.warn(`[TimelineRow] Invalid group.rows value for group "${this.group.name}" (${this.group.id}): ${groupRows}. Using default of 1.`);
+        this.rows = 1;
+      }
       this.setListRowHeight();
     });
   },

@@ -145,7 +145,18 @@ export default {
     ]),
     ...mapGetters(["totalCells", "todayCell", "getConfig"]),
     tasksArray() {
-      return Object.values(this.tasksDict);
+      const tasks = Object.values(this.tasksDict);
+      console.log('[vue-timelines] tasksArray computed:', tasks.length, 'tasks');
+      if (tasks.length > 0) {
+        console.log('[vue-timelines] 📋 tasksArray tasks:');
+        tasks.forEach((task, idx) => {
+          const startDate = task.creationDate ? new Date(task.creationDate * 1000).toISOString() : 'N/A';
+          const endDate = task.dueDate ? new Date(task.dueDate * 1000).toISOString() : 'N/A';
+          console.log(`  ${idx + 1}. "${task.title}" (${task.id}) - row: ${task.row}, group_id: ${task.group_id}`);
+          console.log(`     dates: ${startDate} to ${endDate}`);
+        });
+      }
+      return tasks;
     },
     groupCreateEnabled() {
       return this.getConfig("GROUP_CREATE_ENABLED", true);
@@ -352,7 +363,22 @@ export default {
       // Sort tasks hierarchically before processing
       // this.tasks is an array from Vuex store
       const allTasksArray = Array.isArray(this.tasks) ? this.tasks : [];
+      console.log('[vue-timelines] MyTimeline.buildDataView: Processing', allTasksArray.length, 'tasks');
+
+      if (allTasksArray.length > 0) {
+        console.log('[vue-timelines] 📝 Tasks received in buildDataView:');
+        allTasksArray.forEach((task, idx) => {
+          const startDate = task.creationDate ? new Date(task.creationDate * 1000).toISOString() : 'N/A';
+          const endDate = task.dueDate ? new Date(task.dueDate * 1000).toISOString() : 'N/A';
+          console.log(`  Task ${idx + 1}: "${task.title}" (${task.id})`);
+          console.log(`    - group_id: ${task.group_id}`);
+          console.log(`    - dates: ${startDate} to ${endDate}`);
+          console.log(`    - isSubtask: ${task.isSubtask || false}`);
+        });
+      }
+
       const sortedTasks = sortTasksHierarchically(allTasksArray);
+      console.log('[vue-timelines] After hierarchical sort:', sortedTasks.length, 'tasks');
 
       // Add hierarchy metadata to tasks
       sortedTasks.forEach(task => {
@@ -397,7 +423,10 @@ export default {
 
       for (const task of sortedTasks) {
         const group = this.groupsDict[task.group_id];
-        if (!group) continue;
+        if (!group) {
+          console.warn(`[vue-timelines] ⚠️ Task "${task.title}" (${task.id}) skipped in row assignment: group_id "${task.group_id}" not found in groupsDict`);
+          continue;
+        }
 
         task.group = group;
 
@@ -410,16 +439,24 @@ export default {
             const existingSubtaskRows = parentSubtasks
               .filter(st => st.id !== task.id && groupTaskRows[group.id][st.id] !== undefined)
               .map(st => groupTaskRows[group.id][st.id]);
-            
-            const maxSubtaskRow = existingSubtaskRows.length > 0 
-              ? Math.max(...existingSubtaskRows) 
+
+            const maxSubtaskRow = existingSubtaskRows.length > 0
+              ? Math.max(...existingSubtaskRows)
               : parentRow;
-            
+
             // Assign to next row after the highest subtask row (or parent if no subtasks yet)
             const nextRow = maxSubtaskRow + 1;
             groupTaskRows[group.id][task.id] = nextRow;
             currentRowPerGroup[group.id] = Math.max(currentRowPerGroup[group.id], nextRow + 1);
             groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], nextRow + 1);
+          } else {
+            // FALLBACK: Parent row not found (parent might be in different group or not processed yet)
+            // Assign to next available row in this group to prevent overlap
+            const row = currentRowPerGroup[group.id];
+            groupTaskRows[group.id][task.id] = row;
+            currentRowPerGroup[group.id] = row + 1;
+            groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], row + 1);
+            console.warn(`[vue-timelines] ⚠️ Parent row not found for subtask "${task.title}" (${task.id}), parent: ${task.parentTaskId}. Assigned to row ${row} in group ${group.id}`);
           }
         } else {
           // Parent task: assign to current row in group (which is after all previous tasks)
@@ -427,13 +464,48 @@ export default {
           groupTaskRows[group.id][task.id] = row;
           currentRowPerGroup[group.id] = row + 1;
           groupRowCounts[group.id] = Math.max(groupRowCounts[group.id], row + 1);
+
+          // Debug logging for group 4
+          if (group.id === "4") {
+            console.log(`[vue-timelines] 📍 Group 4 task "${task.title}" (${task.id}) assigned to row ${row}`);
+          }
         }
+      }
+
+      // Debug: Log row assignments for group 4
+      if (groupTaskRows["4"]) {
+        console.log(`[vue-timelines] 📊 Group 4 row assignments:`, groupTaskRows["4"]);
+        console.log(`[vue-timelines] 📊 Group 4 row count: ${groupRowCounts["4"] || 0}`);
       }
 
       // Update group.rows based on calculated row counts
       for (const key in this.groups) {
         const group = this.groups[key];
-        group.rows = groupRowCounts[group.id] || 1;
+
+
+        console.log(" GROUP ", group.id, group.name, group.rows);
+        // Ensure at least 1 row, but use actual count if higher
+        // Count how many tasks were assigned rows in this group
+        const taskCount = Object.keys(groupTaskRows[group.id] || {}).length;
+        // Use the maximum of: calculated row count, or number of tasks (if > 0), or 1 (minimum)
+        const calculatedRows = Math.max(
+          groupRowCounts[group.id] || 0,
+          taskCount > 0 ? taskCount : 1
+        );
+
+        // Ensure rows is always a valid positive integer
+        group.rows = Math.max(1, Math.floor(calculatedRows));
+
+        // Validate the result
+        if (!isFinite(group.rows) || isNaN(group.rows) || group.rows < 1) {
+          console.error(`[vue-timelines] ❌ Invalid rows calculated for group "${group.name}" (${group.id}): ${calculatedRows}. Using default of 1.`);
+          group.rows = 1;
+        }
+
+        // Debug logging if group seems too small
+        if (group.rows === 1 && taskCount > 1) {
+          console.warn(`[vue-timelines] ⚠️ Group "${group.name}" (${group.id}) has ${taskCount} tasks but only ${group.rows} row assigned. This may cause overlaps.`);
+        }
       }
 
       // Calculate the incrementals of the rows
@@ -450,15 +522,128 @@ export default {
       let end = null;
 
       // Build the task structure using sorted tasks to maintain hierarchy
+      let tasksAdded = 0;
+      let tasksSkipped = 0;
+      const skippedTasks = [];
+
       for (const task of sortedTasks) {
         let group = this.groupsDict[task.group_id];
-        if (!group) continue;
+        if (!group) {
+          tasksSkipped++;
+          skippedTasks.push({ id: task.id, title: task.title, group_id: task.group_id });
+          console.warn(`[vue-timelines] ⚠️ Task "${task.title}" (${task.id}) skipped: group_id "${task.group_id}" not found in groupsDict`);
+          continue;
+        }
+
+        // Get the group from groupsToUse to ensure we have the latest timeline_row
+        // groupsDict and groupsToUse should reference the same objects, but use groupsToUse for safety
+        const groupInUse = this.groupsToUse.find(g => g.id === group.id);
+        const activeGroup = groupInUse || group;
 
         // Create task copy with hierarchy metadata
         let taskCopy = { ...task };
         // Use the pre-calculated row from groupTaskRows
         const taskRow = groupTaskRows[group.id][task.id];
-        taskCopy.row = group.timeline_row + (taskRow !== undefined ? taskRow : task.priority || 0);
+
+        let finalRow;
+        if (taskRow === undefined) {
+          // EMERGENCY FALLBACK: Task has no row assigned (shouldn't happen, but handle gracefully)
+          console.error(`[vue-timelines] ❌ Task "${task.title}" (${task.id}) has no row assigned! Assigning to next available row.`);
+
+          // Find the maximum row already assigned in this group
+          const existingRows = Object.values(groupTaskRows[group.id] || {});
+          const maxRow = existingRows.length > 0 ? Math.max(...existingRows) : -1;
+          const emergencyRow = maxRow + 1;
+
+          // Assign the row
+          groupTaskRows[group.id][task.id] = emergencyRow;
+          groupRowCounts[group.id] = Math.max(groupRowCounts[group.id] || 0, emergencyRow + 1);
+
+          // Update group.rows in both groupsDict and groupsToUse
+          group.rows = Math.max(group.rows || 1, emergencyRow + 1);
+          if (activeGroup) {
+            activeGroup.rows = Math.max(activeGroup.rows || 1, emergencyRow + 1);
+          }
+
+          // Recalculate timeline_row for all groups since we updated group.rows
+          let recalc_row = 0;
+          for (let g of this.groupsToUse.values()) {
+            g.timeline_row = recalc_row;
+            // Also update in groupsDict
+            if (this.groupsDict[g.id]) {
+              this.groupsDict[g.id].timeline_row = recalc_row;
+            }
+            recalc_row += g.rows;
+          }
+
+          // Now use the recalculated timeline_row from activeGroup
+          const timelineRow = activeGroup?.timeline_row ?? group.timeline_row ?? 0;
+          finalRow = timelineRow + emergencyRow;
+          taskCopy.row = finalRow;
+        } else {
+          // Normal case: use pre-calculated row
+          // Use timeline_row from activeGroup (groupsToUse) which has the latest value
+          let timelineRow = activeGroup?.timeline_row ?? group.timeline_row;
+
+          // Validate taskRow
+          if (typeof taskRow !== 'number' || isNaN(taskRow) || !isFinite(taskRow)) {
+            console.error(`[vue-timelines] ❌ Task "${task.title}" (${task.id}) has invalid taskRow: ${taskRow}. Using emergency fallback.`);
+            // Fall through to emergency fallback logic
+            const existingRows = Object.values(groupTaskRows[group.id] || {});
+            const maxRow = existingRows.length > 0 ? Math.max(...existingRows.filter(r => typeof r === 'number' && !isNaN(r))) : -1;
+            const emergencyRow = maxRow + 1;
+            groupTaskRows[group.id][task.id] = emergencyRow;
+            groupRowCounts[group.id] = Math.max(groupRowCounts[group.id] || 0, emergencyRow + 1);
+            group.rows = Math.max(group.rows || 1, emergencyRow + 1);
+            if (activeGroup) {
+              activeGroup.rows = Math.max(activeGroup.rows || 1, emergencyRow + 1);
+            }
+
+            // Recalculate timeline_row
+            let recalc_row = 0;
+            for (let g of this.groupsToUse.values()) {
+              g.timeline_row = recalc_row;
+              if (this.groupsDict[g.id]) {
+                this.groupsDict[g.id].timeline_row = recalc_row;
+              }
+              recalc_row += g.rows;
+            }
+
+            timelineRow = activeGroup?.timeline_row ?? group.timeline_row ?? 0;
+            finalRow = timelineRow + emergencyRow;
+          } else if (timelineRow === undefined || isNaN(timelineRow)) {
+            console.error(`[vue-timelines] ❌ Group "${group.name}" (${group.id}) has undefined/invalid timeline_row: ${timelineRow}. Calculating manually.`);
+            // Last resort: calculate it manually
+            let calc_row = 0;
+            for (let g of this.groupsToUse.values()) {
+              if (g.id === group.id) break;
+              calc_row += (g.rows || 1);
+            }
+            timelineRow = calc_row;
+            finalRow = timelineRow + taskRow;
+          } else {
+            finalRow = timelineRow + taskRow;
+          }
+
+          // Final validation - ensure finalRow is always valid
+          if (typeof finalRow !== 'number' || isNaN(finalRow) || !isFinite(finalRow)) {
+            console.error(`[vue-timelines] ❌ Task "${task.title}" (${task.id}) calculated invalid finalRow: ${finalRow}. Using fallback.`);
+            // Emergency fallback: use group's timeline_row + 0
+            const fallbackTimelineRow = activeGroup?.timeline_row ?? group.timeline_row ?? 0;
+            finalRow = Math.max(0, Math.floor(fallbackTimelineRow));
+          }
+
+        taskCopy.row = finalRow;
+        }
+
+        console.log(`[vue-timelines] Task "${task.title}" (${task.id}):`);
+        console.log(`  - group.id: ${group.id}, group.name: ${group.name}`);
+        console.log(`  - group.timeline_row: ${group.timeline_row}`);
+        console.log(`  - activeGroup?.timeline_row: ${activeGroup?.timeline_row}`);
+        console.log(`  - taskRow from groupTaskRows: ${taskRow}`);
+        console.log(`  - task.priority: ${task.priority}`);
+        console.log(`  - Final row: ${finalRow}`);
+        console.log(`  - taskCopy.row: ${taskCopy.row}`);
 
         // Preserve hierarchy metadata
         if (task.depth !== undefined) taskCopy.depth = task.depth;
@@ -474,6 +659,18 @@ export default {
         end = Math.max(end, endDay);
 
         this.tasksDict[task.id] = taskCopy;
+        tasksAdded++;
+      }
+
+      console.log(`[vue-timelines] ✅ Tasks processed: ${tasksAdded} added to tasksDict, ${tasksSkipped} skipped`);
+      if (skippedTasks.length > 0) {
+        console.warn(`[vue-timelines] ⚠️ Skipped tasks:`, skippedTasks);
+      }
+
+      if (init && end) {
+        const initDate = new Date(init * 1000).toISOString();
+        const endDate = new Date(end * 1000).toISOString();
+        console.log(`[vue-timelines] 📅 Calendar range: ${init} (${initDate}) to ${end} (${endDate})`);
       }
 
       let unix_time = Date.now() / 1000;

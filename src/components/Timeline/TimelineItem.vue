@@ -258,6 +258,25 @@ export default {
         this.state = this.task.state;
       }
 
+      // Log position calculation for debugging
+      const startDate = new Date(this.task.creationDate * 1000).toISOString();
+      const endDate = new Date(this.task.dueDate * 1000).toISOString();
+      const calendarStart = this.calendarInit ? new Date(this.calendarInit * 1000).toISOString() : 'N/A';
+      const calendarEnd = this.calendarEnd ? new Date(this.calendarEnd * 1000).toISOString() : 'N/A';
+
+      console.log(`[TimelineItem] "${this.task.title}" (${this.task.id}):`);
+      console.log(`  - Task dates: ${startDate} to ${endDate}`);
+      console.log(`  - Calendar range: ${calendarStart} to ${calendarEnd}`);
+      console.log(`  - Positions: init=${this.initPosition}, end=${this.endPosition}, width=${this.width}`);
+      console.log(`  - Row: ${this.task.row}, topPosition: ${this.topPosition}`);
+
+      if (this.initPosition < 0 || this.endPosition < 0) {
+        console.warn(`  ⚠️ Task is OUTSIDE calendar range (negative positions)`);
+      }
+      if (this.width <= 0) {
+        console.warn(`  ⚠️ Task has invalid width: ${this.width}`);
+      }
+
       if (this.isDebug) {
         console.log("--- resetTaskPositions ------------------- ");
         console.log(
@@ -709,6 +728,7 @@ export default {
     },
   },
   mounted() {
+    console.log(`[TimelineItem] Mounted: "${this.task.title}" (${this.task.id})`);
     this.invalidate();
     eventBus.on("invalidate-timeline-items", this.invalidate);
     eventBus.on("selected-timeline-item", this.selectedTimeline);

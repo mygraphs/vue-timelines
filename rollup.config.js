@@ -2,7 +2,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 import vue from "rollup-plugin-vue";
 import alias from "@rollup/plugin-alias";
-import buble from "@rollup/plugin-buble";
 import postcss from "rollup-plugin-postcss";
 import replace from "@rollup/plugin-replace";
 import commonjs from '@rollup/plugin-commonjs';
@@ -15,6 +14,8 @@ const projectRootDir = path.resolve(__dirname);
 
 // Get format from command line or default to all
 const format = process.env.BUILD_FORMAT || 'all';
+const isDebug = process.env.DEBUG === 'true';
+const nodeEnv = isDebug ? 'development' : 'production';
 
 const baseConfig = {
   input: "src/index.js",
@@ -32,9 +33,9 @@ const baseConfig = {
       }),
     }),
     replace({
-      "process.env.NODE_ENV": JSON.stringify("production"),
+      "process.env.NODE_ENV": JSON.stringify(nodeEnv),
       __VUE_OPTIONS_API__: JSON.stringify(true),
-      __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
+      __VUE_PROD_DEVTOOLS__: JSON.stringify(isDebug),
       preventAssignment: true,
     }),
     nodeResolve({
@@ -45,24 +46,11 @@ const baseConfig = {
       css: true,
       compileTemplate: true,
       template: {
-        isProduction: true,
+        isProduction: !isDebug,
       },
     }),
     commonjs(),
     postcss({}),
-    buble({
-      objectAssign: "Object.assign",
-      transforms: {
-        generator: false,
-        forOf: false,
-        asyncAwait: false,
-        objectRestSpread: true,
-        defaultParameter: true,
-        destructuring: true,
-        classes: false  // Don't transform classes - let them through as-is
-      },
-      exclude: ['node_modules/**', 'src/services/**']  // Exclude services from buble (uses ES6 classes)
-    }),
   ],
 };
 
@@ -72,6 +60,11 @@ const outputs = {
     file: "dist/vue-timelines.umd.js",
     name: "MyTimeline",
     exports: "named",
+    sourcemap: isDebug,
+    generatedCode: {
+      constBindings: true,
+      objectShorthand: true,
+    },
     globals: {
       vue: "Vue",
       dayjs: "dayjs",
@@ -83,6 +76,11 @@ const outputs = {
     format: "es",
     file: "dist/vue-timelines.esm.js",
     exports: "named",
+    sourcemap: isDebug,
+    generatedCode: {
+      constBindings: true,
+      objectShorthand: true,
+    },
     globals: {
       vue: "Vue",
       dayjs: "dayjs",
@@ -92,9 +90,14 @@ const outputs = {
   },
   iife: {
     format: "iife",
-    file: "dist/vue-timelines.min.js",
+    file: isDebug ? "dist/vue-timelines.debug.js" : "dist/vue-timelines.min.js",
     name: "MyTimeline",
     exports: "named",
+    sourcemap: isDebug,
+    generatedCode: {
+      constBindings: true,
+      objectShorthand: true,
+    },
     globals: {
       vue: "Vue",
       dayjs: "dayjs",
@@ -104,9 +107,16 @@ const outputs = {
   },
 };
 
-// Add terser only for iife/minified builds
-if (format === 'iife') {
-  baseConfig.plugins.push(terser({ output: { ecma: 5 } }));
+// Add terser only for iife/minified builds in production mode
+// Use modern ECMAScript (2020) instead of ES5
+if (format === 'iife' && !isDebug) {
+  baseConfig.plugins.push(terser({
+    format: {
+      comments: false,
+      ecma: 2020,
+    },
+    safari10: true, // Fix Safari 10/11 await in loop bugs
+  }));
 }
 
 if (format === 'all') {

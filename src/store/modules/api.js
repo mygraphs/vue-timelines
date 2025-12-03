@@ -34,7 +34,25 @@ export default function createApiModule(apiService = new NoopApiService()) {
       },
       setTasks(state, tasks) {
         const taskCount = (tasks && tasks.length) ? tasks.length : 0;
-        console.log('[vue-timelines] Store mutation: api/setTasks', taskCount, tasks);
+        console.log('[vue-timelines] Store mutation: api/setTasks', taskCount, 'tasks');
+        
+        if (taskCount > 0) {
+          // Group tasks by group_id to see distribution
+          const tasksByGroup = {};
+          tasks.forEach(task => {
+            const groupId = task.group_id || 'unknown';
+            if (!tasksByGroup[groupId]) {
+              tasksByGroup[groupId] = [];
+            }
+            tasksByGroup[groupId].push(task.id);
+          });
+          
+          console.log('[vue-timelines] 📊 Tasks by group:');
+          Object.keys(tasksByGroup).forEach(groupId => {
+            console.log(`  - ${groupId}: ${tasksByGroup[groupId].length} tasks [${tasksByGroup[groupId].join(', ')}]`);
+          });
+        }
+        
         state.tasks = tasks || [];
         console.log('[vue-timelines] Store state.tasks after mutation:', state.tasks.length, 'tasks');
       },
