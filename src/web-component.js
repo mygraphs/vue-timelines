@@ -574,6 +574,15 @@ class VueTimelineElement extends HTMLElement {
       console.log('[vue-timelines] Debug mode set:', enabled);
     }
   }
+
+  setVerticalDraggingEnabled(enabled) {
+    console.log('[vue-timelines] setVerticalDraggingEnabled called:', enabled);
+    this.setAttribute('vertical-dragging-enabled', enabled ? 'true' : 'false');
+    if (this.store) {
+      this.store.commit('setConfig', { key: 'TASK_VERTICAL_DRAGGING_ENABLED', value: enabled });
+      console.log('[vue-timelines] Vertical dragging set:', enabled);
+    }
+  }
 }
 
 // Register the custom element

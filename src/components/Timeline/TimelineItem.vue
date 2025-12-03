@@ -304,30 +304,28 @@ export default {
     },
 
     handleEditOpen: function (e) {
-      // Double click: show handlers AND open the panel
-      // First show the handlers (this will set up click-outside listener)
-      this.handleResizeOpen(e);
-
-      // Then open the edit panel
       // Check if a custom callback is configured
       const editCallback = this.getConfig("TASK_EDIT_CALLBACK", null);
 
       if (editCallback && typeof editCallback === 'function') {
+        // Custom callback: show handlers but don't open internal panel
+        this.handleResizeOpen(e, false); // false = don't emit panel events
         // Call the custom callback instead of opening the default panel
         editCallback(this.task);
       } else {
-        // Default behavior: emit event to open the task data panel
+        // Default behavior: show handlers AND open the internal panel
+        this.handleResizeOpen(e, true); // true = emit panel events
         eventBus.emit("taskdatapanel-edit", this.task);
       }
     },
 
-    handleResizeOpen: function (e) {
+    handleResizeOpen: function (e, emitPanelEvents = true) {
       console.log("[TimelineItem] handleResizeOpen called for task:", this.task.id, this.task.title);
 
       this.showResizes = true;
       this.dragging = true;
       this.state = "info";
-      this.panelExplicitlyOpened = true; // Mark that panel was explicitly opened
+      this.panelExplicitlyOpened = emitPanelEvents; // Only mark as opened if we're emitting panel events
 
       this.topPosition = this.task.row;
       this.isValidDrop = true;
@@ -355,12 +353,15 @@ export default {
         });
       });
 
-      console.log("[TimelineItem] Emitting events: selected-timeline-item, taskdatapanel-position, taskdatapanel");
-      console.log("[TimelineItem] EventBus state before emit:", eventBus.events);
-      eventBus.emit("selected-timeline-item", this.task);
-      eventBus.emit("taskdatapanel-position", e);
-      eventBus.emit("taskdatapanel", this.task);
-      console.log("[TimelineItem] Events emitted, task data:", this.task);
+      // Only emit panel events if requested (default behavior)
+      if (emitPanelEvents) {
+        console.log("[TimelineItem] Emitting events: selected-timeline-item, taskdatapanel-position, taskdatapanel");
+        console.log("[TimelineItem] EventBus state before emit:", eventBus.events);
+        eventBus.emit("selected-timeline-item", this.task);
+        eventBus.emit("taskdatapanel-position", e);
+        eventBus.emit("taskdatapanel", this.task);
+        console.log("[TimelineItem] Events emitted, task data:", this.task);
+      }
     },
 
     handleResizeClose: function () {
@@ -564,10 +565,14 @@ export default {
       this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
-      let check = this.topPosition - rowToMove;
+      // Only allow vertical movement if enabled via configuration
+      const verticalDraggingEnabled = this.getConfig("TASK_VERTICAL_DRAGGING_ENABLED", true);
+      if (verticalDraggingEnabled) {
+        let check = this.topPosition - rowToMove;
 
-      if (this.isRowValid(check)) {
-        this.topPosition -= rowToMove;
+        if (this.isRowValid(check)) {
+          this.topPosition -= rowToMove;
+        }
       }
 
       // Check for conflicts with the new position
@@ -721,7 +726,14 @@ export default {
       }
 
       // Reset position to be the closest so we align the ROW
-      this.topPosition = Math.round(this.topPosition);
+      // If vertical dragging is disabled, preserve the original row
+      const verticalDraggingEnabled = this.getConfig("TASK_VERTICAL_DRAGGING_ENABLED", true);
+      if (verticalDraggingEnabled) {
+        this.topPosition = Math.round(this.topPosition);
+      } else {
+        // Preserve the original task row when vertical dragging is disabled
+        this.topPosition = this.task.row;
+      }
 
       // Final conflict check before updating
       const finalConflict = this.calculateConflictTask();
