@@ -129,12 +129,12 @@ export default {
       return true;
     },
     selectorMargin: function () {
-      let w = Math.round(this.cellHeight / 2);
+      let w = Math.round(this.cellHeight / 3);
       if (w < 14) w = 14;
       return -w + "px";
     },
     selectorWidth: function () {
-      let w = Math.round(this.cellHeight / 2);
+      let w = Math.round(this.cellHeight / 3);
       if (w < 12) w = 12;
       return w + "px";
     },
@@ -870,34 +870,52 @@ export default {
   width: v-bind(selectorWidth);
   display: flex;
   align-items: center;
+  justify-content: center;
   z-index: 10;
   cursor: ew-resize;
-  background-color: var(--vt-task-border, rgba(160, 160, 160, 0.7));
-  border-radius: 2px;
+  background: linear-gradient(
+    to right,
+    var(--vt-task-border, rgba(160, 160, 160, 0.6)) 0%,
+    var(--vt-task-border, rgba(160, 160, 160, 0.7)) 50%,
+    var(--vt-task-border, rgba(160, 160, 160, 0.6)) 100%
+  );
+  border: 1px solid var(--vt-task-border-outline, rgba(140, 140, 140, 0.4));
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   z-index: 10001 !important;
+  transition: all 0.2s ease;
 }
 
 .task__resize:hover {
-  background-color: var(--vt-task-border-hover, rgba(160, 160, 160, 0.85));
+  background: linear-gradient(
+    to right,
+    var(--vt-task-border-hover, rgba(100, 100, 200, 0.7)) 0%,
+    var(--vt-task-border-hover, rgba(100, 100, 200, 0.85)) 50%,
+    var(--vt-task-border-hover, rgba(100, 100, 200, 0.7)) 100%
+  );
+  border-color: var(--vt-task-border-outline-hover, rgba(80, 80, 180, 0.6));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: scale(1.05);
 }
 
 .task__resize::after,
 .task__resize::before {
   content: "";
   position: absolute;
-  width: 0.1rem;
-  height: 50%;
+  width: 2px;
+  height: 60%;
   background-color: var(--vt-task-bg, #fff);
-  margin: 1rem 0.2rem;
-  border-radius: 100px;
+  border-radius: 2px;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+  opacity: 0.9;
 }
 
 .task__resize::after {
-  left: 0;
+  left: 30%;
 }
 
 .task__resize::before {
-  right: 0;
+  right: 30%;
 }
 
 .task_resize--left {
