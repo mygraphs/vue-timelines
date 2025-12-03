@@ -149,6 +149,10 @@ export default {
       return this.ICON_WIDTH + "px";
     },
 
+    taskProgress: function () {
+      // Default to 0 if progress is not defined
+      return this.task.progress ?? 0;
+    },
     taskTopPosition: function () {
       // Absolute ROW position calculated on parent
       if (this.showResizes)
@@ -804,7 +808,7 @@ export default {
   top: 0;
   display: block;
   height: 100%;
-  width: calc(100% * (1 - v-bind(task.progress)));
+  width: calc(100% * (1 - v-bind(taskProgress)));
   background-color: var(--vt-bg-overlay, rgba(255, 255, 255, 0.25));
   z-index: 2;
 }

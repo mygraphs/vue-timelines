@@ -261,7 +261,7 @@ export default {
       this.groupId = task.group_id;
       this.creationDate = task.creationDate;
       this.dueDate = task.dueDate;
-      this.progressPct = Math.round(task.progress * 100);
+      this.progressPct = Math.round((task.progress ?? 0) * 100);
       this.state = task.state;
 
       console.log("[TaskDataPanel] Task data set, groupId:", this.groupId, "title:", this.title);

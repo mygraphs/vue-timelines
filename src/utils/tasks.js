@@ -97,7 +97,7 @@ export const orderTasks = (tasksUpdated, tasks, noOrder) => {
     tasksUpdated.forEach((taskUpdated) => {
       if (
         task.id !== taskUpdated.id &&
-        task.priority === taskUpdated.priority
+        (task.priority ?? 0) === (taskUpdated.priority ?? 0)
       ) {
         const moveLeft =
           taskUpdated.creationDate > task.creationDate &&
@@ -150,8 +150,8 @@ export const setPriorityTasks = (tasksUpdated, tasks, noOrder) => {
 
   tasks.forEach((task, index) => {
     tasksUpdated.forEach((taskUpdated) => {
-      if (!taskUpdated.priority) taskUpdated.priority = 1;
-      if (!task.priority) task.priority = 1;
+      if (taskUpdated.priority == null) taskUpdated.priority = 0;
+      if (task.priority == null) task.priority = 0;
 
       if (
         task.id !== taskUpdated.id &&
