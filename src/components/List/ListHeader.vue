@@ -25,7 +25,7 @@ export default {
 .list__header {
   color: var(--vt-list-header-text, #707070);
   background-color: var(--vt-list-header-bg, #f8f9fc);
-  padding-top: 2rem;
+  padding-top: 0;
   padding-bottom: var(--vt-spacing-md, 0.8rem);
   position: sticky;
   top: 0;

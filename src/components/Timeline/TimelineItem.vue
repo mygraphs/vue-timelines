@@ -103,6 +103,7 @@ export default {
       dragClientX: null, // Global click on this item,
       dragClientY: null, // we use mouse pointer events so they work on tablet too
       documentEventListener: null, // Invalidate our click and disable resize
+      panelExplicitlyOpened: false, // Track if panel was explicitly opened (double click) vs just showing handlers
       state: "NO_STATE", // State color of the task, with bootstrap color structure
       taskIcon: null,
     };
@@ -302,7 +303,12 @@ export default {
       this.handleResizeClose();
     },
 
-    handleEditOpen: function () {
+    handleEditOpen: function (e) {
+      // Double click: show handlers AND open the panel
+      // First show the handlers (this will set up click-outside listener)
+      this.handleResizeOpen(e);
+
+      // Then open the edit panel
       // Check if a custom callback is configured
       const editCallback = this.getConfig("TASK_EDIT_CALLBACK", null);
 
@@ -321,6 +327,7 @@ export default {
       this.showResizes = true;
       this.dragging = true;
       this.state = "info";
+      this.panelExplicitlyOpened = true; // Mark that panel was explicitly opened
 
       this.topPosition = this.task.row;
       this.isValidDrop = true;
@@ -368,6 +375,7 @@ export default {
       this.cancelDropCheck();
 
       this.showResizes = false;
+      this.panelExplicitlyOpened = false;
       this.handleUpdateDate();
       this.state = "close";
     },
@@ -385,6 +393,9 @@ export default {
         return;
       }
 
+      // Single click: always reset panel flag (don't open panel on drag)
+      this.panelExplicitlyOpened = false;
+
       // Set up drag state without opening the panel
       if (!this.showResizes) {
         this.showResizes = true;
@@ -392,16 +403,48 @@ export default {
         this.topPosition = this.task.row;
         this.isValidDrop = true;
         this.resetTaskPositions();
+
+        // Set up click-outside listener when showing handlers for the first time
+        // Clean up any existing listener first
+        if (this.documentEventListener) {
+          console.log("[TimelineItem] Cleaning up existing click-outside listener");
+          document.removeEventListener("click", this.documentEventListener, true);
+        }
+
+        // Set up click-outside listener - use nextTick to avoid immediate trigger
+        this.$nextTick(() => {
+          console.log("[TimelineItem] Setting up click-outside listener for handlers");
+          this.documentEventListener = clickOutside(this.$refs.task, () => {
+            // Don't close if we're currently dragging - wait a bit and check again
+            if (this.dragging) {
+              console.log("[TimelineItem] Click outside detected but dragging, will check again after drag ends");
+              // Set up a one-time check after a short delay
+              setTimeout(() => {
+                if (!this.dragging && this.showResizes) {
+                  console.log("[TimelineItem] Dragging ended, closing handlers from delayed check");
+                  this.handleResizeClose();
+                }
+              }, 100);
+              return;
+            }
+            console.log("[TimelineItem] Click outside detected, closing handlers");
+            this.handleResizeClose();
+          });
+        });
       }
 
       this.handleDragStart(e, this.handleResizeTask.bind(this));
     },
 
     handleDragStartLeft: function (e) {
+      // Dragging handlers should never open the panel
+      this.panelExplicitlyOpened = false;
       this.handleDragStart(e, this.handleResizeLeft.bind(this));
     },
 
     handleDragStartRight: function (e) {
+      // Dragging handlers should never open the panel
+      this.panelExplicitlyOpened = false;
       this.handleDragStart(e, this.handleResizeRight.bind(this));
     },
 
@@ -656,9 +699,9 @@ export default {
         row: this.topPosition,
       };
 
-      // Only emit panel event if panel was explicitly opened (has click-outside listener)
-      // This prevents opening the panel when just dragging a task
-      if (this.dragging && this.documentEventListener) {
+      // Only emit panel event if panel was explicitly opened (double click)
+      // This prevents opening the panel when just dragging a task (single click)
+      if (this.dragging && this.panelExplicitlyOpened) {
         eventBus.emit("taskdatapanel", task);
       }
       return task;
