@@ -29,7 +29,7 @@ export default {
   display: flex;
   align-items: center;
   padding: 0 var(--vt-spacing-md, 0.8rem);
-  border-right: 1px solid var(--vt-list-border, rgb(226, 226, 226));
-  border-bottom: 1px solid var(--vt-list-border, rgb(226, 226, 226));
+  border-right: 1px solid var(--vt-list-border, --vt-list-border);
+  border-bottom: 1px solid var(--vt-list-border, --vt-list-border);
 }
 </style>

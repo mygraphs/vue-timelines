@@ -24,9 +24,9 @@
 
   /* Background Colors */
   --vt-bg-primary: #ffffff;
-  --vt-bg-secondary: #f8f9fc;
+  --vt-bg-secondary: #fefefe;
   --vt-bg-tertiary: #f7f8fb;
-  --vt-bg-panel: #fafafa;
+  --vt-bg-panel: #fefefe;
   --vt-bg-overlay: rgba(255, 255, 255, 0.25);
   --vt-bg-modal: #ffffff;
 
@@ -51,8 +51,8 @@
   --vt-task-shadow-hover: 0px 0px 10px 0px #000;
 
   /* Timeline Colors */
-  --vt-timeline-bg: #f8f9fc;
-  --vt-timeline-header-bg: #f8f9fc;
+  --vt-timeline-bg: #fefefe;
+  --vt-timeline-header-bg: #fefefe;
   --vt-timeline-row-bg: rgba(128, 128, 128, 0.2);
   --vt-timeline-row-hover: rgba(255, 0, 0, 0.6);
 
@@ -63,12 +63,12 @@
   /* List Colors */
   --vt-list-text: #606060;
   --vt-list-header-text: #707070;
-  --vt-list-header-bg: #f8f9fc;
+  --vt-list-header-bg: #fefefe;
   --vt-list-border: rgb(226, 226, 226);
 
   /* Form Colors */
   --vt-form-border: #000000;
-  --vt-form-bg: #fafafa;
+  --vt-form-bg: #fefefe;
   --vt-form-text: #e91e63;
   --vt-form-border-focus: #e91e63;
 
