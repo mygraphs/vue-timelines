@@ -539,6 +539,8 @@ export default {
         creationDate: this.convertCellToDate(this.initPosition),
         dueDate: this.convertCellToDate(this.endPosition),
         row: Math.round(this.topPosition),
+        isSubtask: this.task.isSubtask || false,
+        parentTaskId: this.task.parentTaskId || null,
       };
 
       let conflict = this.findConflicts(task);

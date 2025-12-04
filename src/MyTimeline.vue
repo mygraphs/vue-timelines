@@ -337,6 +337,8 @@ export default {
                     start: task.creationDate,
                     end: task.dueDate,
                     id: task.id,
+                    isSubtask: task.isSubtask || false,
+                    parentTaskId: task.parentTaskId || null,
                 });
             }
 
@@ -383,11 +385,21 @@ export default {
                 start: task.creationDate - m,
                 end: task.dueDate - m,
                 id: task.id,
+                isSubtask: task.isSubtask || false,
+                parentTaskId: task.parentTaskId || null,
             };
+
+            // If moving a parent task (not a subtask), ignore conflicts with subtasks
+            const isParentTask = !ts.isSubtask && !ts.parentTaskId;
 
             for (let t = 0; t < tasks.length; t++) {
                 let tc = tasks[t];
                 if (tc.id == ts.id) continue; // Same task, we ignore it
+
+                // If moving a parent task, skip conflicts with subtasks
+                if (isParentTask && tc.isSubtask) {
+                    continue;
+                }
 
                 // Covers case we overlap on left or it is contained on the left side
                 if (ts.start <= tc.end && ts.end >= tc.start) return tc;
@@ -405,11 +417,21 @@ export default {
 
             // Get the groups and create the dictionary and array to display them
             // Create copies to avoid mutating the store directly
-            for (const key in this.groups) {
-                let group = this.groups[key];
+            // Handle both array and object formats for this.groups
+            const groupsArray = Array.isArray(this.groups)
+                ? this.groups
+                : Object.values(this.groups);
+
+            for (let i = 0; i < groupsArray.length; i++) {
+                let group = groupsArray[i];
 
                 // Create a copy of the group to avoid mutating the store object directly
                 const groupCopy = { ...group };
+
+                // Ensure name is preserved
+                if (!groupCopy.name && group.name) {
+                    groupCopy.name = group.name;
+                }
 
                 // Preserve existing rows value if it exists and is valid, otherwise default to 1
                 if (!groupCopy.rows || groupCopy.rows < 1 || !isFinite(groupCopy.rows)) {
@@ -421,6 +443,13 @@ export default {
 
                 //group.order = this.groupsToUse.length;
             }
+
+            // Sort groups alphabetically by name for consistent ordering
+            this.groupsToUse.sort((a, b) => {
+                const nameA = (a.name || '').toLowerCase();
+                const nameB = (b.name || '').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
 
             // Sort tasks hierarchically before processing
             // this.tasks is an array from Vuex store
@@ -451,42 +480,79 @@ export default {
                 );
 
                 const newGroups = [];
+                // Get existing groups from store to preserve names
+                const existingGroupsFromStore = Array.isArray(this.groups)
+                    ? this.groups
+                    : Object.values(this.groups);
+                const storeGroupsMap = new Map();
+                existingGroupsFromStore.forEach(g => {
+                    storeGroupsMap.set(g.id, g);
+                });
+
                 missingGroupIds.forEach((groupId) => {
-                    // Create a new group with a default name
-                    // Try to extract a meaningful name from the group_id (e.g., "task-123" -> "Task 123")
-                    let groupName = groupId;
-                    if (groupId.startsWith("task-")) {
-                        groupName = `Task ${groupId.replace("task-", "")}`;
+                    // Check if group exists in store first - preserve existing name if it does
+                    let existingGroup = storeGroupsMap.get(groupId);
+                    let groupName;
+                    let groupRows = 1;
+
+                    if (existingGroup) {
+                        // Group exists in store - preserve its name and rows
+                        groupName = existingGroup.name;
+                        groupRows = existingGroup.rows || 1;
+                        console.log(`[vue-timelines] 🔄 Preserving existing group "${groupName}" (${groupId}) from store`);
                     } else {
-                        groupName = `Group ${groupId}`;
+                        // Create a new group with a default name
+                        // Try to extract a meaningful name from the group_id (e.g., "task-123" -> "Task 123")
+                        if (groupId.startsWith("task-")) {
+                            groupName = `Task ${groupId.replace("task-", "")}`;
+                        } else {
+                            groupName = `Group ${groupId}`;
+                        }
                     }
 
                     const newGroup = {
                         id: groupId,
                         name: groupName,
-                        rows: 1,
+                        rows: groupRows,
                     };
 
                     this.groupsDict[groupId] = newGroup;
                     this.groupsToUse.push(newGroup);
-                    newGroups.push(newGroup);
+                    // Only add to newGroups if it's truly new (not in store)
+                    if (!existingGroup) {
+                        newGroups.push(newGroup);
+                    }
                 });
 
-                // Update the Vuex store with the new groups
-                // Merge existing groups with new groups
-                // Handle both array and object formats for this.groups
-                const existingGroups = Array.isArray(this.groups)
-                    ? this.groups
-                    : Object.values(this.groups);
-                const allGroups = [...existingGroups, ...newGroups];
-                this.isUpdatingGroups = true;
-                this.$store.commit("api/setGroups", allGroups);
-                this.$nextTick(() => {
-                    this.isUpdatingGroups = false;
+                // Re-sort groups alphabetically after adding new groups
+                this.groupsToUse.sort((a, b) => {
+                    const nameA = (a.name || '').toLowerCase();
+                    const nameB = (b.name || '').toLowerCase();
+                    return nameA.localeCompare(nameB);
                 });
-                console.log(
-                    `[vue-timelines] ✅ Added ${newGroups.length} groups to store. Total groups: ${allGroups.length}`
-                );
+
+                // Update the Vuex store with only truly new groups
+                // Only update store if there are actually new groups to add
+                if (newGroups.length > 0) {
+                    // Merge existing groups with new groups
+                    // Handle both array and object formats for this.groups
+                    const existingGroups = Array.isArray(this.groups)
+                        ? this.groups
+                        : Object.values(this.groups);
+                    const allGroups = [...existingGroups, ...newGroups];
+                    this.isUpdatingGroups = true;
+                    this.$store.commit("api/setGroups", allGroups);
+                    this.$nextTick(() => {
+                        this.isUpdatingGroups = false;
+                    });
+                    console.log(
+                        `[vue-timelines] ✅ Added ${newGroups.length} new groups to store. Total groups: ${allGroups.length}`
+                    );
+                } else {
+                    console.log(
+                        `[vue-timelines] ℹ️ No new groups to add - all groups already exist in store`
+                    );
+                }
             }
 
             if (allTasksArray.length > 0) {
