@@ -962,6 +962,7 @@ export default {
   top: v-bind(taskTopPosition);
   width: v-bind(taskWidth);
   left: v-bind(taskLeftPosition);
+  overflow: visible;
 }
 
 .task__container {
@@ -971,21 +972,30 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
+  overflow: visible;
 }
 
 .task__content {
   padding: 0rem 0.2rem;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   position: relative;
   z-index: 3;
   white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  text-overflow: clip;
+  overflow: visible;
   height: 85%;
   background-color: var(--vt-primary, tomato);
   border-radius: v-bind(borderWidth) 0px 0px v-bind(borderWidth);
   width: calc(100% - v-bind(iconWidth));
+  min-width: 0;
+}
+
+.task__content small,
+.task__content .task__content-inner {
+  text-align: right;
+  white-space: nowrap;
 }
 
 .task__content::after {
