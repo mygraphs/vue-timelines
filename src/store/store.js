@@ -29,6 +29,10 @@ const root = {
         GROUP_EDIT_ENABLED: true,
         // Enable/disable row add/remove buttons (+ and - buttons in timeline rows)
         ROW_ADD_REMOVE_ENABLED: true,
+        // Prevent due dates from being earlier than today (default: true)
+        DUE_DATE_MIN_TODAY: true,
+        // Prevent completed tasks from being moved or resized (default: true)
+        COMPLETED_TASKS_FIXED: true,
         // Status color mapping: maps status names to CSS color values
         // Format: { "Pending": "#ffb311", "Completed": "#00a85d", ... }
         STATUS_COLORS: {},

@@ -93,6 +93,7 @@
               <VueDatePicker
                 :model-value="compEndDate"
                 @update:model-value="setEndDate"
+                :min-date="dueDateMinToday ? new Date() : null"
                 placeholder="End date ..."
                 text-input
               />
@@ -158,6 +159,8 @@ import "@vuepic/vue-datepicker/dist/main.css";
 
 import { mainHeaderHeight, cellHeight, cellSize } from "@/contexts/CellSizeContext";
 
+import { mapGetters } from "vuex";
+
 // Wrap dayjs.extend in try-catch to handle initialization issues
 try {
   if (dayjs && typeof dayjs.extend === 'function' && localizedFormat) {
@@ -217,7 +220,21 @@ export default {
     },
     setEndDate: function (endDate) {
       console.log(" End DATE CHANGED " + endDate);
-      this.dueDate = endDate / 1000;
+      let newDueDate = endDate / 1000;
+
+      // Constrain due date to not be earlier than today if flag is enabled
+      const dueDateMinToday = this.getConfig("DUE_DATE_MIN_TODAY", true);
+      if (dueDateMinToday) {
+        const todayTimestamp = Math.floor(new Date().getTime() / 1000);
+        const todayStartOfDay = Math.floor(todayTimestamp / 86400) * 86400; // Start of today in seconds
+        if (newDueDate < todayStartOfDay) {
+          // Clamp to today
+          newDueDate = todayStartOfDay;
+          console.log(" Due date cannot be earlier than today, clamped to today");
+        }
+      }
+
+      this.dueDate = newDueDate;
       this.validateDates();
     },
     handleUpdateText: function (element, text) {
@@ -413,6 +430,7 @@ export default {
     }
   },
   computed: {
+    ...mapGetters(["getConfig"]),
     creationDateText() {
       return dayjs(new Date(this.creationDate * 1000)).format("LLL");
     },
@@ -424,6 +442,9 @@ export default {
     },
     compEndDate() {
       return new Date(this.dueDate * 1000);
+    },
+    dueDateMinToday() {
+      return this.getConfig("DUE_DATE_MIN_TODAY", true);
     },
     panelStyle() {
       return {

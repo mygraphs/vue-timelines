@@ -23,8 +23,11 @@
     ></div>
     <div class="task__container">
       <div v-if="iconVisible" class="task__icon">
-        <div v-if="taskIcon"><i :class="taskIcon" /></div>
-        <div v-else><slot name="taskInfo" /></div>
+        <div v-if="lockIcon" class="task__lock-icon" :title="isTaskCompleted() ? 'Task is completed and locked' : ''">
+          <i :class="lockIcon" />
+        </div>
+        <div v-if="taskIcon && !lockIcon"><i :class="taskIcon" /></div>
+        <div v-if="!taskIcon && !lockIcon"><slot name="taskInfo" /></div>
       </div>
       <div
         class="task__resize task_resize--left"
@@ -106,6 +109,7 @@ export default {
       panelExplicitlyOpened: false, // Track if panel was explicitly opened (double click) vs just showing handlers
       state: "NO_STATE", // State color of the task, with bootstrap color structure
       taskIcon: null,
+      isResizingRight: false, // Track if we're resizing the right edge (due date)
     };
   },
   computed: {
@@ -127,6 +131,13 @@ export default {
         return false;
       }
       return true;
+    },
+    lockIcon: function () {
+      // Show lock icon if task is completed
+      if (this.isTaskCompleted()) {
+        return "fa fa-lock fa-xs";
+      }
+      return null;
     },
     selectorMargin: function () {
       let w = Math.round(this.cellHeight / 3);
@@ -237,6 +248,24 @@ export default {
   },
   methods: {
     ...mapMutations(["setCalendarSize", "setCellSizeDays"]),
+    isTaskCompleted: function () {
+      // Check if task is completed by state or progress
+      const taskState = this.task.state || this.state;
+      const taskProgress = this.task.progress ?? 0;
+      return taskState === "Completed" || taskProgress >= 1.0;
+    },
+    isTaskOverdue: function () {
+      // Check if task is overdue by state or by comparing due date to today
+      const taskState = this.task.state || this.state;
+      if (taskState === "Overdue") {
+        return true;
+      }
+
+      // Also check if due date is in the past
+      const todayDate = this.convertCellToDate(this.todayCell);
+      const taskDueDate = this.task.dueDate;
+      return taskDueDate < todayDate;
+    },
     convertToRelative: function (start, end = null) {
       if (!end) end = this.calendarInit;
 
@@ -262,6 +291,8 @@ export default {
       if (this.task.state) {
         this.state = this.task.state;
       }
+
+      // Note: lockIcon is computed, so it will automatically update when task completion status changes
 
       // Log position calculation for debugging
       const startDate = new Date(this.task.creationDate * 1000).toISOString();
@@ -377,6 +408,7 @@ export default {
 
       this.showResizes = false;
       this.panelExplicitlyOpened = false;
+      this.isResizingRight = false; // Reset flag
       this.handleUpdateDate();
       this.state = "close";
     },
@@ -386,6 +418,14 @@ export default {
     },
 
     handleDragStartTask: function (e) {
+      // Check if completed tasks are fixed and this task is completed
+      const completedTasksFixed = this.getConfig("COMPLETED_TASKS_FIXED", true);
+      if (completedTasksFixed && this.isTaskCompleted()) {
+        // If task is completed and fixed, do nothing on single click
+        // Only double-click will open the edit panel
+        return;
+      }
+
       // Check if dragging is enabled
       const draggingEnabled = this.getConfig("TASK_DRAGGING_ENABLED", true);
       if (!draggingEnabled) {
@@ -393,6 +433,9 @@ export default {
         this.handleEditOpen();
         return;
       }
+
+      // Mark that we're not resizing the right edge (we're dragging the whole task)
+      this.isResizingRight = false;
 
       // Single click: always reset panel flag (don't open panel on drag)
       this.panelExplicitlyOpened = false;
@@ -438,12 +481,32 @@ export default {
     },
 
     handleDragStartLeft: function (e) {
+      // Check if completed tasks are fixed and this task is completed
+      const completedTasksFixed = this.getConfig("COMPLETED_TASKS_FIXED", true);
+      if (completedTasksFixed && this.isTaskCompleted()) {
+        // Prevent resizing completed tasks
+        return;
+      }
+
+      // Mark that we're not resizing the right edge
+      this.isResizingRight = false;
+
       // Dragging handlers should never open the panel
       this.panelExplicitlyOpened = false;
       this.handleDragStart(e, this.handleResizeLeft.bind(this));
     },
 
     handleDragStartRight: function (e) {
+      // Check if completed tasks are fixed and this task is completed
+      const completedTasksFixed = this.getConfig("COMPLETED_TASKS_FIXED", true);
+      if (completedTasksFixed && this.isTaskCompleted()) {
+        // Prevent resizing completed tasks
+        return;
+      }
+
+      // Mark that we're resizing the right edge
+      this.isResizingRight = true;
+
       // Dragging handlers should never open the panel
       this.panelExplicitlyOpened = false;
       this.handleDragStart(e, this.handleResizeRight.bind(this));
@@ -567,6 +630,16 @@ export default {
       this.initPosition -= cellsToMove;
       this.endPosition -= cellsToMove;
 
+      // Constrain due date to not be earlier than today if flag is enabled
+      // Skip auto-adjustment if task is overdue
+      const dueDateMinToday = this.getConfig("DUE_DATE_MIN_TODAY", true);
+      if (dueDateMinToday && !this.isTaskOverdue() && this.endPosition < this.todayCell) {
+        // Calculate how much we need to adjust
+        const adjustment = this.todayCell - this.endPosition;
+        this.initPosition += adjustment;
+        this.endPosition = this.todayCell;
+      }
+
       // Only allow vertical movement if enabled via configuration
       const verticalDraggingEnabled = this.getConfig("TASK_VERTICAL_DRAGGING_ENABLED", true);
       if (verticalDraggingEnabled) {
@@ -637,6 +710,16 @@ export default {
         return;
       }
 
+      // Prevent dragging due date before today if task is not overdue
+      const dueDateMinToday = this.getConfig("DUE_DATE_MIN_TODAY", true);
+      if (dueDateMinToday && !this.isTaskOverdue()) {
+        // If trying to resize to before today, stop at today
+        if (this.endPosition + resize < this.todayCell) {
+          resize = this.todayCell - this.endPosition;
+          if (resize == 0) return; // Already at today, can't go earlier
+        }
+      }
+
       // We find a task that has a conflict with this one and we adjust the end to be 1 second before it starts.
       let old_pos = this.endPosition;
       this.endPosition += resize;
@@ -693,6 +776,21 @@ export default {
         ? this.newEndDate
         : this.convertCellToDate(this.endPosition);
 
+      // Constrain due date to not be earlier than today if flag is enabled
+      // Skip auto-adjustment if task is overdue or if we're resizing the right edge
+      // (right resize validation is handled in handleUpdateDate)
+      const dueDateMinToday = this.getConfig("DUE_DATE_MIN_TODAY", true);
+      if (dueDateMinToday && !this.isTaskOverdue() && !this.isResizingRight) {
+        // Use todayCell to get today's date in the same coordinate system
+        const todayDate = this.convertCellToDate(this.todayCell);
+        if (endDay < todayDate) {
+          endDay = todayDate;
+          // Update endPosition to match
+          this.endPosition = this.todayCell;
+          this.newEndDate = null; // Clear any override
+        }
+      }
+
       if (this.isDebug) {
         console.log(" START " + new Date(initDay * 1000));
         console.log("   END " + new Date(endDay * 1000));
@@ -716,6 +814,26 @@ export default {
 
     handleUpdateDate: function () {
       this.clearHandlers();
+
+      // If resizing right edge, validate due date is not before today (safety check)
+      // Note: We already prevent dragging before today in handleResizeRight, but this is a final validation
+      if (this.isResizingRight) {
+        const dueDateMinToday = this.getConfig("DUE_DATE_MIN_TODAY", true);
+        if (dueDateMinToday && !this.isTaskOverdue()) {
+          const endDay = this.newEndDate
+            ? this.newEndDate
+            : this.convertCellToDate(this.endPosition);
+          const todayDate = this.convertCellToDate(this.todayCell);
+
+          if (endDay < todayDate) {
+            // Invalid: due date is before today (shouldn't happen due to drag prevention, but safety check)
+            this.isValidDrop = false;
+            this.state = "dark";
+            console.log('[TimelineItem] Due date cannot be earlier than today, invalidating drop');
+          }
+        }
+      }
+
       this.cancelDropCheck();
 
       // Check if the drop is valid before updating
@@ -724,6 +842,7 @@ export default {
         // Position will be reverted by cancelDropCheck, just exit
         this.dragging = false;
         this.showResizes = false;
+        this.isResizingRight = false; // Reset flag
         return;
       }
 
@@ -755,6 +874,7 @@ export default {
       }
 
       this.dragging = false;
+      this.isResizingRight = false; // Reset flag
     },
 
     invalidate: function () {
@@ -821,6 +941,16 @@ export default {
   background: rgba(205, 206, 255, 1);
   color: var(--vt-text-primary, black);
   border-radius: 0px v-bind(borderWidth) v-bind(borderWidth) 0px;
+}
+
+.task__lock-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--vt-text-primary, black);
+  cursor: default;
 }
 </style>
 
