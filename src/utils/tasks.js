@@ -45,7 +45,9 @@ export function sortTasksHierarchically(tasks) {
   if (!tasks || tasks.length === 0) return [];
 
   // Separate root tasks and subtasks
-  const rootTasks = tasks.filter(t => !t.parentTaskId || (!t.isSubtask && !t.parentTaskId));
+  // Root tasks: tasks without parentTaskId OR tasks not marked as subtasks (even if they have parentTaskId)
+  const rootTasks = tasks.filter(t => !t.parentTaskId || !t.isSubtask);
+  // Subtasks: tasks explicitly marked as subtasks AND have a parentTaskId
   const subtasks = tasks.filter(t => t.isSubtask && t.parentTaskId);
 
   // Create a map of parent ID to subtasks

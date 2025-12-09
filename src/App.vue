@@ -22,6 +22,19 @@
 
         <div v-if="!hasTimeline" class="flex-container">
             <div class="col">
+                <div class="demo-selector">
+                    <label for="demo-select" class="demo-selector__label">Demo:</label>
+                    <select
+                        id="demo-select"
+                        v-model="selectedDemo"
+                        class="demo-selector__select"
+                    >
+                        <option value="tasks">Default Tasks</option>
+                        <option value="tasks_test">Hierarchical Tasks</option>
+                        <option value="tasks_missing_parent">Missing Parent Tasks</option>
+                        <option value="tasks_full_test">Full Test</option>
+                    </select>
+                </div>
                 <button class="btn btn-success small" @click="loadDemo">
                     Load Demo
                 </button>
@@ -55,6 +68,72 @@ import { FormCreateTimeline } from "@/components";
 var test = {
     title: "VUE-TIMELINES DEMO - Hierarchical Tasks",
 
+    tasks_test: [
+        {
+            id: "6932f443d8beeb59a701658d",
+            title: "testing recurrency",
+            group_id: "task-6932f443d8beeb59a701658d",
+            creationDate: 1764947011,
+            dueDate: 1765065599,
+            isSubtask: false,
+            parentTaskId: null,
+        },
+        {
+            id: "6932f5f1d8beeb59a70167b6",
+            title: "testing recurring. Fixed Frequency",
+            group_id: "task-6932f5f1d8beeb59a70167b6",
+            creationDate: 1764947400,
+            dueDate: 1765065599,
+            isSubtask: false,
+            parentTaskId: null,
+        },
+        {
+            id: "6932f4d6d8beeb59a70165d3",
+            title: "testing recurrency #2",
+            group_id: "task-6932f443d8beeb59a701658d",
+            creationDate: 1764947750,
+            dueDate: 1764979199,
+            isSubtask: false,
+            parentTaskId: "6932f443d8beeb59a701658d",
+        },
+        {
+            id: "6932f5afd8beeb59a7016726",
+            title: "testing recurrency #3",
+            group_id: "task-6932f443d8beeb59a701658d",
+            creationDate: 1764947940,
+            dueDate: 1766447999,
+            isSubtask: false,
+            parentTaskId: "6932f443d8beeb59a701658d",
+        },
+        {
+            id: "6932f618d8beeb59a7016861",
+            title: "testing recurring. Fixed Frequency #2",
+            group_id: "task-6932f5f1d8beeb59a70167b6",
+            creationDate: 1764948000,
+            dueDate: 1764979199,
+            isSubtask: false,
+            parentTaskId: "6932f5f1d8beeb59a70167b6",
+        },
+        {
+            id: "6932f62bd8beeb59a7016905",
+            title: "testing recurring. Fixed Frequency #3",
+            group_id: "task-6932f5f1d8beeb59a70167b6",
+            creationDate: 1765951911,
+            dueDate: 1767139199,
+            isSubtask: false,
+            parentTaskId: "6932f5f1d8beeb59a70167b6",
+        },
+        {
+            id: "6937d08b1e0369d72e3531c6",
+            title: "Testing subtasks to fixed frequency",
+            group_id: "task-6932f5f1d8beeb59a70167b6",
+            creationDate: 1765929600,
+            dueDate: 1766793599,
+            isSubtask: true,
+            parentTaskId: "6932f62bd8beeb59a7016905",
+        },
+    ],
+
     tasks_missing_parent: [
         {
             id: "6932f5afd8beeb59a7016726",
@@ -76,7 +155,7 @@ var test = {
         },
     ],
 
-    tasks_test_api: [
+    tasks: [
         {
             id: "dummy-parent-001",
             title: "Dummy Parent Task",
@@ -133,7 +212,7 @@ var test = {
         },
     ],
 
-    tasks: [
+    tasks_full_test: [
         // Group 1: Parent task with multiple subtasks
         {
             id: "01",
@@ -341,7 +420,15 @@ var test = {
             state: "Pending",
         },
     ],
-    groups: [
+
+    // Groups for each dataset
+    groups: [], // Default - groups will be auto-created from task group_ids
+
+    groups_test: [], // Hierarchical Tasks - groups will be auto-created
+
+    groups_missing_parent: [], // Missing Parent Tasks - groups will be auto-created
+
+    groups_full_test: [
         {
             name: "Project Alpha",
             id: "1",
@@ -376,6 +463,7 @@ export default {
             hasTimeline: false,
             currentTheme: "light",
             systemThemeWatcher: null,
+            selectedDemo: "tasks",
         };
     },
     computed: {
@@ -421,8 +509,23 @@ export default {
         },
         loadDemo: function () {
             this.setTitle(test.title);
-            this.setTasks(test.tasks);
-            this.setGroups(test.groups);
+
+            // Load the selected demo dataset
+            const selectedTasks = test[this.selectedDemo] || test.tasks;
+            this.setTasks(selectedTasks);
+
+            // Load the corresponding groups for the selected demo
+            // Map dataset names to their corresponding groups keys
+            const groupsKeyMap = {
+                'tasks': 'groups',
+                'tasks_test': 'groups_test',
+                'tasks_missing_parent': 'groups_missing_parent',
+                'tasks_full_test': 'groups_full_test'
+            };
+            const groupsKey = groupsKeyMap[this.selectedDemo] || 'groups';
+            const selectedGroups = test[groupsKey] || [];
+            this.setGroups(selectedGroups);
+
             this.hasTimeline = true;
             this.configureHeightResize();
         },
@@ -550,6 +653,42 @@ export default {
 }
 
 .theme-selector__select:focus {
+    border-color: var(--vt-primary, #3c8dbc);
+    box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.2);
+}
+
+/* Demo Selector */
+.demo-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.demo-selector__label {
+    font-size: 0.875rem;
+    color: var(--vt-text-secondary, #606060);
+    margin: 0;
+    font-weight: 500;
+}
+
+.demo-selector__select {
+    padding: 4px 8px;
+    border: 1px solid var(--vt-border-primary, rgb(226, 226, 226));
+    border-radius: var(--vt-radius-sm, 0.2rem);
+    background-color: var(--vt-bg-primary, #fff);
+    color: var(--vt-text-primary, #000);
+    font-size: 0.875rem;
+    cursor: pointer;
+    outline: none;
+    min-width: 180px;
+}
+
+.demo-selector__select:hover {
+    border-color: var(--vt-primary, #3c8dbc);
+}
+
+.demo-selector__select:focus {
     border-color: var(--vt-primary, #3c8dbc);
     box-shadow: 0 0 0 2px rgba(60, 141, 188, 0.2);
 }

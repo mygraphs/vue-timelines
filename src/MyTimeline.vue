@@ -502,9 +502,18 @@ export default {
                         console.log(`[vue-timelines] 🔄 Preserving existing group "${groupName}" (${groupId}) from store`);
                     } else {
                         // Create a new group with a default name
-                        // Try to extract a meaningful name from the group_id (e.g., "task-123" -> "Task 123")
+                        // If group_id starts with "task-", try to find the task and use its title
                         if (groupId.startsWith("task-")) {
-                            groupName = `Task ${groupId.replace("task-", "")}`;
+                            // Find the task that has this group_id
+                            const taskForGroup = allTasksArray.find(task => task.group_id === groupId);
+                            if (taskForGroup && taskForGroup.title) {
+                                // Use the task's title as the group name
+                                groupName = taskForGroup.title;
+                                console.log(`[vue-timelines] 📝 Using task title "${groupName}" for group ${groupId}`);
+                            } else {
+                                // Fallback: extract from group_id
+                                groupName = `Task ${groupId.replace("task-", "")}`;
+                            }
                         } else {
                             groupName = `Group ${groupId}`;
                         }
