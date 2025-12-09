@@ -42,9 +42,15 @@
 
       <div
         class="task__content prevent-select"
-        :class="taskStateClass"
+        :class="[
+          taskStateClass,
+          { 'task__content--small': shouldShowTextOutside },
+          { 'task__content--wrap': !shouldShowTextOutside }
+        ]"
         :style="taskStateStyle">
-        <slot name="task_text" />
+        <div class="task__text-wrapper">
+          <slot name="task_text" />
+        </div>
       </div>
 
       <div
@@ -244,6 +250,22 @@ export default {
         zIndex: 0,
         pointerEvents: 'none'
       };
+    },
+    taskWidthPx: function () {
+      // Calculate task width in pixels
+      return this.width * this.cellSize;
+    },
+    isTaskSmall: function () {
+      // Check if task width is less than 100px
+      return this.taskWidthPx < 100;
+    },
+    isTextWhite: function () {
+      // Text is white when it's not a subtask (subtasks have dark text)
+      return !this.task.isSubtask;
+    },
+    shouldShowTextOutside: function () {
+      // Show text outside if task is small AND text is white
+      return this.isTaskSmall;
     },
   },
   methods: {
@@ -992,10 +1014,69 @@ export default {
   min-width: 0;
 }
 
+.task__text-wrapper {
+  position: relative;
+
+  z-index: 4;
+}
+
+/* When task is small (< 100px) and text is white, show text outside on the right */
+.task__content--small .task__text-wrapper {
+  position: absolute;
+  left: calc(100% + v-bind(iconWidth));
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 4px;
+  white-space: nowrap;
+  color: var(--vt-text-primary, black);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* When there's less space, allow wrapping and vertical overflow */
+.task__content--wrap {
+  white-space: normal;
+  overflow: visible;
+  word-wrap: break-word;
+  word-break: break-word;
+  align-items: flex-start;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  overflow-y: visible;
+  overflow-x: visible;
+}
+
+.task__content--wrap .task__text-wrapper {
+  width: 100%;
+  max-height: 100%;
+  overflow: visible;
+  line-height: 1.2;
+  display: block;
+}
+
 .task__content small,
 .task__content .task__content-inner {
   text-align: right;
+}
+
+/* For small tasks with white text, text is outside so no need for nowrap */
+.task__content--small small,
+.task__content--small .task__content-inner {
   white-space: nowrap;
+  display: inline-block;
+}
+
+/* For wrapped content, allow wrapping and vertical overflow */
+.task__content--wrap small,
+.task__content--wrap .task__content-inner {
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
+  text-align: right;
+  display: block;
+  overflow: visible;
+  max-height: none;
 }
 
 .task__content::after {
