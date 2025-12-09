@@ -1040,9 +1040,7 @@ export default {
   overflow: visible;
   word-wrap: break-word;
   word-break: break-word;
-  align-items: flex-start;
-  padding-top: 2px;
-  padding-bottom: 2px;
+  align-items: center;
   overflow-y: visible;
   overflow-x: visible;
 }
