@@ -1029,7 +1029,7 @@ export default {
   margin-left: 4px;
   white-space: nowrap;
   color: var(--vt-text-primary, black);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.6);
   pointer-events: none;
   z-index: 5;
 }
@@ -1037,20 +1037,21 @@ export default {
 /* When there's less space, allow wrapping and vertical overflow */
 .task__content--wrap {
   white-space: normal;
-  overflow: visible;
-  word-wrap: break-word;
-  word-break: break-word;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  word-break: normal;
   align-items: center;
-  overflow-y: visible;
-  overflow-x: visible;
 }
 
 .task__content--wrap .task__text-wrapper {
   width: 100%;
   max-height: 100%;
-  overflow: visible;
+  overflow: hidden;
   line-height: 1.2;
-  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  text-overflow: ellipsis;
 }
 
 .task__content small,
@@ -1065,16 +1066,14 @@ export default {
   display: inline-block;
 }
 
-/* For wrapped content, allow wrapping and vertical overflow */
+/* For wrapped content, allow wrapping at word boundaries with ellipsis */
 .task__content--wrap small,
 .task__content--wrap .task__content-inner {
   white-space: normal;
-  word-wrap: break-word;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   text-align: right;
   display: block;
-  overflow: visible;
-  max-height: none;
 }
 
 .task__content::after {
