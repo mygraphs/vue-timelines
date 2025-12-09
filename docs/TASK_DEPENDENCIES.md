@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document describes the desired behavior for displaying task dependencies (parent tasks and subtasks) in vue-timelines, specifically for the RiskPal tasking and monitoring system. The goal is to render subtasks in a Gantt chart-like hierarchical structure where subtasks are visually nested under their parent tasks.
+This document describes the behavior for displaying task dependencies (parent tasks and subtasks) in vue-timelines. The goal is to render subtasks in a Gantt chart-like hierarchical structure where subtasks are visually nested under their parent tasks.
 
 ## Current Behavior
 
-Currently, tasks and subtasks are rendered at the same level in the timeline, grouped only by Risk Assessment (RA). This means:
+Tasks and subtasks can be organized hierarchically within their groups. The component supports:
 
-- All tasks appear as top-level items within their RA group
+- Parent tasks displayed at the top level within their group
 - Subtasks are not visually distinguished from parent tasks
 - No hierarchical indentation or nesting is shown
 - Dependencies between parent tasks and subtasks are not visually represented
@@ -19,7 +19,7 @@ Currently, tasks and subtasks are rendered at the same level in the timeline, gr
 
 Subtasks should be displayed in a hierarchical, Gantt chart-like structure:
 
-1. **Parent Tasks**: Displayed at the top level within their RA group
+1. **Parent Tasks**: Displayed at the top level within their group
 2. **Subtasks**: Displayed indented/nested directly below their parent task
 3. **Visual Indicators**:
    - Subtasks should be visually indented (e.g., 20-30px left margin per level)
@@ -29,7 +29,7 @@ Subtasks should be displayed in a hierarchical, Gantt chart-like structure:
 ### Grouping Structure
 
 ```
-RA Group: "Project Alpha"
+Group: "Project Alpha"
 ├── Parent Task 1 (top-level, full width)
 │   ├── Subtask 1.1 (indented, nested under Parent 1)
 │   ├── Subtask 1.2 (indented, nested under Parent 1)
@@ -41,7 +41,7 @@ RA Group: "Project Alpha"
 
 ### Task Data Model
 
-Tasks in RiskPal have the following structure:
+Tasks have the following structure:
 
 ```typescript
 interface Task {
@@ -53,7 +53,7 @@ interface Task {
   dueDate?: string;               // Due date (ISO string)
   status: TaskStatus;              // 'Pending' | 'Ongoing' | 'Completed' | 'Overdue' | 'Cancelled' | 'Reopened'
   progress?: number;               // Progress from 0.0 to 1.0
-  raId?: string | null;            // Risk Assessment ID (for grouping)
+  group_id?: string | null;       // Group ID (for grouping tasks)
   // ... other fields
 }
 ```
@@ -62,13 +62,13 @@ interface Task {
 
 - **Subtask** (`isSubtask: true`): A completion dependency of a parent task. These should be nested under their parent.
 - **Recurring Child** (`recurrencePattern.parentTaskId` exists): A recurring instance of a task. These are NOT subtasks and should NOT be nested.
-- **Root Task** (`parentTaskId: null`): A top-level task with no parent. These appear at the top level of their RA group.
+- **Root Task** (`parentTaskId: null`): A top-level task with no parent. These appear at the top level of their group.
 
 ## Implementation Requirements
 
 ### 1. Task Sorting and Ordering
 
-Tasks should be sorted within each RA group as follows:
+Tasks should be sorted within each group as follows:
 
 1. **Root tasks first** (tasks with `parentTaskId === null`)
 2. **Subtasks immediately after their parent** (tasks with `parentTaskId` matching a parent's `_id`)
@@ -76,7 +76,7 @@ Tasks should be sorted within each RA group as follows:
 
 **Example Sort Order:**
 ```
-RA Group: "Project Alpha"
+Group: "Project Alpha"
 1. Parent Task A (_id: "task-1", parentTaskId: null)
 2. Subtask A.1 (_id: "task-2", parentTaskId: "task-1")
 3. Subtask A.2 (_id: "task-3", parentTaskId: "task-1")
@@ -123,21 +123,23 @@ This is handled by the backend, but the timeline should display the calculated p
 
 ## Data Transformation
 
-### Current Transformation (task-timeline.component.ts)
+### Task Transformation Example
 
-The current transformation flattens all tasks:
+When transforming tasks for the timeline, ensure hierarchy is preserved:
 
 ```typescript
 this.timelineTasks = this.tasks.map((task, index) => {
   return {
     id: task._id,
-    group_id: task.raId || 'unassigned',
+    group_id: task.group_id || 'unassigned',
     title: task.title,
     creationDate: ...,
     dueDate: ...,
     progress: ...,
     priority: ...,
-    state: ...
+    state: ...,
+    parentTaskId: task.parentTaskId || null,
+    isSubtask: task.isSubtask || false
   };
 });
 ```
@@ -299,7 +301,7 @@ When tasks are updated (drag-and-drop, date changes), the component should:
 // Transform tasks for timeline
 const timelineTasks = sortTasksHierarchically(tasks).map(task => ({
   id: task._id,
-  group_id: task.raId || 'unassigned',
+  group_id: task.group_id || 'unassigned',
   title: task.title,
   creationDate: task.startDate
     ? Math.floor(new Date(task.startDate).getTime() / 1000)
@@ -340,7 +342,7 @@ const timelineTasks = sortTasksHierarchically(tasks).map(task => ({
 
 **Expected**: Parent task at top level, subtasks indented below it.
 
-### Scenario 2: Multiple Parents in Same RA
+### Scenario 2: Multiple Parents in Same Group
 
 - **Parent Task A**: "Frontend Development" (Jan 1 - Jan 20)
   - **Subtask A.1**: "Setup project" (Jan 1 - Jan 3)
@@ -374,7 +376,7 @@ const timelineTasks = sortTasksHierarchically(tasks).map(task => ({
 1. Add `parentTaskId` and `isSubtask` to task data model
 2. Implement hierarchical sorting
 3. Add visual indentation (CSS classes)
-4. Test with existing RiskPal task data
+4. Test with hierarchical task data
 
 ### Phase 2: Enhanced Visuals (Future)
 
@@ -398,7 +400,7 @@ const timelineTasks = sortTasksHierarchically(tasks).map(task => ({
 
 ## Questions and Considerations
 
-1. **Nested Subtasks**: Should subtasks be able to have their own subtasks? (Currently not supported in RiskPal, but consider for future)
+1. **Nested Subtasks**: Should subtasks be able to have their own subtasks? (Currently supported with depth calculation)
 
 2. **Date Constraints**: Should subtasks be constrained to their parent's date range when dragging?
 
@@ -410,8 +412,9 @@ const timelineTasks = sortTasksHierarchically(tasks).map(task => ({
 
 ## Implementation Notes
 
-- The backend already calculates progress based on subtasks (see `calculateTaskProgress` in `routes/v2/tasks.js`)
-- The frontend `TaskTimelineComponent` currently flattens all tasks - this needs to be updated
-- Consider adding a `depth` property to tasks for CSS styling
-- Ensure drag-and-drop maintains parent-child relationships
+- The component automatically calculates task depth for hierarchical styling
+- Tasks are sorted hierarchically with parent tasks appearing before their subtasks
+- The `depth` property is automatically added to tasks for CSS styling
+- Drag-and-drop maintains parent-child relationships
+- Parent task validation ensures referenced parents exist (invalid references are set to null)
 
