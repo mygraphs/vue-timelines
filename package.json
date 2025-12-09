@@ -3,7 +3,7 @@
   "description": "Vue timelines component",
   "author": "mygraphs",
   "license": "MIT",
-  "version": "0.2.7",
+  "version": "0.3.1",
   "type": "module",
   "private": false,
   "main": "dist/vue-timelines.umd.js",
