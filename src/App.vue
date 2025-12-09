@@ -29,10 +29,10 @@
                         v-model="selectedDemo"
                         class="demo-selector__select"
                     >
+                        <option value="tasks_full_test">Full Test</option>
                         <option value="tasks">Default Tasks</option>
                         <option value="tasks_test">Hierarchical Tasks</option>
                         <option value="tasks_missing_parent">Missing Parent Tasks</option>
-                        <option value="tasks_full_test">Full Test</option>
                     </select>
                 </div>
                 <button class="btn btn-success small" @click="loadDemo">
@@ -463,7 +463,7 @@ export default {
             hasTimeline: false,
             currentTheme: "light",
             systemThemeWatcher: null,
-            selectedDemo: "tasks",
+            selectedDemo: "tasks_full_test",
         };
     },
     computed: {
@@ -533,12 +533,22 @@ export default {
             nextTick(() => {
                 const observedElement = this.$refs.myGraphContainer;
                 if (observedElement) {
-                    const resizeObserver = new ResizeObserver((entries) => {
-                        this.height = observedElement.clientHeight;
-                        console.log(" CLIENT HEIGHT " + this.height);
+                    // Disconnect existing observer if any
+                    if (this.resizeObserver) {
+                        this.resizeObserver.disconnect();
+                    }
+
+                    this.resizeObserver = new ResizeObserver((entries) => {
+                        // Use requestAnimationFrame to prevent ResizeObserver loop errors
+                        requestAnimationFrame(() => {
+                            if (observedElement) {
+                                this.height = observedElement.clientHeight;
+                                console.log(" CLIENT HEIGHT " + this.height);
+                            }
+                        });
                     });
 
-                    resizeObserver.observe(observedElement);
+                    this.resizeObserver.observe(observedElement);
                 }
             });
         },
@@ -585,6 +595,10 @@ export default {
         // Cleanup theme watcher
         if (this.systemThemeWatcher) {
             this.systemThemeWatcher();
+        }
+        // Cleanup resize observer
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
         }
     },
     components: {
