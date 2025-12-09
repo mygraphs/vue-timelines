@@ -55,6 +55,27 @@ import { FormCreateTimeline } from "@/components";
 var test = {
     title: "VUE-TIMELINES DEMO - Hierarchical Tasks",
 
+    tasks_missing_parent: [
+        {
+            id: "6932f5afd8beeb59a7016726",
+            title: "testing recurrency #3",
+            group_id: "task-6932f5afd8beeb59a7016726",
+            creationDate: 1764947966,
+            dueDate: 1764979199,
+            isSubtask: false,
+            parentTaskId: "6932f443d8beeb59a701658d",
+        },
+        {
+            id: "6932f62bd8beeb59a7016905",
+            title: "testing recurring. Fixed Frequency #3",
+            group_id: "task-6932f62bd8beeb59a7016905",
+            creationDate: 1764948600,
+            dueDate: 1764979199,
+            isSubtask: false,
+            parentTaskId: "6932f5f1d8beeb59a70167b6",
+        },
+    ],
+
     tasks_test_api: [
         {
             id: "dummy-parent-001",

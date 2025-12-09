@@ -35,25 +35,49 @@ export default function createApiModule(apiService = new NoopApiService()) {
       setTasks(state, tasks) {
         const taskCount = (tasks && tasks.length) ? tasks.length : 0;
         console.log('[vue-timelines] Store mutation: api/setTasks', taskCount, 'tasks');
-        
+
         if (taskCount > 0) {
+          // Pre-check: Validate parent tasks exist
+          // Create a Set of all task IDs for fast lookup
+          const taskIds = new Set(tasks.map(task => task.id));
+
+          // Validate and sanitize parentTaskId references
+          const sanitizedTasks = tasks.map(task => {
+            // If task has a parentTaskId, check if parent exists
+            if (task.parentTaskId != null && task.parentTaskId !== undefined) {
+              if (!taskIds.has(task.parentTaskId)) {
+                console.warn(
+                  `[vue-timelines] Task "${task.title}" (${task.id}) references non-existent parent "${task.parentTaskId}". Setting parentTaskId to null.`
+                );
+                return {
+                  ...task,
+                  parentTaskId: null
+                };
+              }
+            }
+            return task;
+          });
+
           // Group tasks by group_id to see distribution
           const tasksByGroup = {};
-          tasks.forEach(task => {
+          sanitizedTasks.forEach(task => {
             const groupId = task.group_id || 'unknown';
             if (!tasksByGroup[groupId]) {
               tasksByGroup[groupId] = [];
             }
             tasksByGroup[groupId].push(task.id);
           });
-          
+
           console.log('[vue-timelines] 📊 Tasks by group:');
           Object.keys(tasksByGroup).forEach(groupId => {
             console.log(`  - ${groupId}: ${tasksByGroup[groupId].length} tasks [${tasksByGroup[groupId].join(', ')}]`);
           });
+
+          state.tasks = sanitizedTasks;
+        } else {
+          state.tasks = [];
         }
-        
-        state.tasks = tasks || [];
+
         console.log('[vue-timelines] Store state.tasks after mutation:', state.tasks.length, 'tasks');
       },
       setTimeline(state, json) {

@@ -654,37 +654,73 @@ export default {
                     currentRow++;
                 });
 
-                // Then, assign rows to subtasks (after their parent)
-                groupSubtasks.forEach((task) => {
-                    const parentRow = groupTaskRows[groupId][task.parentTaskId];
-                    if (parentRow !== undefined) {
-                        // Find the highest row already assigned to subtasks of this parent
-                        const parentSubtasks = subtaskMap.get(task.parentTaskId) || [];
-                        const existingSubtaskRows = parentSubtasks
-                            .filter(
-                                (st) =>
-                                    st.id !== task.id &&
-                                    groupTaskRows[groupId][st.id] !== undefined
-                            )
-                            .map((st) => groupTaskRows[groupId][st.id]);
+                // Then, assign rows to subtasks grouped by their parent
+                // Process parents in the order they were assigned rows
+                groupParentTasks.forEach((parentTask) => {
+                    // Get all subtasks for this parent that are in this group
+                    const parentSubtasks = groupSubtasks.filter(
+                        (st) => st.parentTaskId === parentTask.id
+                    );
 
-                        const maxSubtaskRow =
-                            existingSubtaskRows.length > 0
-                                ? Math.max(...existingSubtaskRows)
-                                : parentRow;
+                    // Sort subtasks by creation date to maintain consistent order
+                    parentSubtasks.sort((a, b) => {
+                        if (a.creationDate && b.creationDate) {
+                            return a.creationDate - b.creationDate;
+                        }
+                        return (a.title || '').localeCompare(b.title || '');
+                    });
 
-                        // Assign to next row after the highest subtask row (or parent if no subtasks yet)
-                        const nextRow = maxSubtaskRow + 1;
-                        groupTaskRows[groupId][task.id] = nextRow;
-                        currentRow = Math.max(currentRow, nextRow + 1);
-                    } else {
-                        // FALLBACK: Parent not found in this group, assign to end
-                        groupTaskRows[groupId][task.id] = currentRow;
-                        currentRow++;
-                        console.warn(
-                            `[vue-timelines] ⚠️ Parent row not found for subtask "${task.title}" (${task.id}), parent: ${task.parentTaskId}. Assigned to row ${currentRow - 1} in group ${groupId}`
-                        );
-                    }
+                    // Assign rows to subtasks sequentially after their parent
+                    parentSubtasks.forEach((subtask) => {
+                        const parentRow = groupTaskRows[groupId][parentTask.id];
+                        if (parentRow !== undefined) {
+                            // Find the highest row already assigned to subtasks of this parent
+                            const existingSubtaskRows = parentSubtasks
+                                .filter(
+                                    (st) =>
+                                        st.id !== subtask.id &&
+                                        groupTaskRows[groupId][st.id] !== undefined
+                                )
+                                .map((st) => groupTaskRows[groupId][st.id]);
+
+                            const maxSubtaskRow =
+                                existingSubtaskRows.length > 0
+                                    ? Math.max(...existingSubtaskRows)
+                                    : parentRow;
+
+                            // Assign to next row after the highest subtask row (or parent if no subtasks yet)
+                            const nextRow = maxSubtaskRow + 1;
+                            groupTaskRows[groupId][subtask.id] = nextRow;
+                            currentRow = Math.max(currentRow, nextRow + 1);
+                        } else {
+                            // FALLBACK: Parent not found in this group, assign to end
+                            groupTaskRows[groupId][subtask.id] = currentRow;
+                            currentRow++;
+                            console.warn(
+                                `[vue-timelines] ⚠️ Parent row not found for subtask "${subtask.title}" (${subtask.id}), parent: ${subtask.parentTaskId}. Assigned to row ${currentRow - 1} in group ${groupId}`
+                            );
+                        }
+                    });
+                });
+
+                // Handle any orphaned subtasks (parent not in groupParentTasks)
+                const processedSubtaskIds = new Set();
+                groupParentTasks.forEach((parentTask) => {
+                    const parentSubtasks = groupSubtasks.filter(
+                        (st) => st.parentTaskId === parentTask.id
+                    );
+                    parentSubtasks.forEach((st) => processedSubtaskIds.add(st.id));
+                });
+
+                const orphanedSubtasks = groupSubtasks.filter(
+                    (st) => !processedSubtaskIds.has(st.id)
+                );
+                orphanedSubtasks.forEach((subtask) => {
+                    groupTaskRows[groupId][subtask.id] = currentRow;
+                    currentRow++;
+                    console.warn(
+                        `[vue-timelines] ⚠️ Orphaned subtask "${subtask.title}" (${subtask.id}), parent: ${subtask.parentTaskId} not found in group. Assigned to row ${currentRow - 1} in group ${groupId}`
+                    );
                 });
 
                 console.log(
